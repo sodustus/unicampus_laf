@@ -28,4 +28,4 @@ The platform includes:
 
 ## Project Goal
 
-To provide a reliable, user-friendly system for university communities to recover lost belongings quickly while maintaining transparency, accountability, and trust.
+To provide a reliable, user-friendly system for university communities to recover lost belongings quickly while maintaining transparency, accountability and trust.
