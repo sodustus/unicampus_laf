@@ -5,7 +5,7 @@ from typing import List
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Campus Lost & Found System"
     API_V1_STR: str = "/api"
-    DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/unicampus_laf"
+    DATABASE_URL: str = "postgresql+psycopg://postgres:MySecurePass2026!@localhost:5432/unicampus_laf"
     BACKEND_PORT: int = 8000
     BACKEND_HOST: str = "127.0.0.1"
     CORS_ORIGINS: List[str] = [
