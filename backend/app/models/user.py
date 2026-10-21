@@ -9,6 +9,9 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 
+from sqlalchemy.orm import relationship
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -21,3 +24,5 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+    reports = relationship("Report", back_populates="owner", cascade="all, delete-orphan")

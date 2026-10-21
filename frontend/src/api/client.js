@@ -30,3 +30,73 @@ export async function fetchHealth() {
     };
   }
 }
+
+export async function fetchCategories() {
+  const res = await fetch(`${BASE_URL}/categories`);
+  if (!res.ok) throw new Error('Failed to load categories');
+  return await res.json();
+}
+
+export async function fetchReports(filters = {}, token = null) {
+  const params = new URLSearchParams();
+  if (filters.type) params.append('type', filters.type);
+  if (filters.category_id) params.append('category_id', filters.category_id);
+  if (filters.location) params.append('location', filters.location);
+  if (filters.status) params.append('status', filters.status);
+  if (filters.q) params.append('q', filters.q);
+  if (filters.sort) params.append('sort', filters.sort);
+
+  const headers = { Accept: 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}/reports?${params.toString()}`, { headers });
+  if (!res.ok) throw new Error('Failed to fetch reports');
+  return await res.json();
+}
+
+export async function fetchReportDetail(reportId, token = null) {
+  const headers = { Accept: 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}/reports/${reportId}`, { headers });
+  if (!res.ok) throw new Error('Failed to load report details');
+  return await res.json();
+}
+
+export async function createReport(reportData, token) {
+  const res = await fetch(`${BASE_URL}/reports`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(reportData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit report');
+  return data;
+}
+
+export async function markReportRecovered(reportId, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/recover`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to mark report recovered');
+  return data;
+}
+
+export async function deleteReport(reportId, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to delete report');
+  return data;
+}

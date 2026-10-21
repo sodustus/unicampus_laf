@@ -1,31 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { fetchHealth } from './api/client';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  fetchHealth,
+  fetchCategories,
+  fetchReports,
+  markReportRecovered,
+  deleteReport,
+} from './api/client';
 import { useAuth } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
+import ReportModal from './components/ReportModal';
+import ReportCard from './components/ReportCard';
+import ReportDetailModal from './components/ReportDetailModal';
+import SearchFilters from './components/SearchFilters';
 import './App.css';
 
 export default function App() {
-  const { user, isAuthenticated, isAdmin, logout, checkAdminAccess, quickLogin } = useAuth();
+  const { user, token, isAuthenticated, isAdmin, logout, checkAdminAccess, quickLogin } = useAuth();
+  
+  // Health probe state
   const [healthData, setHealthData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingHealth, setLoadingHealth] = useState(true);
   const [lastChecked, setLastChecked] = useState(null);
   const [latency, setLatency] = useState(null);
+
+  // Auth & Admin test state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [adminTestResult, setAdminTestResult] = useState(null);
   const [adminTesting, setAdminTesting] = useState(false);
 
+  // Step 3 & 4: Reports, Categories & Filters state
+  const [categories, setCategories] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(true);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [filters, setFilters] = useState({
+    type: '',
+    category_id: '',
+    location: '',
+    status: 'active',
+    q: '',
+    sort: 'newest',
+  });
+
   const checkStatus = async () => {
-    setLoading(true);
+    setLoadingHealth(true);
     const res = await fetchHealth();
     setHealthData(res);
     setLatency(res.latency);
     setLastChecked(new Date().toLocaleTimeString());
-    setLoading(false);
+    setLoadingHealth(false);
   };
+
+  const loadCategories = async () => {
+    try {
+      const cats = await fetchCategories();
+      setCategories(cats);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    }
+  };
+
+  const loadReports = useCallback(async () => {
+    setLoadingReports(true);
+    try {
+      const data = await fetchReports(filters, token);
+      setReports(data);
+    } catch (err) {
+      console.error('Failed to load reports:', err);
+    } finally {
+      setLoadingReports(false);
+    }
+  }, [filters, token]);
 
   useEffect(() => {
     checkStatus();
+    loadCategories();
   }, []);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleReportCreated = (newReport) => {
+    loadReports();
+    // Prompt view of newly created report
+    setSelectedReportId(newReport.id);
+  };
+
+  const handleRecoverReport = async (reportId) => {
+    if (!token) return;
+    try {
+      await markReportRecovered(reportId, token);
+      loadReports();
+    } catch (err) {
+      alert(err.message || 'Failed to mark report recovered');
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (!token) return;
+    if (!window.confirm('Are you sure you want to delete this report?')) return;
+    try {
+      await deleteReport(reportId, token);
+      loadReports();
+    } catch (err) {
+      alert(err.message || 'Failed to delete report');
+    }
+  };
+
+  const handleClaimItem = (report) => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    alert(`Claim workflow initiated for item #${report.id} (${report.title}). Proceeding to Step 5 (Claims & Verification)!`);
+  };
 
   const handleTestAdminRoute = async () => {
     setAdminTesting(true);
@@ -48,10 +142,10 @@ export default function App() {
 
   const roadmapSteps = [
     { num: 1, title: 'Skeleton', desc: 'React app, FastAPI app, and PostgreSQL connected', status: 'completed' },
-    { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles (Argon2 + JWT)', status: 'completed' },
-    { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field)', status: 'current' },
-    { num: 4, title: 'Browse & Search', desc: 'Filter by category, location, status, and keywords', status: 'upcoming' },
-    { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and approval', status: 'upcoming' },
+    { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles (Argon2id + JWT)', status: 'completed' },
+    { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field & privacy boundary)', status: 'completed' },
+    { num: 4, title: 'Browse & Search', desc: 'Filter by type, category, location, status, keyword search, and sorting', status: 'completed' },
+    { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and admin decision', status: 'current' },
     { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'upcoming' },
     { num: 7, title: 'Dashboards', desc: 'Dedicated views for students/staff and administrators', status: 'upcoming' },
   ];
@@ -97,34 +191,71 @@ export default function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Hero Section */}
-        <section className="hero-section glass-panel">
-          <div className="hero-text">
-            <h2>UniCampus Lost & Found Architecture Verification</h2>
-            <p>
-              Phase 1 (Accounts & Auth) verified. The backend enforces <strong>Argon2id password hashing</strong>, 
-              <strong> JWT Bearer tokens</strong>, and strict <strong>server-side role authorization</strong>.
-            </p>
+        {/* Step 4: Search & Filters Toolbar */}
+        <SearchFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          categories={categories}
+          onOpenReportModal={() => {
+            if (!isAuthenticated) {
+              setIsAuthModalOpen(true);
+            } else {
+              setIsReportModalOpen(true);
+            }
+          }}
+        />
+
+        {/* Step 3 & 4: Live Reports Grid */}
+        <section className="reports-section">
+          <div className="reports-header-row">
+            <h3>
+              Campus Listings{' '}
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                ({reports.length} {reports.length === 1 ? 'item' : 'items'} found)
+              </span>
+            </h3>
+            <span className="badge badge-info">
+              {filters.type ? `${filters.type.toUpperCase()} ITEMS` : 'ALL REPORTS'}
+            </span>
           </div>
 
-          <div className="hero-action">
-            <button
-              id="btn-recheck-status"
-              className="btn btn-primary"
-              onClick={checkStatus}
-              disabled={loading}
-            >
-              {loading ? 'Pinging Services...' : '🔄 Test Connectivity'}
-            </button>
-            {lastChecked && (
-              <span className="last-checked">
-                Last checked: {lastChecked} {latency ? `(${latency}ms)` : ''}
-              </span>
-            )}
-          </div>
+          {loadingReports ? (
+            <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              Loading campus listings...
+            </div>
+          ) : reports.length === 0 ? (
+            <div className="glass-panel empty-reports-box">
+              <span className="empty-icon">📭</span>
+              <h4 className="empty-title">No reports match your filters</h4>
+              <p className="empty-subtitle">
+                Try clearing your search query or switching categories, or be the first to post a lost/found report!
+              </p>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!isAuthenticated) setIsAuthModalOpen(true);
+                  else setIsReportModalOpen(true);
+                }}
+              >
+                ➕ Post a Report Now
+              </button>
+            </div>
+          ) : (
+            <div className="reports-grid">
+              {reports.map((report) => (
+                <ReportCard
+                  key={report.id}
+                  report={report}
+                  onSelect={(r) => setSelectedReportId(r.id)}
+                  onRecover={handleRecoverReport}
+                  onDelete={handleDeleteReport}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
-        {/* Live Role-Based Authorization Proof Card (FR-AUTH-07, NFR-02) */}
+        {/* Step 2: Live Role-Based Authorization Proof Card */}
         <section className="glass-panel auth-security-card">
           <div className="auth-security-header">
             <div>
@@ -207,7 +338,7 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              Single-page application running locally with hot module replacement and AuthContext.
+              Search, filters, reporting dialogs, and detail modals with privacy protection.
             </p>
             <div className="service-meta">
               <span>Port: <strong>5173</strong></span>
@@ -231,11 +362,11 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              RESTful API with Pydantic validation, Argon2id password hashing, and PyJWT auth.
+              Report CRUD, categories, and query parameters for full-text search and filtering.
             </p>
             <div className="service-meta">
               <span>Port: <strong>8000</strong></span>
-              <span>Auth: <code>/auth/login</code></span>
+              <span>Endpoints: <code>/reports</code></span>
             </div>
           </div>
 
@@ -255,7 +386,7 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              Relational persistence with `users` table seeded with demo accounts.
+              Shared `reports` table with soft delete and `categories` relational mapping.
             </p>
             <div className="service-meta">
               <span>Port: <strong>5432</strong></span>
@@ -311,8 +442,20 @@ export default function App() {
         <p>UniCampus Lost & Found System &bull; Graduation Project Build &bull; Clean Architecture</p>
       </footer>
 
-      {/* Auth Modal */}
+      {/* Modals */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onReportCreated={handleReportCreated}
+      />
+      <ReportDetailModal
+        reportId={selectedReportId}
+        onClose={() => setSelectedReportId(null)}
+        onRecover={handleRecoverReport}
+        onDelete={handleDeleteReport}
+        onClaim={handleClaimItem}
+      />
     </div>
   );
 }
