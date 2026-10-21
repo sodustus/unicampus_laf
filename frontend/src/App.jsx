@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { fetchHealth } from './api/client';
+import { useAuth } from './context/AuthContext';
+import AuthModal from './components/AuthModal';
 import './App.css';
 
 export default function App() {
+  const { user, isAuthenticated, isAdmin, logout, checkAdminAccess, quickLogin } = useAuth();
   const [healthData, setHealthData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState(null);
   const [latency, setLatency] = useState(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [adminTestResult, setAdminTestResult] = useState(null);
+  const [adminTesting, setAdminTesting] = useState(false);
 
   const checkStatus = async () => {
     setLoading(true);
@@ -21,13 +27,29 @@ export default function App() {
     checkStatus();
   }, []);
 
+  const handleTestAdminRoute = async () => {
+    setAdminTesting(true);
+    try {
+      const result = await checkAdminAccess();
+      setAdminTestResult(result);
+    } catch (err) {
+      setAdminTestResult({
+        status: 401,
+        ok: false,
+        data: { detail: err.message },
+      });
+    } finally {
+      setAdminTesting(false);
+    }
+  };
+
   const isBackendOnline = healthData?.success && healthData?.data?.status === 'online';
   const isDbConnected = healthData?.data?.database?.status === 'connected';
 
   const roadmapSteps = [
-    { num: 1, title: 'Skeleton', desc: 'React app, FastAPI app, and PostgreSQL connected', status: 'current' },
-    { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles', status: 'upcoming' },
-    { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field)', status: 'upcoming' },
+    { num: 1, title: 'Skeleton', desc: 'React app, FastAPI app, and PostgreSQL connected', status: 'completed' },
+    { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles (Argon2 + JWT)', status: 'completed' },
+    { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field)', status: 'current' },
     { num: 4, title: 'Browse & Search', desc: 'Filter by category, location, status, and keywords', status: 'upcoming' },
     { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and approval', status: 'upcoming' },
     { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'upcoming' },
@@ -45,8 +67,27 @@ export default function App() {
             <p className="brand-subtitle">Campus Lost & Found Management System</p>
           </div>
         </div>
+
         <div className="nav-badges">
-          <span className="badge badge-info">SRS Phase 0</span>
+          {isAuthenticated ? (
+            <div className="user-profile-group">
+              <div className="user-chip">
+                <div className="user-avatar">{user.email[0].toUpperCase()}</div>
+                <span className="user-email">{user.email}</span>
+                <span className={`badge ${isAdmin ? 'badge-role-admin' : 'badge-role-user'}`}>
+                  {isAdmin ? '🛡️ Administrator' : '👤 Student / Staff'}
+                </span>
+              </div>
+              <button className="btn btn-secondary" onClick={logout}>
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button className="btn btn-primary" onClick={() => setIsAuthModalOpen(true)}>
+              🔐 Sign In / Register
+            </button>
+          )}
+
           <span className={`badge ${isBackendOnline ? 'badge-success' : 'badge-warning'}`}>
             <span className={`pulse-dot ${isBackendOnline ? 'online' : 'warning'}`}></span>
             {isBackendOnline ? 'System Online' : 'API Connecting...'}
@@ -59,10 +100,10 @@ export default function App() {
         {/* Hero Section */}
         <section className="hero-section glass-panel">
           <div className="hero-text">
-            <h2>Phase 0: Project Skeleton Verification</h2>
+            <h2>UniCampus Lost & Found Architecture Verification</h2>
             <p>
-              Verifying 3-tier connectivity between the <strong>React + Vite</strong> frontend, 
-              <strong> FastAPI</strong> backend, and <strong>PostgreSQL</strong> database.
+              Phase 1 (Accounts & Auth) verified. The backend enforces <strong>Argon2id password hashing</strong>, 
+              <strong> JWT Bearer tokens</strong>, and strict <strong>server-side role authorization</strong>.
             </p>
           </div>
 
@@ -73,12 +114,77 @@ export default function App() {
               onClick={checkStatus}
               disabled={loading}
             >
-              {loading ? 'Pinging Services...' : '🔄 Test Connection'}
+              {loading ? 'Pinging Services...' : '🔄 Test Connectivity'}
             </button>
             {lastChecked && (
               <span className="last-checked">
                 Last checked: {lastChecked} {latency ? `(${latency}ms)` : ''}
               </span>
+            )}
+          </div>
+        </section>
+
+        {/* Live Role-Based Authorization Proof Card (FR-AUTH-07, NFR-02) */}
+        <section className="glass-panel auth-security-card">
+          <div className="auth-security-header">
+            <div>
+              <h3>🛡️ Role-Based Access Control Proof (FR-AUTH-07 & NFR-02)</h3>
+              <p className="security-hint">
+                Tests server-side authorization directly. Regular users are strictly rejected with <strong>HTTP 403 Forbidden</strong>; 
+                only accounts with the <strong>admin</strong> role are granted access to restricted operations.
+              </p>
+            </div>
+            <div className="demo-btns" style={{ minWidth: '320px' }}>
+              <button
+                type="button"
+                className="btn btn-demo-user"
+                onClick={() => quickLogin('student')}
+              >
+                👤 Switch to Student
+              </button>
+              <button
+                type="button"
+                className="btn btn-demo-admin"
+                onClick={() => quickLogin('admin')}
+              >
+                🛡️ Switch to Admin
+              </button>
+            </div>
+          </div>
+
+          <div className="security-results-box">
+            <div className="security-result-row">
+              <span>Active Session:</span>
+              {isAuthenticated ? (
+                <span className="badge badge-info">
+                  {user.email} &bull; <strong>{user.role.toUpperCase()}</strong>
+                </span>
+              ) : (
+                <span className="badge badge-warning">Unauthenticated (Guest)</span>
+              )}
+              <button
+                className="btn btn-secondary security-test-btn"
+                onClick={handleTestAdminRoute}
+                disabled={adminTesting || !isAuthenticated}
+              >
+                {adminTesting ? 'Testing Server Route...' : '⚡ Probe Admin-Only Route (/auth/admin-check)'}
+              </button>
+            </div>
+
+            {adminTestResult && (
+              <div className="security-result-row" style={{ marginTop: '8px' }}>
+                <span>Backend Response:</span>
+                {adminTestResult.ok ? (
+                  <span className="badge badge-success">
+                    HTTP 200 OK &bull; Access Granted ({adminTestResult.data.message})
+                  </span>
+                ) : (
+                  <span className="badge badge-danger">
+                    HTTP {adminTestResult.status} {adminTestResult.status === 403 ? 'Forbidden' : 'Unauthorized'} &bull; 
+                    {adminTestResult.data.detail}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </section>
@@ -101,7 +207,7 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              Single-page application running locally with hot module replacement.
+              Single-page application running locally with hot module replacement and AuthContext.
             </p>
             <div className="service-meta">
               <span>Port: <strong>5173</strong></span>
@@ -125,11 +231,11 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              RESTful API with Pydantic request validation and CORS middleware.
+              RESTful API with Pydantic validation, Argon2id password hashing, and PyJWT auth.
             </p>
             <div className="service-meta">
               <span>Port: <strong>8000</strong></span>
-              <span>Endpoint: <code>/health</code></span>
+              <span>Auth: <code>/auth/login</code></span>
             </div>
           </div>
 
@@ -149,33 +255,13 @@ export default function App() {
               </span>
             </div>
             <p className="service-desc">
-              Relational persistence managed via SQLAlchemy ORM with connection pooling.
+              Relational persistence with `users` table seeded with demo accounts.
             </p>
             <div className="service-meta">
               <span>Port: <strong>5432</strong></span>
               <span>DB: <strong>unicampus_laf</strong></span>
             </div>
           </div>
-        </section>
-
-        {/* Live API Response Inspector */}
-        <section className="glass-panel api-inspector">
-          <div className="inspector-header">
-            <h3>Live Health Probe Response (GET /health)</h3>
-            <span className="badge badge-info">{latency ? `${latency} ms response` : 'Idle'}</span>
-          </div>
-          <pre className="code-view">
-            {loading
-              ? '// Pinging backend server at http://127.0.0.1:8000/health ...'
-              : JSON.stringify(healthData?.data || healthData, null, 2)}
-          </pre>
-          {!isDbConnected && (
-            <div className="setup-hint">
-              <strong>Database Notice:</strong> If PostgreSQL isn't running yet on port 5432, run in Admin PowerShell:
-              <code>Start-Service postgresql-x64-18</code> and create DB:
-              <code>&amp; "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres -p 5432 unicampus_laf</code>
-            </div>
-          )}
         </section>
 
         {/* Step-by-Step Implementation Roadmap */}
@@ -189,14 +275,28 @@ export default function App() {
             {roadmapSteps.map((step) => (
               <div
                 key={step.num}
-                className={`roadmap-item ${step.status === 'current' ? 'is-current' : ''}`}
+                className={`roadmap-item ${
+                  step.status === 'completed'
+                    ? 'is-completed'
+                    : step.status === 'current'
+                    ? 'is-current'
+                    : ''
+                }`}
               >
-                <div className="step-badge">{step.num}</div>
+                <div
+                  className="step-badge"
+                  style={step.status === 'completed' ? { background: '#10B981', color: '#FFF' } : {}}
+                >
+                  {step.status === 'completed' ? '✓' : step.num}
+                </div>
                 <div className="step-info">
                   <div className="step-header">
                     <h4>{step.title}</h4>
+                    {step.status === 'completed' && (
+                      <span className="badge badge-success">Done</span>
+                    )}
                     {step.status === 'current' && (
-                      <span className="badge badge-info">In Progress</span>
+                      <span className="badge badge-info">Next Up</span>
                     )}
                   </div>
                   <p>{step.desc}</p>
@@ -210,6 +310,9 @@ export default function App() {
       <footer className="footer">
         <p>UniCampus Lost & Found System &bull; Graduation Project Build &bull; Clean Architecture</p>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 }
