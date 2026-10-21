@@ -157,5 +157,8 @@ venv/
 env/
 .pytest_cache/
 *.sqlite3
-uploads/
+# Local dev helpers
+run_app.bat
+run_app.ps1
+
 
