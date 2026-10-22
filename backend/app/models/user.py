@@ -26,3 +26,5 @@ class User(Base):
     )
 
     reports = relationship("Report", back_populates="owner", cascade="all, delete-orphan")
+    claims = relationship("Claim", foreign_keys="Claim.claimant_id", back_populates="claimant")
+

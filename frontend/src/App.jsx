@@ -12,6 +12,8 @@ import ReportModal from './components/ReportModal';
 import ReportCard from './components/ReportCard';
 import ReportDetailModal from './components/ReportDetailModal';
 import SearchFilters from './components/SearchFilters';
+import ClaimModal from './components/ClaimModal';
+import ClaimsManagerModal from './components/ClaimsManagerModal';
 import './App.css';
 
 export default function App() {
@@ -34,6 +36,11 @@ export default function App() {
   const [loadingReports, setLoadingReports] = useState(true);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedReportId, setSelectedReportId] = useState(null);
+  
+  // Step 5: Claims & Verification state
+  const [claimReport, setClaimReport] = useState(null);
+  const [isClaimsManagerOpen, setIsClaimsManagerOpen] = useState(false);
+
   const [filters, setFilters] = useState({
     type: '',
     category_id: '',
@@ -118,7 +125,7 @@ export default function App() {
       setIsAuthModalOpen(true);
       return;
     }
-    alert(`Claim workflow initiated for item #${report.id} (${report.title}). Proceeding to Step 5 (Claims & Verification)!`);
+    setClaimReport(report);
   };
 
   const handleTestAdminRoute = async () => {
@@ -145,8 +152,8 @@ export default function App() {
     { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles (Argon2id + JWT)', status: 'completed' },
     { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field & privacy boundary)', status: 'completed' },
     { num: 4, title: 'Browse & Search', desc: 'Filter by type, category, location, status, keyword search, and sorting', status: 'completed' },
-    { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and admin decision', status: 'current' },
-    { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'upcoming' },
+    { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and admin decision', status: 'completed' },
+    { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'current' },
     { num: 7, title: 'Dashboards', desc: 'Dedicated views for students/staff and administrators', status: 'upcoming' },
   ];
 
@@ -172,6 +179,12 @@ export default function App() {
                   {isAdmin ? '🛡️ Administrator' : '👤 Student / Staff'}
                 </span>
               </div>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setIsClaimsManagerOpen(true)}
+              >
+                {isAdmin ? '🛡️ Review Claims' : '📋 My Claims'}
+              </button>
               <button className="btn btn-secondary" onClick={logout}>
                 Sign Out
               </button>
@@ -455,6 +468,22 @@ export default function App() {
         onRecover={handleRecoverReport}
         onDelete={handleDeleteReport}
         onClaim={handleClaimItem}
+      />
+      <ClaimModal
+        isOpen={Boolean(claimReport)}
+        report={claimReport}
+        onClose={() => setClaimReport(null)}
+        onClaimSubmitted={() => {
+          setClaimReport(null);
+          setIsClaimsManagerOpen(true);
+        }}
+      />
+      <ClaimsManagerModal
+        isOpen={isClaimsManagerOpen}
+        onClose={() => setIsClaimsManagerOpen(false)}
+        onHandoverCompleted={() => {
+          loadReports();
+        }}
       />
     </div>
   );

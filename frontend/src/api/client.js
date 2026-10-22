@@ -100,3 +100,83 @@ export async function deleteReport(reportId, token) {
   if (!res.ok) throw new Error(data.detail || 'Failed to delete report');
   return data;
 }
+
+export async function submitClaim(reportId, proofDetails, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/claims`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ proof_details: proofDetails }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit claim');
+  return data;
+}
+
+export async function fetchMyClaims(token) {
+  const res = await fetch(`${BASE_URL}/claims/mine`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to fetch your claims');
+  return await res.json();
+}
+
+export async function fetchAllClaims(statusFilter = '', token) {
+  const url = statusFilter ? `${BASE_URL}/claims?status=${statusFilter}` : `${BASE_URL}/claims`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to fetch claims list');
+  return await res.json();
+}
+
+export async function updateClaimStatus(claimId, status, rejectionReason = null, token) {
+  const payload = { status };
+  if (rejectionReason) payload.rejection_reason = rejectionReason;
+
+  const res = await fetch(`${BASE_URL}/claims/${claimId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to update claim status');
+  return data;
+}
+
+export async function respondToClaimInfo(claimId, additionalInfo, token) {
+  const res = await fetch(`${BASE_URL}/claims/${claimId}/respond`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ additional_info: additionalInfo }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit additional proof');
+  return data;
+}
+
+export async function completeClaimHandover(claimId, token) {
+  const res = await fetch(`${BASE_URL}/claims/${claimId}/complete`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to complete handover');
+  return data;
+}

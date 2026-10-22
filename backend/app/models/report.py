@@ -47,3 +47,5 @@ class Report(Base):
     # Relationships
     category = relationship("Category", back_populates="reports")
     owner = relationship("User", back_populates="reports")
+    claims = relationship("Claim", back_populates="report", cascade="all, delete-orphan")
+
