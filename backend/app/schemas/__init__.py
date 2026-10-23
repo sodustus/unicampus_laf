@@ -1,4 +1,11 @@
-from app.schemas.user import UserRegister, UserLogin, UserResponse, TokenResponse
+from app.schemas.user import (
+    UserRegister,
+    UserLogin,
+    UserResponse,
+    TokenResponse,
+    UserProfileUpdate,
+    UserProfilePublic,
+)
 from app.schemas.category import CategoryCreate, CategoryResponse
 from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse
 from app.schemas.claim import (
@@ -23,6 +30,8 @@ __all__ = [
     "UserLogin",
     "UserResponse",
     "TokenResponse",
+    "UserProfileUpdate",
+    "UserProfilePublic",
     "CategoryCreate",
     "CategoryResponse",
     "ReportCreate",

@@ -12,6 +12,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
   const [location, setLocation] = useState('');
   const [itemDate, setItemDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [identifyingDetails, setIdentifyingDetails] = useState('');
+  const [possessionStatus, setPossessionStatus] = useState('with_finder');
+  const [custodyLocation, setCustodyLocation] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,6 +41,11 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
       return;
     }
 
+    if (type === 'found' && possessionStatus === 'submitted_to_authority' && !custodyLocation.trim()) {
+      setError('Please specify the campus office or custody location where the item was submitted.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = {
@@ -49,6 +56,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
         location: location.trim(),
         item_date: new Date(itemDate).toISOString(),
         identifying_details: identifyingDetails.trim() || null,
+        possession_status: type === 'found' ? possessionStatus : 'lost_unknown',
+        custody_location: type === 'found' && possessionStatus === 'submitted_to_authority' ? custodyLocation.trim() : null,
       };
 
       const newReport = await createReport(payload, token);
@@ -59,6 +68,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
       setDescription('');
       setLocation('');
       setIdentifyingDetails('');
+      setCustodyLocation('');
+      setPossessionStatus('with_finder');
     } catch (err) {
       setError(err.message || 'Failed to submit report');
     } finally {
@@ -180,6 +191,90 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
               minLength={5}
             />
           </div>
+
+          {/* Issue #2: Physical Possession / Handover System for Found items */}
+          {type === 'found' && (
+            <div
+              className="form-group"
+              style={{
+                background: 'rgba(255, 255, 255, 0.03)',
+                padding: '14px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#E2E8F0' }}>
+                📍 Physical Possession & Handover Custody *
+              </label>
+              <p style={{ margin: '4px 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Clarify who currently holds the item so claimants know where handover will take place.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    background: possessionStatus === 'with_finder' ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                    border: possessionStatus === 'with_finder' ? '1px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="possession_status"
+                    value="with_finder"
+                    checked={possessionStatus === 'with_finder'}
+                    onChange={() => setPossessionStatus('with_finder')}
+                  />
+                  <span>🤝 In My Custody (With Finder)</span>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    background: possessionStatus === 'submitted_to_authority' ? 'rgba(168, 85, 247, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                    border: possessionStatus === 'submitted_to_authority' ? '1px solid #A855F7' : '1px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="possession_status"
+                    value="submitted_to_authority"
+                    checked={possessionStatus === 'submitted_to_authority'}
+                    onChange={() => setPossessionStatus('submitted_to_authority')}
+                  />
+                  <span>🏛️ Handed to Campus Authority</span>
+                </label>
+              </div>
+
+              {possessionStatus === 'submitted_to_authority' && (
+                <div style={{ marginTop: '12px' }}>
+                  <label htmlFor="custody-location" style={{ fontSize: '0.85rem', color: '#CBD5E1' }}>
+                    Specific Office / Authority Location *
+                  </label>
+                  <input
+                    id="custody-location"
+                    type="text"
+                    placeholder="e.g. Main Library Front Desk, Guard Post #2, Dean Office Room 104"
+                    value={custodyLocation}
+                    onChange={(e) => setCustodyLocation(e.target.value)}
+                    required
+                    style={{ marginTop: '4px' }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* FR-SEARCH-06: Sensitive identifying details */}
           <div className="form-group proof-field-group">

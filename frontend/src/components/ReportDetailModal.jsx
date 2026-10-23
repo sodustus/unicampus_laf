@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
 
-export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onClaim }) {
+export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onClaim, onViewProfile }) {
   const { user, token, isAdmin } = useAuth();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,6 +35,19 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
         day: 'numeric',
       })
     : '';
+
+  const getPossessionLabel = (st) => {
+    switch (st) {
+      case 'submitted_to_authority':
+        return '🏛️ Deposited with Campus Authority';
+      case 'with_finder':
+        return '🤝 In Possession of Finder';
+      case 'returned':
+        return '🎉 Handed Over & Returned';
+      default:
+        return '❓ Unlocated';
+    }
+  };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -79,7 +92,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 <span className="detail-meta-value">🏷️ {report.category?.name || 'Item'}</span>
               </div>
               <div className="detail-meta-item">
-                <span className="detail-meta-label">Location</span>
+                <span className="detail-meta-label">Location Found / Lost</span>
                 <span className="detail-meta-value">📍 {report.location}</span>
               </div>
               <div className="detail-meta-item">
@@ -87,10 +100,75 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 <span className="detail-meta-value">📅 {formattedDate}</span>
               </div>
               <div className="detail-meta-item">
-                <span className="detail-meta-label">Report ID</span>
-                <span className="detail-meta-value">#{report.id}</span>
+                <span className="detail-meta-label">Reporter</span>
+                <span className="detail-meta-value">
+                  {onViewProfile ? (
+                    <button
+                      type="button"
+                      className="btn-link"
+                      style={{
+                        padding: '2px 8px',
+                        fontSize: '0.8rem',
+                        color: '#93C5FD',
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => onViewProfile(report.owner_id)}
+                    >
+                      👤 Member #{report.owner_id} &rarr;
+                    </button>
+                  ) : (
+                    `Member #${report.owner_id}`
+                  )}
+                </span>
               </div>
             </div>
+
+            {/* Issue #2: Physical Custody / Handover System Box */}
+            {report.type === 'found' && (
+              <div
+                style={{
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  margin: '14px 0',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#93C5FD' }}>
+                    📍 PHYSICAL POSSESSION / CUSTODY
+                  </span>
+                  <span
+                    className="badge"
+                    style={{
+                      background:
+                        report.possession_status === 'submitted_to_authority'
+                          ? 'rgba(168, 85, 247, 0.25)'
+                          : 'rgba(59, 130, 246, 0.25)',
+                      color:
+                        report.possession_status === 'submitted_to_authority'
+                          ? '#C084FC'
+                          : '#93C5FD',
+                    }}
+                  >
+                    {getPossessionLabel(report.possession_status)}
+                  </span>
+                </div>
+                {report.possession_status === 'submitted_to_authority' && report.custody_location && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.88rem', color: '#E2E8F0' }}>
+                    🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                  </p>
+                )}
+                {report.possession_status === 'with_finder' && (
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                    🤝 This item is currently held by the student finder. Contact information will be revealed once an admin approves your claim to coordinate physical pickup.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="detail-section">
               <h4>Public Description</h4>

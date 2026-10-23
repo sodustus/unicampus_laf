@@ -16,6 +16,13 @@ class ReportStatus(str, enum.Enum):
     CLOSED = "closed"
 
 
+class PossessionStatus(str, enum.Enum):
+    LOST_UNKNOWN = "lost_unknown"
+    WITH_FINDER = "with_finder"
+    SUBMITTED_TO_AUTHORITY = "submitted_to_authority"
+    RETURNED = "returned"
+
+
 class Report(Base):
     __tablename__ = "reports"
 
@@ -28,6 +35,13 @@ class Report(Base):
     location = Column(String(255), nullable=False)
     item_date = Column(DateTime(timezone=True), nullable=False)
     status = Column(String(20), default=ReportStatus.ACTIVE.value, index=True, nullable=False)
+    possession_status = Column(
+        String(40),
+        default=PossessionStatus.LOST_UNKNOWN.value,
+        index=True,
+        nullable=False,
+    )
+    custody_location = Column(String(255), nullable=True)
     photo_path = Column(String(500), nullable=True)
     identifying_details = Column(Text, nullable=True)  # Restricted visibility (FR-SEARCH-06)
 

@@ -17,6 +17,7 @@ import ClaimsManagerModal from './components/ClaimsManagerModal';
 import RecoveryDetailModal from './components/RecoveryDetailModal';
 import UserDashboardModal from './components/UserDashboardModal';
 import AdminDashboardModal from './components/AdminDashboardModal';
+import ProfileModal from './components/ProfileModal';
 import './App.css';
 
 export default function App() {
@@ -49,11 +50,43 @@ export default function App() {
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
+  // Issue #2: Student Profile modal state
+  const [profileModalConfig, setProfileModalConfig] = useState({
+    isOpen: false,
+    targetUserId: null,
+    isSelfEdit: false,
+  });
+
+  const handleOpenSelfProfile = () => {
+    setProfileModalConfig({
+      isOpen: true,
+      targetUserId: user?.id,
+      isSelfEdit: true,
+    });
+  };
+
+  const handleViewMemberProfile = (userId) => {
+    setProfileModalConfig({
+      isOpen: true,
+      targetUserId: userId,
+      isSelfEdit: false,
+    });
+  };
+
+  const handleCloseProfileModal = () => {
+    setProfileModalConfig({
+      isOpen: false,
+      targetUserId: null,
+      isSelfEdit: false,
+    });
+  };
+
   const [filters, setFilters] = useState({
     type: '',
     category_id: '',
     location: '',
     status: 'active',
+    possession_status: '',
     q: '',
     sort: 'newest',
   });
@@ -181,13 +214,36 @@ export default function App() {
         <div className="nav-badges">
           {isAuthenticated ? (
             <div className="user-profile-group">
-              <div className="user-chip">
-                <div className="user-avatar">{user.email[0].toUpperCase()}</div>
-                <span className="user-email">{user.email}</span>
+              <div
+                className="user-chip"
+                onClick={handleOpenSelfProfile}
+                style={{ cursor: 'pointer' }}
+                title="Click to view/edit your profile"
+              >
+                <div className="user-avatar">
+                  {(user.full_name || user.email)[0].toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                  <span className="user-email" style={{ fontWeight: 600 }}>
+                    {user.full_name || user.email}
+                  </span>
+                  {user.department && (
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {user.department}
+                    </span>
+                  )}
+                </div>
                 <span className={`badge ${isAdmin ? 'badge-role-admin' : 'badge-role-user'}`}>
-                  {isAdmin ? '🛡️ Administrator' : '👤 Student / Staff'}
+                  {isAdmin ? '🛡️ Admin' : '👤 Student'}
                 </span>
               </div>
+              <button
+                className="btn btn-secondary"
+                onClick={handleOpenSelfProfile}
+                title="Edit your contact details and profile"
+              >
+                👤 Profile
+              </button>
               {isAdmin ? (
                 <>
                   <button
@@ -296,6 +352,7 @@ export default function App() {
                   onSelect={(r) => setSelectedReportId(r.id)}
                   onRecover={handleRecoverReport}
                   onDelete={handleDeleteReport}
+                  onViewProfile={handleViewMemberProfile}
                 />
               ))}
             </div>
@@ -502,6 +559,7 @@ export default function App() {
         onRecover={handleRecoverReport}
         onDelete={handleDeleteReport}
         onClaim={handleClaimItem}
+        onViewProfile={handleViewMemberProfile}
       />
       <ClaimModal
         isOpen={Boolean(claimReport)}
@@ -548,6 +606,12 @@ export default function App() {
           setIsAdminDashboardOpen(false);
           setIsClaimsManagerOpen(true);
         }}
+      />
+      <ProfileModal
+        isOpen={profileModalConfig.isOpen}
+        onClose={handleCloseProfileModal}
+        targetUserId={profileModalConfig.targetUserId}
+        isSelfEdit={profileModalConfig.isSelfEdit}
       />
     </div>
   );

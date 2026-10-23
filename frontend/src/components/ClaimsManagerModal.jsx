@@ -207,6 +207,140 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   )}
                 </div>
 
+                {/* Issue #2: Official Handover Coordination Slip (Approved & Completed Claims) */}
+                {(c.status === 'approved' || c.status === 'completed') && (
+                  <div
+                    className="handover-slip-card"
+                    style={{
+                      margin: '14px 0',
+                      padding: '16px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08))',
+                      border: '1px solid rgba(16, 185, 129, 0.35)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.3rem' }}>🤝</span>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem', color: '#6EE7B7' }}>
+                            Official Handover Coordination Slip
+                          </h4>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Admin verified ownership claim #{c.id}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`badge ${c.status === 'completed' ? 'badge-success' : 'badge-info'}`}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        {c.status === 'completed' ? '✓ HANDOVER COMPLETED' : '✅ APPROVED — COORDINATE PICKUP'}
+                      </span>
+                    </div>
+
+                    {/* Physical Handover Location */}
+                    <div
+                      style={{
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Physical Item Custody Location:
+                      </span>
+                      <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
+                        {c.report?.possession_status === 'submitted_to_authority'
+                          ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
+                          : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
+                      </p>
+                    </div>
+
+                    {/* Direct Contact Exchange Box */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Finder Details */}
+                      <div
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600 }}>
+                          📦 FOUNDER DETAILS
+                        </span>
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
+                          <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
+                            {c.finder?.full_name || 'Founder'}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {c.finder?.department || 'Student'} • {c.finder?.email}
+                          </div>
+                          {c.finder?.phone_number ? (
+                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
+                              <a
+                                href={`tel:${c.finder.phone_number}`}
+                                className="btn btn-primary btn-sm"
+                                style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                              >
+                                Call
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              📞 Phone not provided in profile
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Claimant Details */}
+                      <div
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          🎯 VERIFIED CLAIMANT
+                        </span>
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
+                          <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
+                            {c.claimant?.full_name || 'Claimant'}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {c.claimant?.department || 'Student'} • {c.claimant?.email}
+                          </div>
+                          {c.claimant?.phone_number ? (
+                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.claimant.phone_number}</span>
+                              <a
+                                href={`tel:${c.claimant.phone_number}`}
+                                className="btn btn-primary btn-sm"
+                                style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                              >
+                                Call
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              📞 Phone not provided in profile
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* STUDENT ACTION: If status == 'awaiting_info', show response form */}
                 {!isAdmin && c.status === 'awaiting_info' && (
                   <div className="student-response-panel">

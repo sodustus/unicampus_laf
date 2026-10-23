@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
 from typing import Optional, Literal
 from app.schemas.report import ReportResponse
@@ -6,13 +6,12 @@ from app.schemas.user import UserResponse
 
 
 class VerificationRecordResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     proof_details: str
     additional_info: Optional[str] = None
     submitted_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ClaimCreate(BaseModel):
@@ -40,6 +39,8 @@ class ClaimRespondInfo(BaseModel):
 
 
 class ClaimResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     report_id: int
     claimant_id: int
@@ -52,7 +53,14 @@ class ClaimResponse(BaseModel):
     # Associated models
     report: Optional[ReportResponse] = None
     claimant: Optional[UserResponse] = None
+    finder: Optional[UserResponse] = None
     verification_record: Optional[VerificationRecordResponse] = None
 
-    class Config:
-        from_attributes = True
+    @model_validator(mode="after")
+    def mask_contact_info_if_not_approved(self):
+        if self.status not in ["approved", "completed"]:
+            if self.finder and self.finder.phone_number:
+                self.finder = self.finder.model_copy(update={"phone_number": None})
+            if self.claimant and self.claimant.phone_number:
+                self.claimant = self.claimant.model_copy(update={"phone_number": None})
+        return self

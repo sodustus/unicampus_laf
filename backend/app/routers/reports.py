@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 
 from app.db.session import get_db
-from app.models.report import Report, ReportType, ReportStatus
+from app.models.report import Report, ReportType, ReportStatus, PossessionStatus
 from app.models.category import Category
 from app.models.user import User, UserRole
 from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse
@@ -22,6 +22,7 @@ def browse_and_search_reports(
     category_id: Optional[int] = Query(None, description="Filter by Category ID"),
     location: Optional[str] = Query(None, description="Filter by location substring"),
     status: Optional[str] = Query("active", description="Filter by status (default: 'active')"),
+    possession_status: Optional[str] = Query(None, description="Filter by possession status"),
     q: Optional[str] = Query(None, description="Search keyword in title or description"),
     sort: Optional[str] = Query("newest", description="'newest' or 'oldest'"),
     db: Session = Depends(get_db),
@@ -41,6 +42,8 @@ def browse_and_search_reports(
         query = query.filter(Report.location.ilike(f"%{location.strip()}%"))
     if status and status.lower() != "all":
         query = query.filter(Report.status == status.lower())
+    if possession_status and possession_status.lower() != "all":
+        query = query.filter(Report.possession_status == possession_status.lower())
     if q:
         search_pattern = f"%{q.strip()}%"
         query = query.filter(
@@ -76,6 +79,8 @@ def browse_and_search_reports(
             "location": r.location,
             "item_date": r.item_date,
             "status": r.status,
+            "possession_status": r.possession_status,
+            "custody_location": r.custody_location,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
             "created_at": r.created_at,
@@ -103,6 +108,13 @@ def create_report(
             detail=f"Category with ID {report_in.category_id} does not exist.",
         )
 
+    initial_possession = report_in.possession_status
+    if not initial_possession:
+        if report_in.type == ReportType.FOUND.value:
+            initial_possession = PossessionStatus.WITH_FINDER.value
+        else:
+            initial_possession = PossessionStatus.LOST_UNKNOWN.value
+
     new_report = Report(
         type=report_in.type,
         title=report_in.title.strip(),
@@ -112,6 +124,8 @@ def create_report(
         location=report_in.location.strip(),
         item_date=report_in.item_date,
         status=ReportStatus.ACTIVE.value,
+        possession_status=initial_possession,
+        custody_location=report_in.custody_location.strip() if report_in.custody_location else None,
         photo_path=report_in.photo_path,
         identifying_details=report_in.identifying_details,
     )
@@ -165,6 +179,8 @@ def get_report_detail(
         "location": report.location,
         "item_date": report.item_date,
         "status": report.status,
+        "possession_status": report.possession_status,
+        "custody_location": report.custody_location,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
         "created_at": report.created_at,
@@ -273,6 +289,7 @@ def mark_report_recovered(
         )
 
     report.status = ReportStatus.RECOVERED.value
+    report.possession_status = PossessionStatus.RETURNED.value
     report.updated_at = datetime.now(timezone.utc)
 
     # Create RecoveryRecord (FR-RECOVER-01)

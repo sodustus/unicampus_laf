@@ -382,7 +382,7 @@ export default function AdminDashboardModal({
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Email</th>
+                        <th>User & Department</th>
                         <th>Role</th>
                         <th>Status</th>
                         <th>Reports</th>
@@ -395,7 +395,19 @@ export default function AdminDashboardModal({
                       {users.map((u) => (
                         <tr key={u.id}>
                           <td>#{u.id}</td>
-                          <td><strong>{u.email}</strong></td>
+                          <td>
+                            <div><strong>{u.full_name || u.email}</strong></div>
+                            {u.full_name && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                {u.email}
+                              </div>
+                            )}
+                            {u.department && (
+                              <div style={{ fontSize: '0.72rem', color: '#93C5FD' }}>
+                                🏛️ {u.department}
+                              </div>
+                            )}
+                          </td>
                           <td>
                             <span className={`badge ${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}`}>
                               {u.role.toUpperCase()}

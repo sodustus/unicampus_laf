@@ -18,6 +18,9 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(20), default=UserRole.USER.value, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    full_name = Column(String(150), nullable=True)
+    phone_number = Column(String(30), nullable=True)
+    department = Column(String(100), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

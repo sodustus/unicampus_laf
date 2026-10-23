@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from app.db.session import get_db
 from app.models.claim import Claim, ClaimStatus, VerificationRecord
-from app.models.report import Report, ReportType, ReportStatus
+from app.models.report import Report, ReportType, ReportStatus, PossessionStatus
 from app.models.user import User, UserRole
 from app.schemas.claim import (
     ClaimCreate,
@@ -291,6 +291,7 @@ def complete_claim_handover(
     report = claim.report
     if report:
         report.status = ReportStatus.RECOVERED.value
+        report.possession_status = PossessionStatus.RETURNED.value
         report.updated_at = datetime.now(timezone.utc)
 
         # Create RecoveryRecord (FR-RECOVER-01)
