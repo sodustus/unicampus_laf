@@ -70,23 +70,43 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* Presentation Fast-Track Demo Logins */}
         <div className="demo-login-box">
-          <span className="demo-label">⚡ 1-Click Demo Logins (Presentation Mode):</span>
-          <div className="demo-btns">
+          <span className="demo-label">⚡ 1-Click Multi-User Logins (Demo & Testing):</span>
+          <div className="demo-btns" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student')}
+              onClick={() => handleQuickLogin('student0')}
               disabled={submitting}
+              title="Abebe Bikila (Computer Science) - Password: password0"
             >
-              👤 Student / Staff
+              👤 Student 0 (Abebe)
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('student1')}
+              disabled={submitting}
+              title="Fatuma Roba (Electrical Eng.) - Password: password1"
+            >
+              👤 Student 1 (Fatuma)
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('student2')}
+              disabled={submitting}
+              title="Derartu Tulu (Mechanical Eng.) - Password: password2"
+            >
+              👤 Student 2 (Derartu)
             </button>
             <button
               type="button"
               className="btn btn-demo-admin"
               onClick={() => handleQuickLogin('admin')}
               disabled={submitting}
+              title="Campus Administrator - Password: AdminPass2026!"
             >
-              🛡️ Administrator
+              🛡️ Admin Console
             </button>
           </div>
         </div>

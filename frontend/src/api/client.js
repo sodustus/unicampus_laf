@@ -43,6 +43,7 @@ export async function fetchReports(filters = {}, token = null) {
   if (filters.category_id) params.append('category_id', filters.category_id);
   if (filters.location) params.append('location', filters.location);
   if (filters.status) params.append('status', filters.status);
+  if (filters.possession_status) params.append('possession_status', filters.possession_status);
   if (filters.q) params.append('q', filters.q);
   if (filters.sort) params.append('sort', filters.sort);
 
@@ -86,6 +87,20 @@ export async function markReportRecovered(reportId, token) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || 'Failed to mark report recovered');
+  return data;
+}
+
+export async function submitFoundNotice(reportId, noticeData, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/found-notice`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(noticeData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit found notice');
   return data;
 }
 
@@ -302,5 +317,35 @@ export async function permanentDeleteReport(reportId, token) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.detail || 'Failed to permanently delete report');
+  return data;
+}
+
+/* ==========================================================================
+   Issue #2: Student Profiles & Contact Gating APIs
+   ========================================================================== */
+
+export async function updateUserProfile(profileData, token) {
+  const res = await fetch(`${BASE_URL}/auth/profile/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(profileData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to update profile');
+  return data;
+}
+
+export async function fetchUserProfile(userId, token) {
+  const res = await fetch(`${BASE_URL}/auth/profile/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to load user profile');
   return data;
 }

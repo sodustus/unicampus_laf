@@ -77,7 +77,7 @@ export default function UserDashboardModal({
             <div>
               <h3>My Campus Dashboard</h3>
               <p className="modal-subtitle">
-                Logged in as <strong>{user?.email}</strong> &bull; Personalized Lost & Found Activity
+                Logged in as <strong>{user?.full_name || user?.email}</strong> {user?.department && <span>&bull; {user.department}</span>} &bull; Personalized Lost & Found Activity
               </p>
             </div>
           </div>

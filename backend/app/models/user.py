@@ -18,13 +18,21 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(20), default=UserRole.USER.value, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    full_name = Column(String(150), nullable=True)
+    phone_number = Column(String(30), nullable=True)
+    department = Column(String(100), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 
-    reports = relationship("Report", back_populates="owner", cascade="all, delete-orphan")
+    reports = relationship(
+        "Report",
+        foreign_keys="Report.owner_id",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
     claims = relationship("Claim", foreign_keys="Claim.claimant_id", back_populates="claimant")
     recoveries_handled = relationship(
         "RecoveryRecord",

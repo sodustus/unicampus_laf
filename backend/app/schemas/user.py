@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
 
@@ -13,14 +13,37 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    department: Optional[str] = None
+
+
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: EmailStr
     role: str
+    is_active: bool = True
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    department: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+
+class UserProfilePublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    role: str
+    is_active: bool = True
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+    phone_number: Optional[str] = None  # Gated: only revealed to authorized claim participants or admins
+    reports_count: int = 0
+    created_at: datetime
 
 
 class TokenResponse(BaseModel):

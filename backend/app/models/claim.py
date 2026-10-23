@@ -52,6 +52,22 @@ class Claim(Base):
         back_populates="claim",
     )
 
+    @property
+    def finder(self):
+        if not self.report:
+            return None
+        if self.report.type == "lost":
+            return self.claimant
+        return self.report.owner
+
+    @property
+    def owner(self):
+        if not self.report:
+            return None
+        if self.report.type == "lost":
+            return self.report.owner
+        return self.claimant
+
 
 class VerificationRecord(Base):
     __tablename__ = "verification_records"

@@ -17,10 +17,12 @@ import ClaimsManagerModal from './components/ClaimsManagerModal';
 import RecoveryDetailModal from './components/RecoveryDetailModal';
 import UserDashboardModal from './components/UserDashboardModal';
 import AdminDashboardModal from './components/AdminDashboardModal';
+import ProfileModal from './components/ProfileModal';
+import FoundNoticeModal from './components/FoundNoticeModal';
 import './App.css';
 
 export default function App() {
-  const { user, token, isAuthenticated, isAdmin, logout, checkAdminAccess, quickLogin } = useAuth();
+  const { user, token, isAuthenticated, isAdmin, logout } = useAuth();
   
   // Health probe state
   const [healthData, setHealthData] = useState(null);
@@ -28,10 +30,8 @@ export default function App() {
   const [lastChecked, setLastChecked] = useState(null);
   const [latency, setLatency] = useState(null);
 
-  // Auth & Admin test state
+  // Auth & Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [adminTestResult, setAdminTestResult] = useState(null);
-  const [adminTesting, setAdminTesting] = useState(false);
 
   // Step 3 & 4: Reports, Categories & Filters state
   const [categories, setCategories] = useState([]);
@@ -49,11 +49,54 @@ export default function App() {
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
+  // Issue #2: Student Profile modal state
+  const [profileModalConfig, setProfileModalConfig] = useState({
+    isOpen: false,
+    targetUserId: null,
+    isSelfEdit: false,
+  });
+
+  // Issue #7: Lost item found notice modal state
+  const [foundNoticeReport, setFoundNoticeReport] = useState(null);
+
+  const handleOpenSelfProfile = () => {
+    setProfileModalConfig({
+      isOpen: true,
+      targetUserId: user?.id,
+      isSelfEdit: true,
+    });
+  };
+
+  const handleViewMemberProfile = (userId) => {
+    setProfileModalConfig({
+      isOpen: true,
+      targetUserId: userId,
+      isSelfEdit: false,
+    });
+  };
+
+  const handleCloseProfileModal = () => {
+    setProfileModalConfig({
+      isOpen: false,
+      targetUserId: null,
+      isSelfEdit: false,
+    });
+  };
+
+  const handleOpenFoundNotice = (report) => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setFoundNoticeReport(report);
+  };
+
   const [filters, setFilters] = useState({
     type: '',
     category_id: '',
     location: '',
     status: 'active',
+    possession_status: '',
     q: '',
     sort: 'newest',
   });
@@ -137,34 +180,7 @@ export default function App() {
     setClaimReport(report);
   };
 
-  const handleTestAdminRoute = async () => {
-    setAdminTesting(true);
-    try {
-      const result = await checkAdminAccess();
-      setAdminTestResult(result);
-    } catch (err) {
-      setAdminTestResult({
-        status: 401,
-        ok: false,
-        data: { detail: err.message },
-      });
-    } finally {
-      setAdminTesting(false);
-    }
-  };
-
   const isBackendOnline = healthData?.success && healthData?.data?.status === 'online';
-  const isDbConnected = healthData?.data?.database?.status === 'connected';
-
-  const roadmapSteps = [
-    { num: 1, title: 'Skeleton', desc: 'React app, FastAPI app, and PostgreSQL connected', status: 'completed' },
-    { num: 2, title: 'Accounts & Auth', desc: 'Register, login, logout with user and admin roles (Argon2id + JWT)', status: 'completed' },
-    { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field & privacy boundary)', status: 'completed' },
-    { num: 4, title: 'Browse & Search', desc: 'Filter by type, category, location, status, keyword search, and sorting', status: 'completed' },
-    { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and admin decision', status: 'completed' },
-    { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'completed' },
-    { num: 7, title: 'Dashboards', desc: 'Dedicated views for students/staff and administrators', status: 'completed' },
-  ];
 
   return (
     <div className="app-container">
@@ -181,13 +197,36 @@ export default function App() {
         <div className="nav-badges">
           {isAuthenticated ? (
             <div className="user-profile-group">
-              <div className="user-chip">
-                <div className="user-avatar">{user.email[0].toUpperCase()}</div>
-                <span className="user-email">{user.email}</span>
+              <div
+                className="user-chip"
+                onClick={handleOpenSelfProfile}
+                style={{ cursor: 'pointer' }}
+                title="Click to view/edit your profile"
+              >
+                <div className="user-avatar">
+                  {(user.full_name || user.email)[0].toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                  <span className="user-email" style={{ fontWeight: 600 }}>
+                    {user.full_name || user.email}
+                  </span>
+                  {user.department && (
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {user.department}
+                    </span>
+                  )}
+                </div>
                 <span className={`badge ${isAdmin ? 'badge-role-admin' : 'badge-role-user'}`}>
-                  {isAdmin ? '🛡️ Administrator' : '👤 Student / Staff'}
+                  {isAdmin ? '🛡️ Admin' : '👤 Student'}
                 </span>
               </div>
+              <button
+                className="btn btn-secondary"
+                onClick={handleOpenSelfProfile}
+                title="Edit your contact details and profile"
+              >
+                👤 Profile
+              </button>
               {isAdmin ? (
                 <>
                   <button
@@ -296,197 +335,17 @@ export default function App() {
                   onSelect={(r) => setSelectedReportId(r.id)}
                   onRecover={handleRecoverReport}
                   onDelete={handleDeleteReport}
+                  onViewProfile={handleViewMemberProfile}
                 />
               ))}
             </div>
           )}
         </section>
 
-        {/* Step 2: Live Role-Based Authorization Proof Card */}
-        <section className="glass-panel auth-security-card">
-          <div className="auth-security-header">
-            <div>
-              <h3>🛡️ Role-Based Access Control Proof (FR-AUTH-07 & NFR-02)</h3>
-              <p className="security-hint">
-                Tests server-side authorization directly. Regular users are strictly rejected with <strong>HTTP 403 Forbidden</strong>; 
-                only accounts with the <strong>admin</strong> role are granted access to restricted operations.
-              </p>
-            </div>
-            <div className="demo-btns" style={{ minWidth: '320px' }}>
-              <button
-                type="button"
-                className="btn btn-demo-user"
-                onClick={() => quickLogin('student')}
-              >
-                👤 Switch to Student
-              </button>
-              <button
-                type="button"
-                className="btn btn-demo-admin"
-                onClick={() => quickLogin('admin')}
-              >
-                🛡️ Switch to Admin
-              </button>
-            </div>
-          </div>
-
-          <div className="security-results-box">
-            <div className="security-result-row">
-              <span>Active Session:</span>
-              {isAuthenticated ? (
-                <span className="badge badge-info">
-                  {user.email} &bull; <strong>{user.role.toUpperCase()}</strong>
-                </span>
-              ) : (
-                <span className="badge badge-warning">Unauthenticated (Guest)</span>
-              )}
-              <button
-                className="btn btn-secondary security-test-btn"
-                onClick={handleTestAdminRoute}
-                disabled={adminTesting || !isAuthenticated}
-              >
-                {adminTesting ? 'Testing Server Route...' : '⚡ Probe Admin-Only Route (/auth/admin-check)'}
-              </button>
-            </div>
-
-            {adminTestResult && (
-              <div className="security-result-row" style={{ marginTop: '8px' }}>
-                <span>Backend Response:</span>
-                {adminTestResult.ok ? (
-                  <span className="badge badge-success">
-                    HTTP 200 OK &bull; Access Granted ({adminTestResult.data.message})
-                  </span>
-                ) : (
-                  <span className="badge badge-danger">
-                    HTTP {adminTestResult.status} {adminTestResult.status === 403 ? 'Forbidden' : 'Unauthorized'} &bull; 
-                    {adminTestResult.data.detail}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* 3-Tier Status Grid */}
-        <section className="status-grid">
-          {/* Frontend Card */}
-          <div className="glass-panel service-card">
-            <div className="service-card-header">
-              <div className="service-title-wrap">
-                <span className="service-icon">⚡</span>
-                <div>
-                  <h3>Frontend</h3>
-                  <span className="service-tech">React 19 + Vite</span>
-                </div>
-              </div>
-              <span className="badge badge-success">
-                <span className="pulse-dot online"></span>
-                Active
-              </span>
-            </div>
-            <p className="service-desc">
-              Search, filters, reporting dialogs, and detail modals with privacy protection.
-            </p>
-            <div className="service-meta">
-              <span>Port: <strong>5173</strong></span>
-              <span>Proxy: <strong>/api &rarr; 8000</strong></span>
-            </div>
-          </div>
-
-          {/* Backend Card */}
-          <div className="glass-panel service-card">
-            <div className="service-card-header">
-              <div className="service-title-wrap">
-                <span className="service-icon">🐍</span>
-                <div>
-                  <h3>Backend API</h3>
-                  <span className="service-tech">Python + FastAPI</span>
-                </div>
-              </div>
-              <span className={`badge ${isBackendOnline ? 'badge-success' : 'badge-danger'}`}>
-                <span className={`pulse-dot ${isBackendOnline ? 'online' : 'offline'}`}></span>
-                {isBackendOnline ? 'Healthy' : 'Unreachable'}
-              </span>
-            </div>
-            <p className="service-desc">
-              Report CRUD, categories, and query parameters for full-text search and filtering.
-            </p>
-            <div className="service-meta">
-              <span>Port: <strong>8000</strong></span>
-              <span>Endpoints: <code>/reports</code></span>
-            </div>
-          </div>
-
-          {/* Database Card */}
-          <div className="glass-panel service-card">
-            <div className="service-card-header">
-              <div className="service-title-wrap">
-                <span className="service-icon">🐘</span>
-                <div>
-                  <h3>Database</h3>
-                  <span className="service-tech">PostgreSQL 18</span>
-                </div>
-              </div>
-              <span className={`badge ${isDbConnected ? 'badge-success' : 'badge-warning'}`}>
-                <span className={`pulse-dot ${isDbConnected ? 'online' : 'warning'}`}></span>
-                {isDbConnected ? 'Connected' : 'Pending'}
-              </span>
-            </div>
-            <p className="service-desc">
-              Shared `reports` table with soft delete and `categories` relational mapping.
-            </p>
-            <div className="service-meta">
-              <span>Port: <strong>5432</strong></span>
-              <span>DB: <strong>unicampus_laf</strong></span>
-            </div>
-          </div>
-        </section>
-
-        {/* Step-by-Step Implementation Roadmap */}
-        <section className="glass-panel roadmap-section">
-          <div className="roadmap-header">
-            <h2>Development Roadmap (Per SRS Specifications)</h2>
-            <p>Each phase is built as an independent, fully tested vertical slice.</p>
-          </div>
-
-          <div className="roadmap-list">
-            {roadmapSteps.map((step) => (
-              <div
-                key={step.num}
-                className={`roadmap-item ${
-                  step.status === 'completed'
-                    ? 'is-completed'
-                    : step.status === 'current'
-                    ? 'is-current'
-                    : ''
-                }`}
-              >
-                <div
-                  className="step-badge"
-                  style={step.status === 'completed' ? { background: '#10B981', color: '#FFF' } : {}}
-                >
-                  {step.status === 'completed' ? '✓' : step.num}
-                </div>
-                <div className="step-info">
-                  <div className="step-header">
-                    <h4>{step.title}</h4>
-                    {step.status === 'completed' && (
-                      <span className="badge badge-success">Done</span>
-                    )}
-                    {step.status === 'current' && (
-                      <span className="badge badge-info">Next Up</span>
-                    )}
-                  </div>
-                  <p>{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
 
       <footer className="footer">
-        <p>UniCampus Lost & Found System &bull; Graduation Project Build &bull; Clean Architecture</p>
+        <p>UniCampus Lost & Found System &bull; Graduation Project Build v7.1 &bull; Abdurezak Anwar, 2026</p>
       </footer>
 
       {/* Modals */}
@@ -495,6 +354,10 @@ export default function App() {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onReportCreated={handleReportCreated}
+        onInspectMatchingReport={(repId) => {
+          setSelectedReportId(repId);
+          setIsReportModalOpen(false);
+        }}
       />
       <ReportDetailModal
         reportId={selectedReportId}
@@ -502,6 +365,18 @@ export default function App() {
         onRecover={handleRecoverReport}
         onDelete={handleDeleteReport}
         onClaim={handleClaimItem}
+        onViewProfile={handleViewMemberProfile}
+        onFoundNotice={handleOpenFoundNotice}
+      />
+      <FoundNoticeModal
+        isOpen={Boolean(foundNoticeReport)}
+        report={foundNoticeReport}
+        onClose={() => setFoundNoticeReport(null)}
+        onSuccess={(updatedReport) => {
+          setFoundNoticeReport(null);
+          loadReports();
+          setSelectedReportId(updatedReport.id);
+        }}
       />
       <ClaimModal
         isOpen={Boolean(claimReport)}
@@ -548,6 +423,12 @@ export default function App() {
           setIsAdminDashboardOpen(false);
           setIsClaimsManagerOpen(true);
         }}
+      />
+      <ProfileModal
+        isOpen={profileModalConfig.isOpen}
+        onClose={handleCloseProfileModal}
+        targetUserId={profileModalConfig.targetUserId}
+        isSelfEdit={profileModalConfig.isSelfEdit}
       />
     </div>
   );

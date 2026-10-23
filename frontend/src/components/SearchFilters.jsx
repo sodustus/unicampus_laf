@@ -99,6 +99,22 @@ export default function SearchFilters({
             </select>
           </div>
 
+          {/* Possession Status Filter (Issue #2) */}
+          <div className="filter-select-wrap">
+            <label htmlFor="filter-possession">Custody:</label>
+            <select
+              id="filter-possession"
+              className="filter-select"
+              value={filters.possession_status || ''}
+              onChange={(e) => onFilterChange('possession_status', e.target.value)}
+            >
+              <option value="">All Custody</option>
+              <option value="with_finder">🤝 With Finder</option>
+              <option value="submitted_to_authority">🏛️ At Campus Office</option>
+              <option value="returned">🎉 Returned</option>
+            </select>
+          </div>
+
           {/* Sort Dropdown */}
           <div className="filter-select-wrap">
             <label htmlFor="filter-sort">Sort:</label>

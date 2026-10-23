@@ -173,39 +173,246 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   {getStatusBadge(c.status)}
                 </div>
 
-                <div className="claim-meta-row">
-                  {isAdmin && (
-                    <span>👤 <strong>Claimant:</strong> {c.claimant?.email || `User #${c.claimant_id}`}</span>
-                  )}
+                <div className="claim-meta-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+                  <span>
+                    {c.report?.type === 'lost' ? '📦 Finder:' : '🎯 Claimant:'}{' '}
+                    <strong>{c.claimant?.full_name || c.claimant?.email || `User #${c.claimant_id}`}</strong> (ID #{c.claimant_id})
+                  </span>
+                  <span>
+                    {c.report?.type === 'lost' ? '🔍 Lost by (Owner):' : '📦 Found by (Finder):'}{' '}
+                    <strong>{c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`}</strong> (ID #{c.report?.owner_id})
+                  </span>
                   <span>📍 <strong>Location:</strong> {c.report?.location || 'Unknown'}</span>
                   <span>📅 <strong>Submitted:</strong> {new Date(c.created_at).toLocaleDateString()}</span>
                 </div>
 
-                {/* Verification Proof Box */}
-                <div className="claim-proof-box">
-                  <span className="claim-proof-label">🔒 Ownership Verification Proof:</span>
-                  <p className="claim-proof-text">
-                    {c.verification_record?.proof_details || 'No proof details attached'}
-                  </p>
-
-                  {/* Additional Info from claimant (if provided) */}
-                  {c.verification_record?.additional_info && (
-                    <div className="additional-info-box">
-                      <span className="claim-proof-label">💬 Additional Info Provided by Claimant:</span>
-                      <p className="claim-proof-text">{c.verification_record.additional_info}</p>
+                {/* Double-Blind Verification Proof Box */}
+                {isAdmin ? (
+                  <div
+                    style={{
+                      margin: '12px 0',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      border: '1px solid rgba(148, 163, 184, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>⚖️</span>
+                      <strong style={{ fontSize: '0.9rem', color: '#38BDF8' }}>
+                        Double-Blind Verification Comparison (Administrator Inspection)
+                      </strong>
                     </div>
-                  )}
 
-                  {/* Rejection Reason (if rejected) */}
-                  {c.status === 'rejected' && c.rejection_reason && (
-                    <div className="rejection-box">
-                      <span className="claim-proof-label" style={{ color: '#F87171' }}>
-                        ❌ Rejection Reason:
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Side A */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#F87171', display: 'block', marginBottom: '4px' }}>
+                          {c.report?.type === 'lost' ? '🔍 OWNER SECRET PROOF (Lost Report)' : '🏷️ REPORT SECRET PROOF'}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
+                          {c.report?.identifying_details || '(No secret identifying details entered on report)'}
+                        </p>
+                      </div>
+
+                      {/* Side B */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#34D399', display: 'block', marginBottom: '4px' }}>
+                          {c.report?.type === 'lost' ? '📦 FINDER BLIND PROOF (Physical Custody)' : '🎯 CLAIMANT OWNERSHIP PROOF'}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
+                          {c.verification_record?.proof_details || '(No proof provided)'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {c.verification_record?.additional_info && (
+                      <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#CBD5E1' }}>
+                        📍 <strong>Custody / Handover Note:</strong> {c.verification_record.additional_info}
+                      </div>
+                    )}
+
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <div className="rejection-box" style={{ marginTop: '8px' }}>
+                        <span className="claim-proof-label" style={{ color: '#F87171' }}>
+                          ❌ Rejection Reason:
+                        </span>
+                        <p className="claim-proof-text">{c.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="claim-proof-box">
+                    <span className="claim-proof-label">🔒 Verification Proof Details:</span>
+                    <p className="claim-proof-text">
+                      {c.verification_record?.proof_details || 'No proof details attached'}
+                    </p>
+
+                    {c.verification_record?.additional_info && (
+                      <div className="additional-info-box">
+                        <span className="claim-proof-label">💬 Additional Info Provided:</span>
+                        <p className="claim-proof-text">{c.verification_record.additional_info}</p>
+                      </div>
+                    )}
+
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <div className="rejection-box">
+                        <span className="claim-proof-label" style={{ color: '#F87171' }}>
+                          ❌ Rejection Reason:
+                        </span>
+                        <p className="claim-proof-text">{c.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Issue #2: Official Handover Coordination Slip (Approved & Completed Claims) */}
+                {(c.status === 'approved' || c.status === 'completed') && (
+                  <div
+                    className="handover-slip-card"
+                    style={{
+                      margin: '14px 0',
+                      padding: '16px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08))',
+                      border: '1px solid rgba(16, 185, 129, 0.35)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.3rem' }}>🤝</span>
+                        <div>
+                          <h4 style={{ margin: 0, fontSize: '1rem', color: '#6EE7B7' }}>
+                            Official Handover Coordination Slip
+                          </h4>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Admin verified ownership claim #{c.id}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`badge ${c.status === 'completed' ? 'badge-success' : 'badge-info'}`}
+                        style={{ fontSize: '0.7rem' }}
+                      >
+                        {c.status === 'completed' ? '✓ HANDOVER COMPLETED' : '✅ APPROVED — COORDINATE PICKUP'}
                       </span>
-                      <p className="claim-proof-text">{c.rejection_reason}</p>
                     </div>
-                  )}
-                </div>
+
+                    {/* Physical Handover Location */}
+                    <div
+                      style={{
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Physical Item Custody Location:
+                      </span>
+                      <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
+                        {c.report?.possession_status === 'submitted_to_authority'
+                          ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
+                          : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
+                      </p>
+                    </div>
+
+                    {/* Direct Contact Exchange Box */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Finder Details */}
+                      <div
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600 }}>
+                          📦 FOUNDER DETAILS
+                        </span>
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
+                          <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
+                            {c.finder?.full_name || 'Founder'}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {c.finder?.department || 'Student'} • {c.finder?.email}
+                          </div>
+                          {c.finder?.phone_number ? (
+                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
+                              <a
+                                href={`tel:${c.finder.phone_number}`}
+                                className="btn btn-primary btn-sm"
+                                style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                              >
+                                Call
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              📞 Phone not provided in profile
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Claimant Details */}
+                      <div
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          🎯 VERIFIED CLAIMANT
+                        </span>
+                        <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
+                          <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
+                            {c.claimant?.full_name || 'Claimant'}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {c.claimant?.department || 'Student'} • {c.claimant?.email}
+                          </div>
+                          {c.claimant?.phone_number ? (
+                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.claimant.phone_number}</span>
+                              <a
+                                href={`tel:${c.claimant.phone_number}`}
+                                className="btn btn-primary btn-sm"
+                                style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                              >
+                                Call
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                              📞 Phone not provided in profile
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* STUDENT ACTION: If status == 'awaiting_info', show response form */}
                 {!isAdmin && c.status === 'awaiting_info' && (
@@ -318,7 +525,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       )
                     )}
 
-                    {c.status === 'approved' && (
+                    {c.status === 'approved' && c.report?.type !== 'lost' && (
                       <button
                         className="btn btn-recover btn-sm"
                         onClick={() => handleConfirmHandover(c.id)}
