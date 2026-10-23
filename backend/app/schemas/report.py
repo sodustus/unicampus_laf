@@ -40,6 +40,11 @@ class ReportUpdate(BaseModel):
 
 
 class FoundNoticeCreate(BaseModel):
+    founder_proof: str = Field(
+        ...,
+        min_length=5,
+        description="Double-blind proof of distinguishing marks, serial numbers, stickers, or contents observed on item",
+    )
     possession_status: Literal["with_finder", "submitted_to_authority"] = Field(
         ...,
         description="Custody status: 'with_finder' or 'submitted_to_authority'",
@@ -72,6 +77,8 @@ class ReportResponse(BaseModel):
     founder_id: Optional[int] = None
     found_notes: Optional[str] = None
     founder: Optional[UserResponse] = None
+    claim_status: Optional[str] = None
+    claim_id: Optional[int] = None
     photo_path: Optional[str] = None
     identifying_details: Optional[str] = None
     created_at: datetime

@@ -296,48 +296,89 @@ def test_lost_item_found_notice_handshake_and_direct_recovery():
     # 2. Owner cannot submit found notice
     res_self = client.post(
         f"/reports/{rep_id}/found-notice",
-        json={"possession_status": "with_finder", "found_notes": "I found it myself?"},
+        json={
+            "founder_proof": "I found it myself?",
+            "possession_status": "with_finder",
+            "found_notes": "I found it myself?",
+        },
         headers=h1,
     )
     assert res_self.status_code == 400
     assert "own lost report" in res_self.json()["detail"]
 
-    # 3. Finder submits found notice
+    # 3. Finder submits found notice with mandatory double-blind proof
     found_payload = {
+        "founder_proof": "Found black wallet with student ID #12345 inside and paper cash under table 4",
         "possession_status": "with_finder",
-        "found_notes": "I found it under table 4! Safely with me.",
+        "found_notes": "Safely with me. Available after class.",
     }
     res_notice = client.post(f"/reports/{rep_id}/found-notice", json=found_payload, headers=h2)
     assert res_notice.status_code == 200
     notice_data = res_notice.json()
     assert notice_data["founder_id"] == u2_id
     assert notice_data["possession_status"] == "with_finder"
-    assert notice_data["found_notes"] == "I found it under table 4! Safely with me."
-    assert notice_data["founder"] is not None
-    assert notice_data["founder"]["id"] == u2_id
+    assert notice_data["claim_status"] == "submitted"
+    assert notice_data["claim_id"] is not None
+    claim_id = notice_data["claim_id"]
 
     # 4. Duplicate found notice rejected
     res_dup = client.post(f"/reports/{rep_id}/found-notice", json=found_payload, headers=h2)
     assert res_dup.status_code == 400
-    assert "already notified" in res_dup.json()["detail"]
 
-    # 5. Check phone number is now revealed in profile to owner and finder
+    # 5. BEFORE ADMIN APPROVAL: Phone numbers MUST BE MASKED (anti-theft gate)
     res_prof_finder = client.get(f"/auth/profile/{u2_id}", headers=h1)
     assert res_prof_finder.status_code == 200
-    assert res_prof_finder.json()["phone_number"] == "+251922222222"
+    assert res_prof_finder.json()["phone_number"] is None
 
     res_prof_owner = client.get(f"/auth/profile/{u1_id}", headers=h2)
     assert res_prof_owner.status_code == 200
-    assert res_prof_owner.json()["phone_number"] == "+251911111111"
+    assert res_prof_owner.json()["phone_number"] is None
 
-    # 6. Non-owner cannot mark recovered
+    # Owner CANNOT prematurely mark recovered before admin approval
+    res_premature_rec = client.post(f"/reports/{rep_id}/recover", headers=h1)
+    assert res_premature_rec.status_code == 400
+    assert "pending admin verification" in res_premature_rec.json()["detail"]
+
+    # 6. Admin logs in and performs double-blind verification in Claims Manager
+    admin_token = client.post("/auth/login", json={"email": "admin@campus.edu", "password": "AdminPass2026!"}).json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    res_claims = client.get("/claims", headers=admin_headers)
+    assert res_claims.status_code == 200
+    target_claim = next((c for c in res_claims.json() if c["id"] == claim_id), None)
+    assert target_claim is not None
+    assert target_claim["status"] == "submitted"
+    assert target_claim["verification_record"]["proof_details"] == found_payload["founder_proof"]
+    # Admin sees secret owner proof from report
+    assert target_claim["report"]["identifying_details"] == lost_payload["identifying_details"]
+
+    # Admin APPROVES the verified match
+    res_approve = client.patch(f"/claims/{claim_id}", json={"status": "approved"}, headers=admin_headers)
+    assert res_approve.status_code == 200
+    assert res_approve.json()["status"] == "approved"
+
+    # 7. AFTER ADMIN APPROVAL: Phone numbers UNLOCKED
+    res_prof_finder_after = client.get(f"/auth/profile/{u2_id}", headers=h1)
+    assert res_prof_finder_after.status_code == 200
+    assert res_prof_finder_after.json()["phone_number"] == "+251922222222"
+
+    res_prof_owner_after = client.get(f"/auth/profile/{u1_id}", headers=h2)
+    assert res_prof_owner_after.status_code == 200
+    assert res_prof_owner_after.json()["phone_number"] == "+251911111111"
+
+    # 8. Non-owner cannot mark recovered
     res_bad_rec = client.post(f"/reports/{rep_id}/recover", headers=h2)
     assert res_bad_rec.status_code == 403
 
-    # 7. Owner directly marks recovered
+    # 9. Owner directly confirms receipt & marks recovered
     res_rec = client.post(f"/reports/{rep_id}/recover", headers=h1)
     assert res_rec.status_code == 200
     rec_data = res_rec.json()
     assert rec_data["status"] == "recovered"
     assert rec_data["possession_status"] == "returned"
+
+    # Verify claim is now transitioned to 'completed'
+    res_claim_completed = client.get(f"/claims/{claim_id}", headers=admin_headers)
+    assert res_claim_completed.status_code == 200
+    assert res_claim_completed.json()["status"] == "completed"
 

@@ -111,11 +111,14 @@ def get_my_claims(
     current_user: User = Depends(get_current_user),
 ):
     """
-    FR-CLAIM-09: Claimant views status and history of claims they submitted.
+    FR-CLAIM-09: Claimant views status and history of claims they submitted or received on their reports.
     """
     return (
         db.query(Claim)
-        .filter(Claim.claimant_id == current_user.id)
+        .join(Report, Claim.report_id == Report.id)
+        .filter(
+            (Claim.claimant_id == current_user.id) | (Report.owner_id == current_user.id)
+        )
         .order_by(Claim.created_at.desc())
         .all()
     )
@@ -143,16 +146,17 @@ def get_claim_detail(
     current_user: User = Depends(get_current_user),
 ):
     """
-    FR-CLAIM-08: Verification details visible only to claimant and authorized admin reviewers.
+    FR-CLAIM-08: Verification details visible only to claimant, report owner, and authorized admin reviewers.
     """
     claim = db.query(Claim).filter(Claim.id == claim_id).first()
     if not claim:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found.")
 
     is_claimant = claim.claimant_id == current_user.id
+    is_report_owner = claim.report and claim.report.owner_id == current_user.id
     is_admin = current_user.role == UserRole.ADMIN.value
 
-    if not (is_claimant or is_admin):
+    if not (is_claimant or is_report_owner or is_admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not authorized to view this claim's verification proof.",
@@ -192,6 +196,13 @@ def update_claim_status(
                 detail="A rejection reason must be recorded when rejecting a claim.",
             )
         claim.rejection_reason = status_update.rejection_reason.strip()
+
+        # If claim on a lost report is rejected, release the report from the unverified finder
+        if claim.report and claim.report.type == ReportType.LOST.value:
+            claim.report.founder_id = None
+            claim.report.possession_status = PossessionStatus.LOST_UNKNOWN.value
+            claim.report.custody_location = None
+            claim.report.found_notes = None
 
     claim.status = target_status
     claim.reviewer_id = admin_user.id

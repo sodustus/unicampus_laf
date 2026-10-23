@@ -54,7 +54,19 @@ class Claim(Base):
 
     @property
     def finder(self):
-        return self.report.owner if self.report else None
+        if not self.report:
+            return None
+        if self.report.type == "lost":
+            return self.claimant
+        return self.report.owner
+
+    @property
+    def owner(self):
+        if not self.report:
+            return None
+        if self.report.type == "lost":
+            return self.report.owner
+        return self.claimant
 
 
 class VerificationRecord(Base):

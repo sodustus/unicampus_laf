@@ -174,39 +174,111 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                 </div>
 
                 <div className="claim-meta-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-                  <span>🎯 <strong>Claimant:</strong> {c.claimant?.full_name || c.claimant?.email || `User #${c.claimant_id}`} (ID #{c.claimant_id})</span>
-                  {c.finder && (
-                    <span>📦 <strong>Finder:</strong> {c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`} (ID #{c.report?.owner_id})</span>
-                  )}
+                  <span>
+                    {c.report?.type === 'lost' ? '📦 Finder:' : '🎯 Claimant:'}{' '}
+                    <strong>{c.claimant?.full_name || c.claimant?.email || `User #${c.claimant_id}`}</strong> (ID #{c.claimant_id})
+                  </span>
+                  <span>
+                    {c.report?.type === 'lost' ? '🔍 Lost by (Owner):' : '📦 Found by (Finder):'}{' '}
+                    <strong>{c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`}</strong> (ID #{c.report?.owner_id})
+                  </span>
                   <span>📍 <strong>Location:</strong> {c.report?.location || 'Unknown'}</span>
                   <span>📅 <strong>Submitted:</strong> {new Date(c.created_at).toLocaleDateString()}</span>
                 </div>
 
-                {/* Verification Proof Box */}
-                <div className="claim-proof-box">
-                  <span className="claim-proof-label">🔒 Ownership Verification Proof:</span>
-                  <p className="claim-proof-text">
-                    {c.verification_record?.proof_details || 'No proof details attached'}
-                  </p>
-
-                  {/* Additional Info from claimant (if provided) */}
-                  {c.verification_record?.additional_info && (
-                    <div className="additional-info-box">
-                      <span className="claim-proof-label">💬 Additional Info Provided by Claimant:</span>
-                      <p className="claim-proof-text">{c.verification_record.additional_info}</p>
+                {/* Double-Blind Verification Proof Box */}
+                {isAdmin ? (
+                  <div
+                    style={{
+                      margin: '12px 0',
+                      padding: '14px',
+                      borderRadius: '8px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      border: '1px solid rgba(148, 163, 184, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>⚖️</span>
+                      <strong style={{ fontSize: '0.9rem', color: '#38BDF8' }}>
+                        Double-Blind Verification Comparison (Administrator Inspection)
+                      </strong>
                     </div>
-                  )}
 
-                  {/* Rejection Reason (if rejected) */}
-                  {c.status === 'rejected' && c.rejection_reason && (
-                    <div className="rejection-box">
-                      <span className="claim-proof-label" style={{ color: '#F87171' }}>
-                        ❌ Rejection Reason:
-                      </span>
-                      <p className="claim-proof-text">{c.rejection_reason}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Side A */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#F87171', display: 'block', marginBottom: '4px' }}>
+                          {c.report?.type === 'lost' ? '🔍 OWNER SECRET PROOF (Lost Report)' : '🏷️ REPORT SECRET PROOF'}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
+                          {c.report?.identifying_details || '(No secret identifying details entered on report)'}
+                        </p>
+                      </div>
+
+                      {/* Side B */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#34D399', display: 'block', marginBottom: '4px' }}>
+                          {c.report?.type === 'lost' ? '📦 FINDER BLIND PROOF (Physical Custody)' : '🎯 CLAIMANT OWNERSHIP PROOF'}
+                        </span>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#E2E8F0', whiteSpace: 'pre-wrap' }}>
+                          {c.verification_record?.proof_details || '(No proof provided)'}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
+
+                    {c.verification_record?.additional_info && (
+                      <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#CBD5E1' }}>
+                        📍 <strong>Custody / Handover Note:</strong> {c.verification_record.additional_info}
+                      </div>
+                    )}
+
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <div className="rejection-box" style={{ marginTop: '8px' }}>
+                        <span className="claim-proof-label" style={{ color: '#F87171' }}>
+                          ❌ Rejection Reason:
+                        </span>
+                        <p className="claim-proof-text">{c.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="claim-proof-box">
+                    <span className="claim-proof-label">🔒 Verification Proof Details:</span>
+                    <p className="claim-proof-text">
+                      {c.verification_record?.proof_details || 'No proof details attached'}
+                    </p>
+
+                    {c.verification_record?.additional_info && (
+                      <div className="additional-info-box">
+                        <span className="claim-proof-label">💬 Additional Info Provided:</span>
+                        <p className="claim-proof-text">{c.verification_record.additional_info}</p>
+                      </div>
+                    )}
+
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <div className="rejection-box">
+                        <span className="claim-proof-label" style={{ color: '#F87171' }}>
+                          ❌ Rejection Reason:
+                        </span>
+                        <p className="claim-proof-text">{c.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Issue #2: Official Handover Coordination Slip (Approved & Completed Claims) */}
                 {(c.status === 'approved' || c.status === 'completed') && (
@@ -453,7 +525,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       )
                     )}
 
-                    {c.status === 'approved' && (
+                    {c.status === 'approved' && c.report?.type !== 'lost' && (
                       <button
                         className="btn btn-recover btn-sm"
                         onClick={() => handleConfirmHandover(c.id)}

@@ -6,6 +6,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   const { token, isAuthenticated } = useAuth();
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
+  const [founderProof, setFounderProof] = useState('');
   const [foundNotes, setFoundNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +22,11 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
       return;
     }
 
+    if (!founderProof.trim() || founderProof.trim().length < 5) {
+      setError('Please provide distinguishing proof/hidden details of the item you found (at least 5 characters) so the admin can verify ownership.');
+      return;
+    }
+
     if (possessionStatus === 'submitted_to_authority' && !custodyLocation.trim()) {
       setError('Please specify where you submitted or handed over the item (e.g. Science Library Desk, Guard Office).');
       return;
@@ -29,6 +35,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
     setSubmitting(true);
     try {
       const payload = {
+        founder_proof: founderProof.trim(),
         possession_status: possessionStatus,
         custody_location: possessionStatus === 'submitted_to_authority' ? custodyLocation.trim() : null,
         found_notes: foundNotes.trim() || null,
@@ -147,22 +154,40 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             </div>
           )}
 
-          <div className="form-group" style={{ marginTop: '0.75rem' }}>
-            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
-              Notes / Message to the Owner (Optional)
+          {/* Issue #7: Double-Blind Distinguishing Proof */}
+          <div className="form-group" style={{ marginTop: '0.85rem' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: '#1e293b' }}>
+              Distinguishing Physical Proof / Hidden Marks Observed <span className="req-star">*</span>
             </label>
             <textarea
               className="form-input"
               rows={3}
-              placeholder="e.g. Found on the 2nd floor study table. Ready to hand it over anytime after 2 PM."
+              placeholder="e.g. Has initials 'JD' stamped on the interior corner, brand model XYZ, three brass keys attached, slight scratch on the clasp..."
+              value={founderProof}
+              onChange={(e) => setFounderProof(e.target.value)}
+              required
+            />
+            <span className="field-hint" style={{ color: '#0369a1', fontWeight: 500 }}>
+              🛡️ Anti-Theft Verification: Campus administrators will compare your description against the owner's confidential proof before authorizing handover.
+            </span>
+          </div>
+
+          <div className="form-group" style={{ marginTop: '0.75rem' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+              Meetup / Handover Availability Note (Optional)
+            </label>
+            <textarea
+              className="form-input"
+              rows={2}
+              placeholder="e.g. Available around Science Building after 2 PM on weekdays."
               value={foundNotes}
               onChange={(e) => setFoundNotes(e.target.value)}
             />
-            <span className="field-hint">Helpful meetup instructions or notes about the item's condition.</span>
+            <span className="field-hint">Helpful instructions for when the handover is approved.</span>
           </div>
 
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.85rem', color: '#475569' }}>
-            🔒 <strong>Coordination Security:</strong> Submitting this notice links your account as the verified finder. Your contact phone numbers will be disclosed to each other to coordinate handover. Only the owner can mark the item as fully recovered once they receive it.
+          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: '#334155' }}>
+            🔒 <strong>Double-Blind Security Gate:</strong> Submitting this notice files a verification claim. Neither you nor the owner can see each other's secret proof. An administrator will review and verify that both descriptions match. <strong>Contact phone numbers remain locked until the administrator approves the claim.</strong>
           </div>
 
           <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>

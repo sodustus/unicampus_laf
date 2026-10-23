@@ -172,84 +172,108 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               </div>
             )}
 
-            {/* Issue #7: Lost Report Handover Coordination Slip when Finder is linked */}
+            {/* Issue #7: Lost Report Verification / Handover State */}
             {report.type === 'lost' && report.founder_id && (
-              <div
-                style={{
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                  margin: '14px 0',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34D399' }}>
-                    📦 FINDER NOTIFICATION & HANDOVER
-                  </span>
-                  <span
-                    className="badge"
-                    style={{
-                      background: 'rgba(16, 185, 129, 0.25)',
-                      color: '#6EE7B7',
-                    }}
-                  >
-                    {getPossessionLabel(report.possession_status)}
-                  </span>
-                </div>
-
-                <div style={{ marginTop: '8px', fontSize: '0.88rem', color: '#E2E8F0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span>
-                      🤝 <strong>Found By:</strong>{' '}
-                      {report.founder ? (report.founder.full_name || report.founder.email) : `Student #${report.founder_id}`}
+              report.claim_status === 'approved' || report.claim_status === 'completed' ? (
+                <div
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    margin: '14px 0',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34D399' }}>
+                      🤝 OFFICIAL HANDOVER COORDINATION SLIP (ADMIN APPROVED)
                     </span>
-                    {onViewProfile && (
-                      <button
-                        type="button"
-                        className="btn-link"
-                        style={{
-                          padding: '2px 8px',
-                          fontSize: '0.78rem',
-                          color: '#34D399',
-                          background: 'rgba(16, 185, 129, 0.15)',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => onViewProfile(report.founder_id)}
-                      >
-                        View Finder Profile & Phone &rarr;
-                      </button>
-                    )}
-                  </div>
-
-                  {report.possession_status === 'submitted_to_authority' && report.custody_location && (
-                    <p style={{ margin: '8px 0 0 0', color: '#E2E8F0' }}>
-                      🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
-                    </p>
-                  )}
-
-                  {report.found_notes && (
-                    <div
+                    <span
+                      className="badge"
                       style={{
-                        marginTop: '8px',
-                        background: 'rgba(0, 0, 0, 0.2)',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        fontStyle: 'italic',
-                        color: '#CBD5E1',
+                        background: 'rgba(16, 185, 129, 0.25)',
+                        color: '#6EE7B7',
                       }}
                     >
-                      💬 <strong>Finder Note:</strong> "{report.found_notes}"
-                    </div>
-                  )}
+                      {getPossessionLabel(report.possession_status)}
+                    </span>
+                  </div>
 
-                  <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    ℹ️ Contact information is disclosed between owner and finder to coordinate handover. The owner directly confirms receipt to finalize recovery.
+                  <div style={{ marginTop: '8px', fontSize: '0.88rem', color: '#E2E8F0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>
+                        🤝 <strong>Verified Finder:</strong>{' '}
+                        {report.founder ? (report.founder.full_name || report.founder.email) : `Student #${report.founder_id}`}
+                      </span>
+                      {onViewProfile && (
+                        <button
+                          type="button"
+                          className="btn-link"
+                          style={{
+                            padding: '2px 8px',
+                            fontSize: '0.78rem',
+                            color: '#34D399',
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => onViewProfile(report.founder_id)}
+                        >
+                          View Finder Profile & Phone &rarr;
+                        </button>
+                      )}
+                    </div>
+
+                    {report.possession_status === 'submitted_to_authority' && report.custody_location && (
+                      <p style={{ margin: '8px 0 0 0', color: '#E2E8F0' }}>
+                        🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                      </p>
+                    )}
+
+                    {report.found_notes && (
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          background: 'rgba(0, 0, 0, 0.2)',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          fontStyle: 'italic',
+                          color: '#CBD5E1',
+                        }}
+                      >
+                        💬 <strong>Finder Note:</strong> "{report.found_notes}"
+                      </div>
+                    )}
+
+                    <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#6EE7B7' }}>
+                      ✅ Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: 'rgba(234, 179, 8, 0.08)',
+                    border: '1px solid rgba(234, 179, 8, 0.35)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    margin: '14px 0',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FBBF24' }}>
+                      ⏳ DOUBLE-BLIND VERIFICATION IN PROGRESS (ADMIN REVIEW)
+                    </span>
+                    <span className="badge badge-warning">
+                      Pending Admin Review
+                    </span>
+                  </div>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: '#E2E8F0' }}>
+                    🛡️ A student reported finding this item and submitted distinguishing physical proof. To protect against theft, campus administrators are currently comparing both explanations. Handover contact details will unlock once an administrator approves the match.
                   </p>
                 </div>
-              </div>
+              )
             )}
 
             <div className="detail-section">
@@ -302,20 +326,39 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 </button>
 
                 {isOwner && report.type === 'lost' && report.status === 'active' && (
-                  <button
-                    className="btn btn-primary"
-                    style={
-                      report.founder_id
-                        ? { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }
-                        : {}
-                    }
-                    onClick={() => {
-                      onRecover(report);
-                      onClose();
-                    }}
-                  >
-                    {report.founder_id ? '🎉 Confirm Receipt & Mark Recovered' : '✓ Mark as Recovered'}
-                  </button>
+                  report.founder_id ? (
+                    report.claim_status === 'approved' ? (
+                      <button
+                        className="btn btn-primary"
+                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
+                        onClick={() => {
+                          onRecover(report);
+                          onClose();
+                        }}
+                      >
+                        🎉 Confirm Receipt & Mark Recovered
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ opacity: 0.7, cursor: 'not-allowed' }}
+                        disabled
+                        title="Administrators are comparing both double-blind proofs to prevent theft. You can confirm receipt once approved."
+                      >
+                        ⏳ Awaiting Admin Verification
+                      </button>
+                    )
+                  ) : (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        onRecover(report);
+                        onClose();
+                      }}
+                    >
+                      ✓ Mark as Recovered
+                    </button>
+                  )
                 )}
 
                 {/* Issue #7: Lost Item Found Notice Action for non-owners */}
@@ -334,17 +377,15 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
                 {report.type === 'lost' && report.status === 'active' && !isOwner && report.founder_id && (
                   <span
-                    className="badge"
+                    className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
                     style={{
                       padding: '8px 14px',
-                      background: 'rgba(16, 185, 129, 0.2)',
-                      color: '#6EE7B7',
                       fontSize: '0.85rem',
                       display: 'inline-flex',
                       alignItems: 'center',
                     }}
                   >
-                    ✓ Finder Linked (#{report.founder_id})
+                    {report.claim_status === 'approved' ? '✓ Handover Approved' : '⏳ Verification Under Review'}
                   </span>
                 )}
 

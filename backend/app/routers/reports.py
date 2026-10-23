@@ -11,6 +11,7 @@ from app.models.user import User, UserRole
 from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse, FoundNoticeCreate
 from app.core.dependencies import get_current_user, get_optional_current_user
 from app.models.recovery import RecoveryRecord
+from app.models.claim import Claim, ClaimStatus, VerificationRecord
 from app.services.audit import log_audit
 
 router = APIRouter(prefix="/reports", tags=["Lost & Found Reports"])
@@ -84,6 +85,8 @@ def browse_and_search_reports(
             "founder_id": r.founder_id,
             "found_notes": r.found_notes,
             "founder": r.founder,
+            "claim_status": r.claims[0].status if r.claims else None,
+            "claim_id": r.claims[0].id if r.claims else None,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
             "created_at": r.created_at,
@@ -187,6 +190,8 @@ def get_report_detail(
         "founder_id": report.founder_id,
         "found_notes": report.found_notes,
         "founder": report.founder,
+        "claim_status": report.claims[0].status if report.claims else None,
+        "claim_id": report.claims[0].id if report.claims else None,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
         "created_at": report.created_at,
@@ -281,7 +286,7 @@ def submit_found_notice(
 ):
     """
     Issue #7: Another student notifies the owner of a lost report that they found the item.
-    Sets custody details and founder link, initiating the direct handover process.
+    Enforces double-blind proof and creates a verification Claim requiring Admin approval before handover.
     """
     report = db.query(Report).filter(Report.id == report_id, Report.deleted_at.is_(None)).first()
     if not report:
@@ -305,10 +310,24 @@ def submit_found_notice(
             detail="You cannot submit a found notice on your own lost report.",
         )
 
-    if report.founder_id is not None:
+    # Check for active claim on this report
+    existing_claim = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id == report_id,
+            Claim.status.in_([
+                ClaimStatus.SUBMITTED.value,
+                ClaimStatus.UNDER_REVIEW.value,
+                ClaimStatus.AWAITING_INFO.value,
+                ClaimStatus.APPROVED.value,
+            ]),
+        )
+        .first()
+    )
+    if existing_claim:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A finder has already notified the owner for this item.",
+            detail="A finder notice or verification claim is already pending review for this item.",
         )
 
     report.founder_id = current_user.id
@@ -317,20 +336,62 @@ def submit_found_notice(
     report.found_notes = notice_in.found_notes.strip() if notice_in.found_notes else None
     report.updated_at = datetime.now(timezone.utc)
 
+    # Create Claim for double-blind verification by admin
+    new_claim = Claim(
+        report_id=report.id,
+        claimant_id=current_user.id,
+        status=ClaimStatus.SUBMITTED.value,
+    )
+    db.add(new_claim)
+    db.commit()
+    db.refresh(new_claim)
+
+    # Attach double-blind proof in VerificationRecord
+    custody_info = f"Custody: {report.possession_status}" + (f" ({report.custody_location})" if report.custody_location else "")
+    verification = VerificationRecord(
+        claim_id=new_claim.id,
+        proof_details=notice_in.founder_proof.strip(),
+        additional_info=custody_info,
+    )
+    db.add(verification)
+
     # Log audit entry
     finder_name = current_user.full_name or current_user.email
     log_audit(
         db=db,
-        action="LOST_ITEM_FOUND",
-        target_type="report",
-        target_id=report.id,
+        action="FOUND_NOTICE_SUBMITTED",
+        target_type="claim",
+        target_id=new_claim.id,
         actor_id=current_user.id,
-        details=f"User #{current_user.id} ({finder_name}) notified owner #{report.owner_id} that item '{report.title}' was found (custody: {report.possession_status}).",
+        details=f"Finder #{current_user.id} ({finder_name}) submitted found notice with double-blind proof for lost report #{report.id} ('{report.title}'). Pending admin review.",
     )
 
     db.commit()
     db.refresh(report)
-    return report
+
+    return {
+        "id": report.id,
+        "type": report.type,
+        "title": report.title,
+        "description": report.description,
+        "category_id": report.category_id,
+        "category": report.category,
+        "owner_id": report.owner_id,
+        "location": report.location,
+        "item_date": report.item_date,
+        "status": report.status,
+        "possession_status": report.possession_status,
+        "custody_location": report.custody_location,
+        "founder_id": report.founder_id,
+        "found_notes": report.found_notes,
+        "founder": report.founder,
+        "claim_status": new_claim.status,
+        "claim_id": new_claim.id,
+        "photo_path": report.photo_path,
+        "identifying_details": report.identifying_details,
+        "created_at": report.created_at,
+        "updated_at": report.updated_at,
+    }
 
 
 @router.post("/{report_id}/recover", response_model=ReportResponse)
@@ -340,7 +401,8 @@ def mark_report_recovered(
     current_user: User = Depends(get_current_user),
 ):
     """
-    FR-LOST-05 & FR-RECOVER-01: Owner directly marks a lost report as Recovered.
+    FR-LOST-05 & FR-RECOVER-01: Owner marks a lost report as Recovered.
+    If a finder notice was submitted, requires Admin approval before recovery can be confirmed.
     """
     report = db.query(Report).filter(Report.id == report_id, Report.deleted_at.is_(None)).first()
     if not report:
@@ -355,18 +417,38 @@ def mark_report_recovered(
             detail="You are not authorized to mark this report as recovered.",
         )
 
+    # Check for claims on this report
+    claims = db.query(Claim).filter(Claim.report_id == report.id).all()
+    approved_claim = None
+    for c in claims:
+        if c.status in [
+            ClaimStatus.SUBMITTED.value,
+            ClaimStatus.UNDER_REVIEW.value,
+            ClaimStatus.AWAITING_INFO.value,
+        ]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot mark item as recovered while a found notice is pending admin verification. Please wait for an administrator to approve the match.",
+            )
+        if c.status == ClaimStatus.APPROVED.value:
+            approved_claim = c
+
     report.status = ReportStatus.RECOVERED.value
     report.possession_status = PossessionStatus.RETURNED.value
     report.updated_at = datetime.now(timezone.utc)
 
     handover_notes = "Marked as recovered directly by owner."
-    if report.founder_id:
+    if approved_claim:
+        approved_claim.status = ClaimStatus.COMPLETED.value
+        approved_claim.updated_at = datetime.now(timezone.utc)
+        handover_notes = f"Item recovered from founder #{approved_claim.claimant_id} after admin approval of Claim #{approved_claim.id}."
+    elif report.founder_id:
         handover_notes = f"Item recovered directly from founder #{report.founder_id} by owner #{report.owner_id}."
 
     # Create RecoveryRecord (FR-RECOVER-01)
     recovery_rec = RecoveryRecord(
         report_id=report.id,
-        claim_id=None,
+        claim_id=approved_claim.id if approved_claim else None,
         responsible_user_id=current_user.id,
         handover_notes=handover_notes,
     )
@@ -379,9 +461,32 @@ def mark_report_recovered(
         target_type="report",
         target_id=report.id,
         actor_id=current_user.id,
-        details=f"Report #{report.id} ({report.title}) marked as recovered directly by owner",
+        details=f"Report #{report.id} ({report.title}) marked as recovered by owner #{current_user.id}",
     )
 
     db.commit()
     db.refresh(report)
-    return report
+
+    return {
+        "id": report.id,
+        "type": report.type,
+        "title": report.title,
+        "description": report.description,
+        "category_id": report.category_id,
+        "category": report.category,
+        "owner_id": report.owner_id,
+        "location": report.location,
+        "item_date": report.item_date,
+        "status": report.status,
+        "possession_status": report.possession_status,
+        "custody_location": report.custody_location,
+        "founder_id": report.founder_id,
+        "found_notes": report.found_notes,
+        "founder": report.founder,
+        "claim_status": approved_claim.status if approved_claim else None,
+        "claim_id": approved_claim.id if approved_claim else None,
+        "photo_path": report.photo_path,
+        "identifying_details": report.identifying_details,
+        "created_at": report.created_at,
+        "updated_at": report.updated_at,
+    }
