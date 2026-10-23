@@ -14,6 +14,8 @@ from app.schemas.claim import (
     ClaimResponse,
 )
 from app.core.dependencies import get_current_user, require_admin
+from app.models.recovery import RecoveryRecord
+from app.services.audit import log_audit
 
 router = APIRouter(tags=["Claims & Verification"])
 
@@ -88,6 +90,17 @@ def submit_claim(
     db.add(verification)
     db.commit()
     db.refresh(new_claim)
+
+    # Log audit entry
+    log_audit(
+        db=db,
+        action="CLAIM_SUBMITTED",
+        target_type="claim",
+        target_id=new_claim.id,
+        actor_id=current_user.id,
+        details=f"Claim submitted for report #{report.id} ({report.title})",
+    )
+    db.commit()
 
     return new_claim
 
@@ -184,6 +197,16 @@ def update_claim_status(
     claim.reviewer_id = admin_user.id
     claim.updated_at = datetime.now(timezone.utc)
 
+    # Log audit entry
+    log_audit(
+        db=db,
+        action=f"CLAIM_{target_status.upper()}",
+        target_type="claim",
+        target_id=claim.id,
+        actor_id=admin_user.id,
+        details=status_update.rejection_reason or f"Status changed to {target_status}",
+    )
+
     db.commit()
     db.refresh(claim)
     return claim
@@ -224,6 +247,16 @@ def respond_to_information_request(
     claim.status = ClaimStatus.UNDER_REVIEW.value
     claim.updated_at = datetime.now(timezone.utc)
 
+    # Log audit entry
+    log_audit(
+        db=db,
+        action="CLAIM_INFO_PROVIDED",
+        target_type="claim",
+        target_id=claim.id,
+        actor_id=current_user.id,
+        details="Claimant submitted requested additional verification details",
+    )
+
     db.commit()
     db.refresh(claim)
     return claim
@@ -259,6 +292,33 @@ def complete_claim_handover(
     if report:
         report.status = ReportStatus.RECOVERED.value
         report.updated_at = datetime.now(timezone.utc)
+
+        # Create RecoveryRecord (FR-RECOVER-01)
+        recovery_rec = RecoveryRecord(
+            report_id=report.id,
+            claim_id=claim.id,
+            responsible_user_id=admin_user.id,
+            handover_notes="Handover confirmed by administrator upon verified ownership proof.",
+        )
+        db.add(recovery_rec)
+
+        # Audit logs for both claim completion and report recovery
+        log_audit(
+            db=db,
+            action="CLAIM_COMPLETED",
+            target_type="claim",
+            target_id=claim.id,
+            actor_id=admin_user.id,
+            details=f"Item handover completed for report #{report.id}",
+        )
+        log_audit(
+            db=db,
+            action="ITEM_RECOVERED",
+            target_type="report",
+            target_id=report.id,
+            actor_id=admin_user.id,
+            details=f"Report #{report.id} ({report.title}) marked as recovered via claim #{claim.id}",
+        )
 
     db.commit()
     db.refresh(claim)

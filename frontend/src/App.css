@@ -1279,3 +1279,280 @@
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
+/* ==========================================================================
+   Step 6 & 7: Dashboards, Moderation, Accounts, & Recovery Styles
+   ========================================================================== */
+
+.dashboard-dialog {
+  max-width: 960px !important;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0 16px 0;
+}
+
+.kpi-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(30, 58, 138, 0.2);
+  transform: translateY(-2px);
+}
+
+.kpi-icon {
+  font-size: 1.6rem;
+}
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #FFF;
+  line-height: 1.2;
+}
+
+.kpi-label {
+  font-size: 0.71875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.dashboard-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.dashboard-tab {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.dashboard-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFF;
+}
+
+.dashboard-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFF;
+  font-weight: 600;
+}
+
+.dashboard-content-body {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 14px;
+  padding-right: 6px;
+}
+
+.dashboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-item-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.dash-item-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.dash-item-card.recovered-border {
+  border-left: 3px solid #10B981;
+}
+
+.dash-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-item-header h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #FFF;
+}
+
+.dash-item-desc {
+  font-size: 0.84375rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.dash-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dash-item-meta {
+  font-size: 0.78125rem;
+  color: var(--text-dim);
+}
+
+.dash-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dash-section-box {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.8125rem;
+}
+
+.admin-table th {
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #E2E8F0;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.audit-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  gap: 12px;
+  font-size: 0.8125rem;
+}
+
+.audit-detail-text {
+  flex: 1;
+  color: #E2E8F0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-actor {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.audit-time {
+  color: var(--text-dim);
+  font-size: 0.71875rem;
+}
+
+/* Recovery Detail Card */
+.recovery-receipt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recovery-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.recovery-timestamp {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.recovery-notes-text {
+  font-size: 0.875rem;
+  color: #E2E8F0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.audit-proof-notice {
+  font-size: 0.75rem;
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  margin-top: 6px;
+}
+
+

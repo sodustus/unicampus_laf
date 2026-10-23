@@ -46,6 +46,11 @@ class Claim(Base):
         back_populates="claim",
         cascade="all, delete-orphan",
     )
+    recovery_record = relationship(
+        "RecoveryRecord",
+        uselist=False,
+        back_populates="claim",
+    )
 
 
 class VerificationRecord(Base):
