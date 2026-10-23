@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCategories, createReport } from '../api/client';
+import { fetchCategories, createReport, fetchReports } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function ReportModal({ isOpen, onClose, onReportCreated }) {
+export default function ReportModal({ isOpen, onClose, onReportCreated, onInspectMatchingReport }) {
   const { token, isAuthenticated } = useAuth();
   const [categories, setCategories] = useState([]);
   const [type, setType] = useState('lost');
@@ -14,6 +14,12 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
   const [identifyingDetails, setIdentifyingDetails] = useState('');
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
+  
+  // Issue #7: Pre-submission Category Match Check state
+  const [matchingCandidates, setMatchingCandidates] = useState([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [matchConfirmed, setMatchConfirmed] = useState(true);
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,6 +36,40 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
     }
   }, [isOpen]);
 
+  // Issue #7: Fetch matching opposite-type reports when category or type changes
+  useEffect(() => {
+    if (!isOpen || !categoryId) {
+      setMatchingCandidates([]);
+      setMatchConfirmed(true);
+      return;
+    }
+
+    const targetType = type === 'found' ? 'lost' : 'found';
+    setLoadingCandidates(true);
+    fetchReports({
+      type: targetType,
+      category_id: categoryId,
+      status: 'active',
+    })
+      .then((items) => {
+        const candidates = items || [];
+        setMatchingCandidates(candidates);
+        if (candidates.length > 0) {
+          setMatchConfirmed(false);
+        } else {
+          setMatchConfirmed(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load matching candidates:', err);
+        setMatchingCandidates([]);
+        setMatchConfirmed(true);
+      })
+      .finally(() => {
+        setLoadingCandidates(false);
+      });
+  }, [isOpen, categoryId, type]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
@@ -43,6 +83,11 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
 
     if (type === 'found' && possessionStatus === 'submitted_to_authority' && !custodyLocation.trim()) {
       setError('Please specify the campus office or custody location where the item was submitted.');
+      return;
+    }
+
+    if (matchingCandidates.length > 0 && !matchConfirmed) {
+      setError(`Please review the existing ${type === 'found' ? 'lost' : 'found'} items in this category and click 'Confirm No Match' before submitting.`);
       return;
     }
 
@@ -162,6 +207,112 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
               </input>
             </div>
           </div>
+
+          {/* Issue #7: Pre-submission Category Match Check */}
+          {loadingCandidates ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '6px 0', padding: '6px 10px' }}>
+              Checking existing {type === 'found' ? 'lost' : 'found'} items in this category...
+            </div>
+          ) : matchingCandidates.length > 0 ? (
+            <div
+              className="match-check-box"
+              style={{
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                borderRadius: '8px',
+                padding: '12px 14px',
+                margin: '10px 0',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FCD34D' }}>
+                  ⚠️ Check Existing {type === 'found' ? 'Lost' : 'Found'} Items ({matchingCandidates.length} in this Category)
+                </span>
+                <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
+                  PRE-CHECK
+                </span>
+              </div>
+              <p style={{ margin: '4px 0 8px 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                {type === 'found'
+                  ? 'Could the item you found belong to one of these students who reported losing it?'
+                  : 'Has someone already found and registered your lost item below?'}
+              </p>
+
+              <div
+                style={{
+                  maxHeight: '160px',
+                  overflowY: 'auto',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                }}
+              >
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {matchingCandidates.map((cand) => (
+                    <li
+                      key={cand.id}
+                      style={{
+                        padding: '8px 0',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <strong style={{ color: '#F1F5F9', fontSize: '0.85rem' }}>{cand.title}</strong>
+                          <span style={{ fontSize: '0.75rem', color: '#93C5FD' }}>📍 {cand.location}</span>
+                        </div>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {cand.description}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '0.7rem', padding: '3px 8px', whiteSpace: 'nowrap' }}
+                        onClick={() => {
+                          if (onInspectMatchingReport) {
+                            onInspectMatchingReport(cand.id);
+                          }
+                        }}
+                      >
+                        {type === 'lost' ? '🤝 Inspect & Claim' : '🔍 Inspect Item'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '10px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid rgba(245, 158, 11, 0.2)',
+                }}
+              >
+                <span style={{ fontSize: '0.8rem', color: matchConfirmed ? '#6EE7B7' : '#FCA5A5', fontWeight: 500 }}>
+                  {matchConfirmed
+                    ? '✓ Confirmed: None of these match my item'
+                    : '⚠️ Please confirm that none of these match before posting'}
+                </span>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${matchConfirmed ? 'btn-success' : 'btn-warning'}`}
+                  style={{ fontSize: '0.75rem', padding: '4px 12px' }}
+                  onClick={() => setMatchConfirmed(!matchConfirmed)}
+                >
+                  {matchConfirmed ? '✓ Match Checked' : 'Confirm No Match'}
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <div className="form-group">
             <label htmlFor="report-location">
@@ -301,8 +452,16 @@ export default function ReportModal({ isOpen, onClose, onReportCreated }) {
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Submitting Report...' : `Submit ${type === 'lost' ? 'Lost' : 'Found'} Report`}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting || (matchingCandidates.length > 0 && !matchConfirmed)}
+            >
+              {submitting
+                ? 'Submitting Report...'
+                : matchingCandidates.length > 0 && !matchConfirmed
+                ? '⚠️ Confirm No Match to Submit'
+                : `Submit ${type === 'lost' ? 'Lost' : 'Found'} Report`}
             </button>
           </div>
         </form>

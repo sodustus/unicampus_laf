@@ -173,9 +173,10 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   {getStatusBadge(c.status)}
                 </div>
 
-                <div className="claim-meta-row">
-                  {isAdmin && (
-                    <span>👤 <strong>Claimant:</strong> {c.claimant?.email || `User #${c.claimant_id}`}</span>
+                <div className="claim-meta-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+                  <span>🎯 <strong>Claimant:</strong> {c.claimant?.full_name || c.claimant?.email || `User #${c.claimant_id}`} (ID #{c.claimant_id})</span>
+                  {c.finder && (
+                    <span>📦 <strong>Finder:</strong> {c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`} (ID #{c.report?.owner_id})</span>
                   )}
                   <span>📍 <strong>Location:</strong> {c.report?.location || 'Unknown'}</span>
                   <span>📅 <strong>Submitted:</strong> {new Date(c.created_at).toLocaleDateString()}</span>

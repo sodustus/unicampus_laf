@@ -87,7 +87,7 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
             }}
             title="View member profile"
           >
-            👤 Member #{report.owner_id}
+            {report.type === 'found' ? `📦 Finder: ID #${report.owner_id}` : `🔍 Lost by: ID #${report.owner_id}`}
           </button>
         )}
       </div>

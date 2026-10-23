@@ -83,12 +83,19 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  // Demo shortcut for fast 1-click logins during presentations
+  // Issue #7: Demo shortcuts for fast 1-click logins during presentations and multi-user testing
   const quickLogin = async (roleType) => {
-    if (roleType === 'admin') {
-      return await login('admin@campus.edu', 'AdminPass2026!');
-    } else {
-      return await login('student@campus.edu', 'StudentPass2026!');
+    switch (roleType) {
+      case 'admin':
+        return await login('admin@campus.edu', 'AdminPass2026!');
+      case 'student0':
+        return await login('student0@campus.edu', 'password0');
+      case 'student1':
+        return await login('student1@campus.edu', 'password1');
+      case 'student2':
+        return await login('student2@campus.edu', 'password2');
+      default:
+        return await login('student0@campus.edu', 'password0');
     }
   };
 

@@ -552,6 +552,10 @@ export default function App() {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onReportCreated={handleReportCreated}
+        onInspectMatchingReport={(repId) => {
+          setSelectedReportId(repId);
+          setIsReportModalOpen(false);
+        }}
       />
       <ReportDetailModal
         reportId={selectedReportId}

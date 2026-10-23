@@ -100,7 +100,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 <span className="detail-meta-value">📅 {formattedDate}</span>
               </div>
               <div className="detail-meta-item">
-                <span className="detail-meta-label">Reporter</span>
+                <span className="detail-meta-label">
+                  {report.type === 'found' ? 'Found By (Finder)' : 'Reported By (Loser/Owner)'}
+                </span>
                 <span className="detail-meta-value">
                   {onViewProfile ? (
                     <button
@@ -117,10 +119,10 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       }}
                       onClick={() => onViewProfile(report.owner_id)}
                     >
-                      👤 Member #{report.owner_id} &rarr;
+                      {report.type === 'found' ? `📦 Finder (ID #${report.owner_id})` : `🔍 Owner (ID #${report.owner_id})`} &rarr;
                     </button>
                   ) : (
-                    `Member #${report.owner_id}`
+                    report.type === 'found' ? `Finder #${report.owner_id}` : `Owner #${report.owner_id}`
                   )}
                 </span>
               </div>
