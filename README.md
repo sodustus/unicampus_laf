@@ -4,6 +4,8 @@ Campus Lost & Found Management System
 
 A web-based application designed to help university students report lost items, register found belongings, and reconnect items with their rightful owners.
 
+built by Abdurezak Anwar, Fullstack developer, CTC-2844-26.
+
 ## Overview
 
 Users can submit reports with item descriptions, photos, dates, and locations. They can browse, search, and filter reports, submit claims, and track the status of recovered items.
