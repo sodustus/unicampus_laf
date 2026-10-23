@@ -43,6 +43,11 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
             {report.type === 'lost' ? '🔍 LOST' : '📦 FOUND'}
           </span>
           {getPossessionBadge()}
+          {report.type === 'lost' && report.founder_id && report.status === 'active' && (
+            <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#6EE7B7' }}>
+              ✓ Finder Linked
+            </span>
+          )}
         </div>
         <span
           className={`badge ${

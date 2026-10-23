@@ -42,6 +42,8 @@ class Report(Base):
         nullable=False,
     )
     custody_location = Column(String(255), nullable=True)
+    founder_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    found_notes = Column(Text, nullable=True)
     photo_path = Column(String(500), nullable=True)
     identifying_details = Column(Text, nullable=True)  # Restricted visibility (FR-SEARCH-06)
 
@@ -60,7 +62,8 @@ class Report(Base):
 
     # Relationships
     category = relationship("Category", back_populates="reports")
-    owner = relationship("User", back_populates="reports")
+    owner = relationship("User", foreign_keys=[owner_id], back_populates="reports")
+    founder = relationship("User", foreign_keys=[founder_id])
     claims = relationship("Claim", back_populates="report", cascade="all, delete-orphan")
     recovery_records = relationship("RecoveryRecord", back_populates="report", cascade="all, delete-orphan")
 

@@ -138,7 +138,18 @@ def get_user_profile(
                 (Claim.claimant_id == target_user.id) & (Report.owner_id == current_user.id)
             )
         ).first() is not None
-        if has_approved_claim:
+
+        has_found_notice_coordination = db.query(Report).filter(
+            Report.deleted_at.is_(None),
+            Report.founder_id.isnot(None),
+            (
+                (Report.owner_id == current_user.id) & (Report.founder_id == target_user.id)
+            ) | (
+                (Report.owner_id == target_user.id) & (Report.founder_id == current_user.id)
+            )
+        ).first() is not None
+
+        if has_approved_claim or has_found_notice_coordination:
             can_view_phone = True
 
     return UserProfilePublic(

@@ -27,7 +27,12 @@ class User(Base):
         nullable=False,
     )
 
-    reports = relationship("Report", back_populates="owner", cascade="all, delete-orphan")
+    reports = relationship(
+        "Report",
+        foreign_keys="Report.owner_id",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
     claims = relationship("Claim", foreign_keys="Claim.claimant_id", back_populates="claimant")
     recoveries_handled = relationship(
         "RecoveryRecord",

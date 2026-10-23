@@ -231,3 +231,113 @@ def test_claim_handover_slip_and_contact_disclosure():
     assert res_rep.status_code == 200
     assert res_rep.json()["status"] == "recovered"
     assert res_rep.json()["possession_status"] == "returned"
+
+
+def test_lost_item_found_notice_handshake_and_direct_recovery():
+    """
+    Issue #7: Verify lost item finder handshake:
+    1. Student 1 posts a LOST report.
+    2. Owner cannot submit found notice on own report.
+    3. Student 2 submits found notice -> sets founder_id, possession_status, found_notes.
+    4. Second user cannot submit duplicate found notice.
+    5. Contact phone numbers unlocked between owner and founder.
+    6. Non-owner cannot mark recovered.
+    7. Owner directly marks recovered -> sets status=recovered, possession_status=returned.
+    """
+    import uuid
+    uid = uuid.uuid4().hex[:6]
+    email1 = f"loser_{uid}@campus.edu"
+    email2 = f"finder_{uid}@campus.edu"
+
+    # 1. Register two unique students
+    res_reg1 = client.post("/auth/register", json={"email": email1, "password": "Password123!"})
+    res_reg2 = client.post("/auth/register", json={"email": email2, "password": "Password123!"})
+    
+    t1 = client.post("/auth/login", json={"email": email1, "password": "Password123!"}).json()["access_token"]
+    t2 = client.post("/auth/login", json={"email": email2, "password": "Password123!"}).json()["access_token"]
+    h1 = {"Authorization": f"Bearer {t1}"}
+    h2 = {"Authorization": f"Bearer {t2}"}
+
+    # Set phone numbers and profile info
+    client.patch("/auth/profile/me", json={"full_name": "Abebe Loser", "phone_number": "+251911111111"}, headers=h1)
+    client.patch("/auth/profile/me", json={"full_name": "Chala Finder", "phone_number": "+251922222222"}, headers=h2)
+
+    db = SessionLocal()
+    u1 = db.query(User).filter(User.email == email1).first()
+    u2 = db.query(User).filter(User.email == email2).first()
+    category = db.query(Category).first()
+    u1_id = u1.id
+    u2_id = u2.id
+    category_id = category.id
+    db.close()
+
+    # Create Lost Report
+    lost_payload = {
+        "type": "lost",
+        "title": "Black Leather Wallet with Student ID",
+        "description": "Dropped near the cafeteria around noon.",
+        "category_id": category_id,
+        "location": "Cafeteria Gate 2",
+        "item_date": datetime.now(timezone.utc).isoformat(),
+        "identifying_details": "Has 500 birr and student ID #12345",
+    }
+    res_rep = client.post("/reports", json=lost_payload, headers=h1)
+    assert res_rep.status_code == 201
+    rep_data = res_rep.json()
+    rep_id = rep_data["id"]
+    assert rep_data["possession_status"] == "lost_unknown"
+    assert rep_data["founder_id"] is None
+
+    # Verify phone is not visible before handshake
+    res_prof = client.get(f"/auth/profile/{u2_id}", headers=h1)
+    assert res_prof.status_code == 200
+    assert res_prof.json()["phone_number"] is None
+
+    # 2. Owner cannot submit found notice
+    res_self = client.post(
+        f"/reports/{rep_id}/found-notice",
+        json={"possession_status": "with_finder", "found_notes": "I found it myself?"},
+        headers=h1,
+    )
+    assert res_self.status_code == 400
+    assert "own lost report" in res_self.json()["detail"]
+
+    # 3. Finder submits found notice
+    found_payload = {
+        "possession_status": "with_finder",
+        "found_notes": "I found it under table 4! Safely with me.",
+    }
+    res_notice = client.post(f"/reports/{rep_id}/found-notice", json=found_payload, headers=h2)
+    assert res_notice.status_code == 200
+    notice_data = res_notice.json()
+    assert notice_data["founder_id"] == u2_id
+    assert notice_data["possession_status"] == "with_finder"
+    assert notice_data["found_notes"] == "I found it under table 4! Safely with me."
+    assert notice_data["founder"] is not None
+    assert notice_data["founder"]["id"] == u2_id
+
+    # 4. Duplicate found notice rejected
+    res_dup = client.post(f"/reports/{rep_id}/found-notice", json=found_payload, headers=h2)
+    assert res_dup.status_code == 400
+    assert "already notified" in res_dup.json()["detail"]
+
+    # 5. Check phone number is now revealed in profile to owner and finder
+    res_prof_finder = client.get(f"/auth/profile/{u2_id}", headers=h1)
+    assert res_prof_finder.status_code == 200
+    assert res_prof_finder.json()["phone_number"] == "+251922222222"
+
+    res_prof_owner = client.get(f"/auth/profile/{u1_id}", headers=h2)
+    assert res_prof_owner.status_code == 200
+    assert res_prof_owner.json()["phone_number"] == "+251911111111"
+
+    # 6. Non-owner cannot mark recovered
+    res_bad_rec = client.post(f"/reports/{rep_id}/recover", headers=h2)
+    assert res_bad_rec.status_code == 403
+
+    # 7. Owner directly marks recovered
+    res_rec = client.post(f"/reports/{rep_id}/recover", headers=h1)
+    assert res_rec.status_code == 200
+    rec_data = res_rec.json()
+    assert rec_data["status"] == "recovered"
+    assert rec_data["possession_status"] == "returned"
+

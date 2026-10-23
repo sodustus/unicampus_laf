@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
 
-export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onClaim, onViewProfile }) {
+export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onClaim, onViewProfile, onFoundNotice }) {
   const { user, token, isAdmin } = useAuth();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -128,7 +128,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               </div>
             </div>
 
-            {/* Issue #2: Physical Custody / Handover System Box */}
+            {/* Issue #2: Physical Custody / Handover System Box for Found Reports */}
             {report.type === 'found' && (
               <div
                 style={{
@@ -169,6 +169,86 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     🤝 This item is currently held by the student finder. Contact information will be revealed once an admin approves your claim to coordinate physical pickup.
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Issue #7: Lost Report Handover Coordination Slip when Finder is linked */}
+            {report.type === 'lost' && report.founder_id && (
+              <div
+                style={{
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  margin: '14px 0',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34D399' }}>
+                    📦 FINDER NOTIFICATION & HANDOVER
+                  </span>
+                  <span
+                    className="badge"
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.25)',
+                      color: '#6EE7B7',
+                    }}
+                  >
+                    {getPossessionLabel(report.possession_status)}
+                  </span>
+                </div>
+
+                <div style={{ marginTop: '8px', fontSize: '0.88rem', color: '#E2E8F0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span>
+                      🤝 <strong>Found By:</strong>{' '}
+                      {report.founder ? (report.founder.full_name || report.founder.email) : `Student #${report.founder_id}`}
+                    </span>
+                    {onViewProfile && (
+                      <button
+                        type="button"
+                        className="btn-link"
+                        style={{
+                          padding: '2px 8px',
+                          fontSize: '0.78rem',
+                          color: '#34D399',
+                          background: 'rgba(16, 185, 129, 0.15)',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => onViewProfile(report.founder_id)}
+                      >
+                        View Finder Profile & Phone &rarr;
+                      </button>
+                    )}
+                  </div>
+
+                  {report.possession_status === 'submitted_to_authority' && report.custody_location && (
+                    <p style={{ margin: '8px 0 0 0', color: '#E2E8F0' }}>
+                      🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                    </p>
+                  )}
+
+                  {report.found_notes && (
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        fontStyle: 'italic',
+                        color: '#CBD5E1',
+                      }}
+                    >
+                      💬 <strong>Finder Note:</strong> "{report.found_notes}"
+                    </div>
+                  )}
+
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    ℹ️ Contact information is disclosed between owner and finder to coordinate handover. The owner directly confirms receipt to finalize recovery.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -224,13 +304,48 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 {isOwner && report.type === 'lost' && report.status === 'active' && (
                   <button
                     className="btn btn-primary"
+                    style={
+                      report.founder_id
+                        ? { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }
+                        : {}
+                    }
                     onClick={() => {
                       onRecover(report);
                       onClose();
                     }}
                   >
-                    ✓ Mark as Recovered
+                    {report.founder_id ? '🎉 Confirm Receipt & Mark Recovered' : '✓ Mark as Recovered'}
                   </button>
+                )}
+
+                {/* Issue #7: Lost Item Found Notice Action for non-owners */}
+                {report.type === 'lost' && report.status === 'active' && !isOwner && !report.founder_id && (
+                  <button
+                    className="btn btn-primary"
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
+                    onClick={() => {
+                      if (onFoundNotice) onFoundNotice(report);
+                      onClose();
+                    }}
+                  >
+                    📦 I Found This Item!
+                  </button>
+                )}
+
+                {report.type === 'lost' && report.status === 'active' && !isOwner && report.founder_id && (
+                  <span
+                    className="badge"
+                    style={{
+                      padding: '8px 14px',
+                      background: 'rgba(16, 185, 129, 0.2)',
+                      color: '#6EE7B7',
+                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    ✓ Finder Linked (#{report.founder_id})
+                  </span>
                 )}
 
                 {report.status === 'recovered' && (
@@ -245,7 +360,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   </button>
                 )}
 
-                {/* Found Item Claim Action (Step 5 Preparation) */}
+                {/* Found Item Claim Action */}
                 {report.type === 'found' && report.status === 'active' && !isOwner && (
                   <button
                     className="btn btn-primary"

@@ -18,6 +18,7 @@ import RecoveryDetailModal from './components/RecoveryDetailModal';
 import UserDashboardModal from './components/UserDashboardModal';
 import AdminDashboardModal from './components/AdminDashboardModal';
 import ProfileModal from './components/ProfileModal';
+import FoundNoticeModal from './components/FoundNoticeModal';
 import './App.css';
 
 export default function App() {
@@ -57,6 +58,9 @@ export default function App() {
     isSelfEdit: false,
   });
 
+  // Issue #7: Lost item found notice modal state
+  const [foundNoticeReport, setFoundNoticeReport] = useState(null);
+
   const handleOpenSelfProfile = () => {
     setProfileModalConfig({
       isOpen: true,
@@ -79,6 +83,14 @@ export default function App() {
       targetUserId: null,
       isSelfEdit: false,
     });
+  };
+
+  const handleOpenFoundNotice = (report) => {
+    if (!isAuthenticated) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setFoundNoticeReport(report);
   };
 
   const [filters, setFilters] = useState({
@@ -564,6 +576,17 @@ export default function App() {
         onDelete={handleDeleteReport}
         onClaim={handleClaimItem}
         onViewProfile={handleViewMemberProfile}
+        onFoundNotice={handleOpenFoundNotice}
+      />
+      <FoundNoticeModal
+        isOpen={Boolean(foundNoticeReport)}
+        report={foundNoticeReport}
+        onClose={() => setFoundNoticeReport(null)}
+        onSuccess={(updatedReport) => {
+          setFoundNoticeReport(null);
+          loadReports();
+          setSelectedReportId(updatedReport.id);
+        }}
       />
       <ClaimModal
         isOpen={Boolean(claimReport)}

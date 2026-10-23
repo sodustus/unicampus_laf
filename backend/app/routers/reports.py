@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.report import Report, ReportType, ReportStatus, PossessionStatus
 from app.models.category import Category
 from app.models.user import User, UserRole
-from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse
+from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse, FoundNoticeCreate
 from app.core.dependencies import get_current_user, get_optional_current_user
 from app.models.recovery import RecoveryRecord
 from app.services.audit import log_audit
@@ -81,6 +81,9 @@ def browse_and_search_reports(
             "status": r.status,
             "possession_status": r.possession_status,
             "custody_location": r.custody_location,
+            "founder_id": r.founder_id,
+            "found_notes": r.found_notes,
+            "founder": r.founder,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
             "created_at": r.created_at,
@@ -181,6 +184,9 @@ def get_report_detail(
         "status": report.status,
         "possession_status": report.possession_status,
         "custody_location": report.custody_location,
+        "founder_id": report.founder_id,
+        "found_notes": report.found_notes,
+        "founder": report.founder,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
         "created_at": report.created_at,
@@ -266,6 +272,67 @@ def delete_report(
     return {"message": "Report has been deleted successfully."}
 
 
+@router.post("/{report_id}/found-notice", response_model=ReportResponse)
+def submit_found_notice(
+    report_id: int,
+    notice_in: FoundNoticeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Issue #7: Another student notifies the owner of a lost report that they found the item.
+    Sets custody details and founder link, initiating the direct handover process.
+    """
+    report = db.query(Report).filter(Report.id == report_id, Report.deleted_at.is_(None)).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found.")
+
+    if report.type != ReportType.LOST.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Found notices can only be submitted for 'lost' item reports.",
+        )
+
+    if report.status != ReportStatus.ACTIVE.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This lost report is no longer active.",
+        )
+
+    if report.owner_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot submit a found notice on your own lost report.",
+        )
+
+    if report.founder_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A finder has already notified the owner for this item.",
+        )
+
+    report.founder_id = current_user.id
+    report.possession_status = notice_in.possession_status
+    report.custody_location = notice_in.custody_location.strip() if notice_in.custody_location else None
+    report.found_notes = notice_in.found_notes.strip() if notice_in.found_notes else None
+    report.updated_at = datetime.now(timezone.utc)
+
+    # Log audit entry
+    finder_name = current_user.full_name or current_user.email
+    log_audit(
+        db=db,
+        action="LOST_ITEM_FOUND",
+        target_type="report",
+        target_id=report.id,
+        actor_id=current_user.id,
+        details=f"User #{current_user.id} ({finder_name}) notified owner #{report.owner_id} that item '{report.title}' was found (custody: {report.possession_status}).",
+    )
+
+    db.commit()
+    db.refresh(report)
+    return report
+
+
 @router.post("/{report_id}/recover", response_model=ReportResponse)
 def mark_report_recovered(
     report_id: int,
@@ -292,12 +359,16 @@ def mark_report_recovered(
     report.possession_status = PossessionStatus.RETURNED.value
     report.updated_at = datetime.now(timezone.utc)
 
+    handover_notes = "Marked as recovered directly by owner."
+    if report.founder_id:
+        handover_notes = f"Item recovered directly from founder #{report.founder_id} by owner #{report.owner_id}."
+
     # Create RecoveryRecord (FR-RECOVER-01)
     recovery_rec = RecoveryRecord(
         report_id=report.id,
         claim_id=None,
         responsible_user_id=current_user.id,
-        handover_notes="Marked as recovered directly by owner.",
+        handover_notes=handover_notes,
     )
     db.add(recovery_rec)
 

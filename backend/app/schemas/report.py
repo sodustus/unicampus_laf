@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, Literal
 from app.schemas.category import CategoryResponse
+from app.schemas.user import UserResponse
 
 
 class ReportCreate(BaseModel):
@@ -38,6 +39,21 @@ class ReportUpdate(BaseModel):
     identifying_details: Optional[str] = None
 
 
+class FoundNoticeCreate(BaseModel):
+    possession_status: Literal["with_finder", "submitted_to_authority"] = Field(
+        ...,
+        description="Custody status: 'with_finder' or 'submitted_to_authority'",
+    )
+    custody_location: Optional[str] = Field(
+        None,
+        description="Office/Desk where item was submitted, if submitted_to_authority",
+    )
+    found_notes: Optional[str] = Field(
+        None,
+        description="Message or notes from the finder to the owner",
+    )
+
+
 class ReportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -53,6 +69,9 @@ class ReportResponse(BaseModel):
     status: str
     possession_status: str = "lost_unknown"
     custody_location: Optional[str] = None
+    founder_id: Optional[int] = None
+    found_notes: Optional[str] = None
+    founder: Optional[UserResponse] = None
     photo_path: Optional[str] = None
     identifying_details: Optional[str] = None
     created_at: datetime

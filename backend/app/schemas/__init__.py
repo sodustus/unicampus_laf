@@ -7,7 +7,7 @@ from app.schemas.user import (
     UserProfilePublic,
 )
 from app.schemas.category import CategoryCreate, CategoryResponse
-from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse
+from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse, FoundNoticeCreate
 from app.schemas.claim import (
     ClaimCreate,
     ClaimStatusUpdate,
@@ -37,6 +37,7 @@ __all__ = [
     "ReportCreate",
     "ReportUpdate",
     "ReportResponse",
+    "FoundNoticeCreate",
     "ClaimCreate",
     "ClaimStatusUpdate",
     "ClaimRespondInfo",

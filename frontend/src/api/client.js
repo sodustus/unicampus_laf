@@ -90,6 +90,20 @@ export async function markReportRecovered(reportId, token) {
   return data;
 }
 
+export async function submitFoundNotice(reportId, noticeData, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/found-notice`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(noticeData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to submit found notice');
+  return data;
+}
+
 export async function deleteReport(reportId, token) {
   const res = await fetch(`${BASE_URL}/reports/${reportId}`, {
     method: 'DELETE',
