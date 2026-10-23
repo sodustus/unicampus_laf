@@ -14,6 +14,9 @@ import ReportDetailModal from './components/ReportDetailModal';
 import SearchFilters from './components/SearchFilters';
 import ClaimModal from './components/ClaimModal';
 import ClaimsManagerModal from './components/ClaimsManagerModal';
+import RecoveryDetailModal from './components/RecoveryDetailModal';
+import UserDashboardModal from './components/UserDashboardModal';
+import AdminDashboardModal from './components/AdminDashboardModal';
 import './App.css';
 
 export default function App() {
@@ -40,6 +43,11 @@ export default function App() {
   // Step 5: Claims & Verification state
   const [claimReport, setClaimReport] = useState(null);
   const [isClaimsManagerOpen, setIsClaimsManagerOpen] = useState(false);
+
+  // Step 6 & 7: Recovery, User & Admin Dashboards state
+  const [recoveryReport, setRecoveryReport] = useState(null);
+  const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     type: '',
@@ -99,13 +107,14 @@ export default function App() {
     setSelectedReportId(newReport.id);
   };
 
-  const handleRecoverReport = async (reportId) => {
-    if (!token) return;
-    try {
-      await markReportRecovered(reportId, token);
-      loadReports();
-    } catch (err) {
-      alert(err.message || 'Failed to mark report recovered');
+  const handleRecoverReport = (report) => {
+    if (!token) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    const target = typeof report === 'object' ? report : reports.find((r) => r.id === report);
+    if (target) {
+      setRecoveryReport(target);
     }
   };
 
@@ -153,8 +162,8 @@ export default function App() {
     { num: 3, title: 'Report CRUD', desc: 'Lost and found item reporting (shared table with type field & privacy boundary)', status: 'completed' },
     { num: 4, title: 'Browse & Search', desc: 'Filter by type, category, location, status, keyword search, and sorting', status: 'completed' },
     { num: 5, title: 'Claims & Review', desc: 'Ownership verification submission, review loop, and admin decision', status: 'completed' },
-    { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'current' },
-    { num: 7, title: 'Dashboards', desc: 'Dedicated views for students/staff and administrators', status: 'upcoming' },
+    { num: 6, title: 'Recovery & Audit', desc: 'Handover confirmation, return status, and immutable audit logs', status: 'completed' },
+    { num: 7, title: 'Dashboards', desc: 'Dedicated views for students/staff and administrators', status: 'completed' },
   ];
 
   return (
@@ -179,12 +188,37 @@ export default function App() {
                   {isAdmin ? '🛡️ Administrator' : '👤 Student / Staff'}
                 </span>
               </div>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setIsClaimsManagerOpen(true)}
-              >
-                {isAdmin ? '🛡️ Review Claims' : '📋 My Claims'}
-              </button>
+              {isAdmin ? (
+                <>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setIsAdminDashboardOpen(true)}
+                  >
+                    🛡️ Admin Console
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setIsClaimsManagerOpen(true)}
+                  >
+                    Claims Review
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => setIsUserDashboardOpen(true)}
+                  >
+                    📊 My Dashboard
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setIsClaimsManagerOpen(true)}
+                  >
+                    📋 My Claims
+                  </button>
+                </>
+              )}
               <button className="btn btn-secondary" onClick={logout}>
                 Sign Out
               </button>
@@ -483,6 +517,36 @@ export default function App() {
         onClose={() => setIsClaimsManagerOpen(false)}
         onHandoverCompleted={() => {
           loadReports();
+        }}
+      />
+      <RecoveryDetailModal
+        isOpen={Boolean(recoveryReport)}
+        report={recoveryReport}
+        onClose={() => setRecoveryReport(null)}
+        onRecovered={() => {
+          loadReports();
+        }}
+      />
+      <UserDashboardModal
+        isOpen={isUserDashboardOpen}
+        onClose={() => setIsUserDashboardOpen(false)}
+        onOpenReport={(repId) => {
+          setSelectedReportId(repId);
+        }}
+        onRecoverReport={(rep) => {
+          setRecoveryReport(rep);
+        }}
+        onDeleteReport={handleDeleteReport}
+      />
+      <AdminDashboardModal
+        isOpen={isAdminDashboardOpen}
+        onClose={() => setIsAdminDashboardOpen(false)}
+        onOpenReport={(repId) => {
+          setSelectedReportId(repId);
+        }}
+        onOpenClaimsManager={() => {
+          setIsAdminDashboardOpen(false);
+          setIsClaimsManagerOpen(true);
         }}
       />
     </div>

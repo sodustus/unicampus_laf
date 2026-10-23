@@ -8,6 +8,15 @@ from app.schemas.claim import (
     ClaimResponse,
     VerificationRecordResponse,
 )
+from app.schemas.recovery import RecoveryRecordCreate, RecoveryRecordResponse
+from app.schemas.audit import AuditLogResponse
+from app.schemas.dashboard import (
+    UserDashboardResponse,
+    UserDashboardStats,
+    AdminDashboardResponse,
+    AdminDashboardStats,
+    AdminUserItem,
+)
 
 __all__ = [
     "UserRegister",
@@ -24,4 +33,12 @@ __all__ = [
     "ClaimRespondInfo",
     "ClaimResponse",
     "VerificationRecordResponse",
+    "RecoveryRecordCreate",
+    "RecoveryRecordResponse",
+    "AuditLogResponse",
+    "UserDashboardResponse",
+    "UserDashboardStats",
+    "AdminDashboardResponse",
+    "AdminDashboardStats",
+    "AdminUserItem",
 ]

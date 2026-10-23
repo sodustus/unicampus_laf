@@ -180,3 +180,127 @@ export async function completeClaimHandover(claimId, token) {
   if (!res.ok) throw new Error(data.detail || 'Failed to complete handover');
   return data;
 }
+
+/* ==========================================================================
+   Step 6: Recovery Tracking & Immutable Audit Log APIs
+   ========================================================================== */
+
+export async function fetchRecoveryRecord(reportId, token) {
+  const res = await fetch(`${BASE_URL}/recovery/report/${reportId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+export async function markDirectRecovery(reportId, handoverNotes, token) {
+  const res = await fetch(`${BASE_URL}/recovery/direct/${reportId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ handover_notes: handoverNotes }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to record direct recovery');
+  return data;
+}
+
+export async function fetchAuditLogs(filters = {}, token) {
+  const params = new URLSearchParams();
+  if (filters.action) params.append('action', filters.action);
+  if (filters.target_type) params.append('target_type', filters.target_type);
+  if (filters.limit) params.append('limit', filters.limit);
+  const queryStr = params.toString() ? `?${params.toString()}` : '';
+
+  const res = await fetch(`${BASE_URL}/audit-logs${queryStr}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to load audit logs');
+  return await res.json();
+}
+
+/* ==========================================================================
+   Step 7: User & Administrator Dashboards APIs
+   ========================================================================== */
+
+export async function fetchUserDashboard(token) {
+  const res = await fetch(`${BASE_URL}/dashboard/user`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to load user dashboard');
+  return await res.json();
+}
+
+export async function fetchAdminDashboard(token) {
+  const res = await fetch(`${BASE_URL}/dashboard/admin`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to load admin dashboard');
+  return await res.json();
+}
+
+export async function fetchAdminUsers(token) {
+  const res = await fetch(`${BASE_URL}/admin/users`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to load campus user list');
+  return await res.json();
+}
+
+export async function toggleUserActive(userId, token) {
+  const res = await fetch(`${BASE_URL}/admin/users/${userId}/toggle-active`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to update user status');
+  return data;
+}
+
+export async function moderateReport(reportId, statusVal, moderationReason, token) {
+  const res = await fetch(`${BASE_URL}/admin/reports/${reportId}/moderate`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      status_val: statusVal,
+      moderation_reason: moderationReason,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to moderate report');
+  return data;
+}
+
+export async function permanentDeleteReport(reportId, token) {
+  const res = await fetch(`${BASE_URL}/admin/reports/${reportId}/permanent`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to permanently delete report');
+  return data;
+}

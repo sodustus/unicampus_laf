@@ -145,11 +145,23 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   <button
                     className="btn btn-primary"
                     onClick={() => {
-                      onRecover(report.id);
+                      onRecover(report);
                       onClose();
                     }}
                   >
-                    Mark as Recovered
+                    ✓ Mark as Recovered
+                  </button>
+                )}
+
+                {report.status === 'recovered' && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      onRecover(report);
+                      onClose();
+                    }}
+                  >
+                    📜 Recovery Audit Record
                   </button>
                 )}
 

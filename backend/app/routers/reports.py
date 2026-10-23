@@ -10,6 +10,8 @@ from app.models.category import Category
 from app.models.user import User, UserRole
 from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse
 from app.core.dependencies import get_current_user, get_optional_current_user
+from app.models.recovery import RecoveryRecord
+from app.services.audit import log_audit
 
 router = APIRouter(prefix="/reports", tags=["Lost & Found Reports"])
 
@@ -116,6 +118,18 @@ def create_report(
     db.add(new_report)
     db.commit()
     db.refresh(new_report)
+
+    # Log audit entry (FR-AUDIT-01)
+    log_audit(
+        db=db,
+        action="REPORT_CREATED",
+        target_type="report",
+        target_id=new_report.id,
+        actor_id=current_user.id,
+        details=f"{new_report.type.capitalize()} report created: {new_report.title} (location: {new_report.location})",
+    )
+    db.commit()
+
     return new_report
 
 
@@ -221,6 +235,17 @@ def delete_report(
 
     report.deleted_at = datetime.now(timezone.utc)
     report.status = ReportStatus.CLOSED.value
+
+    # Log audit entry (FR-AUDIT-01, FR-AUDIT-03)
+    log_audit(
+        db=db,
+        action="REPORT_DELETED",
+        target_type="report",
+        target_id=report.id,
+        actor_id=current_user.id,
+        details=f"Report #{report.id} ({report.title}) soft-deleted by user #{current_user.id}",
+    )
+
     db.commit()
     return {"message": "Report has been deleted successfully."}
 
@@ -249,6 +274,26 @@ def mark_report_recovered(
 
     report.status = ReportStatus.RECOVERED.value
     report.updated_at = datetime.now(timezone.utc)
+
+    # Create RecoveryRecord (FR-RECOVER-01)
+    recovery_rec = RecoveryRecord(
+        report_id=report.id,
+        claim_id=None,
+        responsible_user_id=current_user.id,
+        handover_notes="Marked as recovered directly by owner.",
+    )
+    db.add(recovery_rec)
+
+    # Log audit entry (FR-AUDIT-01)
+    log_audit(
+        db=db,
+        action="ITEM_RECOVERED",
+        target_type="report",
+        target_id=report.id,
+        actor_id=current_user.id,
+        details=f"Report #{report.id} ({report.title}) marked as recovered directly by owner",
+    )
+
     db.commit()
     db.refresh(report)
     return report
