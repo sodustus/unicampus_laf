@@ -160,6 +160,6 @@ env/
 # Local dev helpers
 run_app.bat
 run_app.ps1
-
+uploads/
 
 project_architecture_and_study_guide.md
