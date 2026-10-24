@@ -92,7 +92,7 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header">

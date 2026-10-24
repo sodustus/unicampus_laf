@@ -110,7 +110,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">

@@ -90,7 +90,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
@@ -215,7 +215,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   onChange={(e) => handleCustodianPhoneChange(e.target.value)}
                   maxLength={custodianPhone.startsWith('+') ? 13 : 10}
                 />
-                <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                <span className="field-hint" style={{ display: 'block', marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   Helpful for direct calls. Limits: 10 digits for local (01.../09...) or 13 chars for (+251...).
                 </span>
               </div>
@@ -256,7 +256,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               Distinguishing Physical Proof / Hidden Marks Observed <span className="req-star">*</span>
             </label>
             <textarea
-              className="form-input"
+              className="form-textarea"
               rows={3}
               placeholder="e.g. Has initials 'JD' stamped on the interior corner, brand model XYZ, three brass keys attached, slight scratch on the clasp..."
               value={founderProof}
@@ -273,7 +273,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               Meetup / Handover Availability Note (Optional)
             </label>
             <textarea
-              className="form-input"
+              className="form-textarea"
               rows={2}
               placeholder="e.g. Available around Science Building after 2 PM on weekdays."
               value={foundNotes}

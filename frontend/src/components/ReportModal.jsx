@@ -123,7 +123,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" style={{ maxWidth: '580px' }} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">

@@ -65,7 +65,7 @@ export default function UserDashboardModal({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div
         className="modal-dialog glass-panel dashboard-dialog"
         style={{ maxWidth: '900px' }}

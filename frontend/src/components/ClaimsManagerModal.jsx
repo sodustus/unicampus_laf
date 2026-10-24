@@ -163,7 +163,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel claims-modal-dialog" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
@@ -184,7 +184,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
         {/* Admin Filter Tabs */}
         {isAdmin && (
           <div className="tab-switcher claims-tab-switcher">
-            {['all', 'submitted', 'under_review', 'awaiting_info', 'approved', 'handover_failed', 'completed', 'rejected'].map((st) => (
+            {['all', 'submitted', 'under_review', 'approved', 'handover_failed', 'completed', 'rejected'].map((st) => (
               <button
                 key={st}
                 className={`tab-btn ${statusFilter === st ? 'active' : ''}`}
@@ -693,16 +693,6 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       </button>
                     )}
 
-                    {(c.status === 'under_review' || c.status === 'submitted') && (
-                      <button
-                        className="btn btn-warning btn-sm"
-                        onClick={() => handleStatusChange(c.id, 'awaiting_info')}
-                        disabled={actionLoading}
-                      >
-                        ❓ Request More Info
-                      </button>
-                    )}
-
                     {(c.status === 'under_review' || c.status === 'submitted' || c.status === 'awaiting_info') && (
                       <button
                         className="btn btn-primary btn-sm"
@@ -719,7 +709,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           <input
                             type="text"
                             className="form-input-sm"
-                            placeholder="Mandatory rejection reason..."
+                            placeholder="Rejection reason (e.g. Insufficient proof: please specify serial number)..."
                             value={rejectionReasonText}
                             onChange={(e) => setRejectionReasonText(e.target.value)}
                           />
