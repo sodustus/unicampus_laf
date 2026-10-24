@@ -183,7 +183,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
 
         {/* Admin Filter Tabs */}
         {isAdmin && (
-          <div className="tab-switcher" style={{ overflowX: 'auto' }}>
+          <div className="tab-switcher claims-tab-switcher">
             {['all', 'submitted', 'under_review', 'awaiting_info', 'approved', 'handover_failed', 'completed', 'rejected'].map((st) => (
               <button
                 key={st}
