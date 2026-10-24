@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  fetchHealth,
   fetchCategories,
   fetchReports,
   deleteReport,
@@ -22,10 +23,9 @@ import './App.css';
 
 export default function App() {
   const { user, token, isAuthenticated, isAdmin, logout } = useAuth();
-  
 
-
-  // Auth & Modal state
+  // Health probe state
+  const [healthData, setHealthData] = useState(null);  // Auth & Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Step 3 & 4: Reports, Categories & Filters state
@@ -118,7 +118,17 @@ export default function App() {
     }
   }, [filters, token]);
 
+  const checkStatus = async () => {
+    try {
+      const res = await fetchHealth();
+      setHealthData(res);
+    } catch {
+      setHealthData(null);
+    }
+  };
+
   useEffect(() => {
+    checkStatus();
     loadCategories();
   }, []);
 
