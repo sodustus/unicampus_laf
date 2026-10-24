@@ -429,9 +429,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       alignItems: 'center',
                       gap: '6px',
                     }}
-                    title="A person cannot claim or submit found notices on a lost item more than once."
+                    title="Your found notice is currently being processed by campus administration."
                   >
-                    ✓ You already submitted a found notice on this lost item
+                    ⏳ Found notice currently under review
                   </span>
                 )}
 
@@ -463,15 +463,22 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
                 {/* Found Item Claim Action */}
                 {report.type === 'found' && report.status === 'active' && !isOwner && !report.user_has_claimed && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => {
-                      onClaim(report);
-                      onClose();
-                    }}
-                  >
-                    🤝 Claim This Item
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    {report.user_claim_status === 'rejected' && (
+                      <span style={{ fontSize: '0.8rem', color: '#93C5FD' }}>
+                        💡 Previous claim rejected. You can try claiming again if you think this is a mistake.
+                      </span>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        onClaim(report);
+                        onClose();
+                      }}
+                    >
+                      {report.user_claim_status === 'rejected' ? '🔄 Try Claiming Again' : '🤝 Claim This Item'}
+                    </button>
+                  </div>
                 )}
 
                 {report.type === 'found' && report.status === 'active' && !isOwner && report.user_has_claimed && (
@@ -484,9 +491,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       alignItems: 'center',
                       gap: '6px',
                     }}
-                    title="A person cannot claim an item more than once."
+                    title="Your ownership claim is currently being processed by campus administration."
                   >
-                    ✓ You already filed an ownership claim on this item
+                    ⏳ Ownership claim currently under review
                   </span>
                 )}
 

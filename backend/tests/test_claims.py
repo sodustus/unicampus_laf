@@ -458,7 +458,7 @@ def test_person_cannot_claim_item_more_than_once():
         )
         assert notice1.status_code == 200
 
-        # User attempts second found notice on same lost item -> 400 Bad Request
+        # User attempts second found notice on same lost item while notice is pending -> 400 Bad Request
         notice2 = client.post(
             f"/reports/{lost_id}/found-notice",
             json={
@@ -468,7 +468,7 @@ def test_person_cannot_claim_item_more_than_once():
             headers={"Authorization": f"Bearer {claimer_token}"},
         )
         assert notice2.status_code == 400
-        assert "cannot claim a lost item more than once" in notice2.json()["detail"].lower()
+        assert "currently being processed" in notice2.json()["detail"].lower()
 
         # User submits first claim on found item -> 201 Created
         claim1 = client.post(
@@ -479,30 +479,46 @@ def test_person_cannot_claim_item_more_than_once():
         assert claim1.status_code == 201
         claim1_id = claim1.json()["id"]
 
-        # User attempts second claim on same found item -> 400 Bad Request
+        # User attempts second claim on same found item while first is active -> 400 Bad Request
         claim2 = client.post(
             f"/reports/{found_id}/claims",
-            json={"proof_details": "Trying to claim again"},
+            json={"proof_details": "Trying to claim again while under review"},
             headers={"Authorization": f"Bearer {claimer_token}"},
         )
         assert claim2.status_code == 400
-        assert "cannot claim an item more than once" in claim2.json()["detail"].lower()
+        assert "currently being processed" in claim2.json()["detail"].lower()
 
         # Admin rejects first claim
-        client.patch(
+        reject_res = client.patch(
             f"/claims/{claim1_id}",
             json={"status": "rejected", "rejection_reason": "Insufficient proof"},
             headers={"Authorization": f"Bearer {admin_token}"},
         )
+        assert reject_res.status_code == 200
 
-        # User attempts to claim again after rejection -> 400 Bad Request
+        # After rejection, report shows user_has_claimed=False and user_claim_status='rejected'
+        detail_after_reject = client.get(f"/reports/{found_id}", headers={"Authorization": f"Bearer {claimer_token}"})
+        assert detail_after_reject.status_code == 200
+        assert detail_after_reject.json()["user_has_claimed"] is False
+        assert detail_after_reject.json()["user_claim_status"] == "rejected"
+
+        # User can now try claiming again with better proof -> 201 Created!
         claim3 = client.post(
             f"/reports/{found_id}/claims",
-            json={"proof_details": "Trying again after rejection"},
+            json={"proof_details": "Detailed proof: Serial SN-982189 on underside label, small nick on corner"},
             headers={"Authorization": f"Bearer {claimer_token}"},
         )
-        assert claim3.status_code == 400
-        assert "cannot claim an item more than once" in claim3.json()["detail"].lower()
+        assert claim3.status_code == 201
+        assert claim3.json()["status"] == "submitted"
+
+        # While claim3 is being processed, submitting another claim is blocked -> 400 Bad Request
+        claim4 = client.post(
+            f"/reports/{found_id}/claims",
+            json={"proof_details": "Spamming another claim while claim3 is pending"},
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert claim4.status_code == 400
+        assert "currently being processed" in claim4.json()["detail"].lower()
 
     finally:
         clean_db = SessionLocal()

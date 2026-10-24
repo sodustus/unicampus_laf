@@ -85,19 +85,25 @@ def submit_claim(
             detail="You cannot submit a claim on an item you registered. A user cannot be both the reporter and claimer on the same report.",
         )
 
-    # Rule: A person cannot claim an item more than once
-    existing_user_claim = (
+    # Rule: A person cannot claim twice WHILE THEIR CLAIM IS BEING PROCESSED
+    active_user_claim = (
         db.query(Claim)
         .filter(
             Claim.report_id == report_id,
             Claim.claimant_id == current_user.id,
+            Claim.status.in_([
+                ClaimStatus.SUBMITTED.value,
+                ClaimStatus.UNDER_REVIEW.value,
+                ClaimStatus.AWAITING_INFO.value,
+                ClaimStatus.APPROVED.value,
+            ]),
         )
         .first()
     )
-    if existing_user_claim:
+    if active_user_claim:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already submitted an ownership claim on this item. A person cannot claim an item more than once.",
+            detail="You already have an ownership claim currently being processed for this item. You cannot claim an item twice while your claim is under review.",
         )
 
     new_claim = Claim(

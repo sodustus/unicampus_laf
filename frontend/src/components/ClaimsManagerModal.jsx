@@ -778,20 +778,42 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   <div
                     style={{
                       marginTop: '10px',
-                      padding: '10px 14px',
-                      borderRadius: '6px',
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      background: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       flexWrap: 'wrap',
-                      gap: '8px',
+                      gap: '10px',
                     }}
                   >
-                    <span style={{ fontSize: '0.82rem', color: '#FCA5A5', fontWeight: 500 }}>
-                      ⛔ Claim rejected by campus administration. Per campus verification policy, a person cannot claim an item more than once.
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
+                      <span style={{ fontSize: '1.1rem' }}>💡</span>
+                      <span style={{ fontSize: '0.84rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+                        Claim was rejected by campus administration. If you think this is a mistake or have stronger ownership proof, you can try claiming again.
+                      </span>
+                    </div>
+                    {onOpenClaimReport && (
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        style={{
+                          fontSize: '0.78rem',
+                          padding: '6px 14px',
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                        }}
+                        onClick={() => {
+                          onClose();
+                          onOpenClaimReport(c.report);
+                        }}
+                      >
+                        🔄 Try Claiming Again with Better Proof
+                      </button>
+                    )}
                   </div>
                 )}
 

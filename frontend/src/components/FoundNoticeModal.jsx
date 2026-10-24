@@ -16,7 +16,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   if (!isOpen || !report) return null;
 
   const isReporter = Boolean(user && report && user.id === report.owner_id);
-  const hasAlreadyClaimed = Boolean(report && report.user_has_claimed);
+  const hasActiveClaim = Boolean(report && report.user_has_claimed);
+  const wasRejected = Boolean(report && report.user_claim_status === 'rejected');
 
   // Real-time numbers-only filter: enforces 10 chars for 01.../09... and 13 chars for +251...
   const handleCustodianPhoneChange = (val) => {
@@ -49,8 +50,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
       return;
     }
 
-    if (hasAlreadyClaimed) {
-      setError('You have already submitted a found notice on this lost item. A person cannot claim a lost item more than once.');
+    if (hasActiveClaim) {
+      setError('You already have a found notice currently being processed for this item. You cannot submit multiple notices while under review.');
       return;
     }
 
@@ -125,11 +126,20 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
           </div>
         )}
 
-        {hasAlreadyClaimed && (
+        {hasActiveClaim && (
           <div className="alert-error" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🚫</span>
+            <span>⏳</span>
             <span>
-              <strong>Rule Enforced:</strong> You have already submitted a found notice on this lost item. A person cannot claim a lost item more than once.
+              <strong>Notice In Progress:</strong> You already have a found notice currently being processed for this item. You cannot submit another notice while under review.
+            </span>
+          </div>
+        )}
+
+        {!hasActiveClaim && wasRejected && (
+          <div style={{ marginBottom: '1rem', padding: '12px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>💡</span>
+            <span style={{ fontSize: '0.85rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+              <strong>Previous Notice Was Rejected:</strong> If you think this was a mistake or you have clearer proof of the found item, you may submit a new found notice. Please provide distinguishing details to help administrators verify.
             </span>
           </div>
         )}
@@ -297,7 +307,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter || hasAlreadyClaimed}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter || hasActiveClaim}>
               {submitting ? 'Notifying Owner...' : '🚀 Submit Found Notice'}
             </button>
           </div>
