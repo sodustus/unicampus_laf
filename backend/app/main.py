@@ -23,25 +23,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
+# Canonical Routers
 app.include_router(health.router)
-app.include_router(health.router, prefix=settings.API_V1_STR)
+app.include_router(health.router, prefix=settings.API_V1_STR)  # /api/health
 app.include_router(auth.router)
-app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(categories.router)
-app.include_router(categories.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router)
-app.include_router(reports.router, prefix=settings.API_V1_STR)
 app.include_router(claims.router)
-app.include_router(claims.router, prefix=settings.API_V1_STR)
 app.include_router(recovery.router)
-app.include_router(recovery.router, prefix=settings.API_V1_STR)
 app.include_router(audit.router)
-app.include_router(audit.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router)
-app.include_router(dashboard.router, prefix=settings.API_V1_STR)
 app.include_router(admin.router)
-app.include_router(admin.router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")

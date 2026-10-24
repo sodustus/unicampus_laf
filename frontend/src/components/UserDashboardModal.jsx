@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchUserDashboard, respondToClaimInfo, confirmClaimReceipt } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,7 +21,7 @@ export default function UserDashboardModal({
   const [responding, setResponding] = useState(false);
   const [confirmingReceiptId, setConfirmingReceiptId] = useState(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     setError('');
@@ -33,13 +33,13 @@ export default function UserDashboardModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (isOpen) {
       loadData();
     }
-  }, [isOpen, token]);
+  }, [isOpen, loadData]);
 
   if (!isOpen) return null;
 

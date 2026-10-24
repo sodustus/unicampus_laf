@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import or_
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -67,6 +67,13 @@ def browse_and_search_reports(
         query = query.order_by(Report.item_date.asc())
     else:
         query = query.order_by(Report.item_date.desc(), Report.id.desc())
+
+    # Eager load relationships to eliminate N+1 queries
+    query = query.options(
+        joinedload(Report.category),
+        joinedload(Report.founder),
+        selectinload(Report.claims),
+    )
 
     reports = query.all()
 
@@ -186,7 +193,16 @@ def get_report_detail(
     FR-SEARCH-05 & FR-SEARCH-06: View full report details.
     Sensitive identifying details are only returned if the viewer is the owner or an admin.
     """
-    report = db.query(Report).filter(Report.id == report_id).first()
+    report = (
+        db.query(Report)
+        .options(
+            joinedload(Report.category),
+            joinedload(Report.founder),
+            selectinload(Report.claims),
+        )
+        .filter(Report.id == report_id)
+        .first()
+    )
     if not report or (report.deleted_at is not None and not (current_user and current_user.role == UserRole.ADMIN.value)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

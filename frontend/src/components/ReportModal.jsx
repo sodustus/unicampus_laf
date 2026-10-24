@@ -47,8 +47,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
       fetchCategories()
         .then((cats) => {
           setCategories(cats);
-          if (cats.length > 0 && !categoryId && !initialData?.categoryId) {
-            setCategoryId(cats[0].id);
+          if (cats.length > 0 && !initialData?.categoryId) {
+            setCategoryId((prev) => prev || cats[0].id);
           }
         })
         .catch((err) => console.error('Failed to load categories:', err));
@@ -230,8 +230,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                 value={itemDate}
                 onChange={(e) => setItemDate(e.target.value)}
                 required
-              >
-              </input>
+              />
             </div>
           </div>
 

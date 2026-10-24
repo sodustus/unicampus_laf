@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from typing import List
 
@@ -165,6 +165,7 @@ def get_admin_dashboard(
     # Recent activity from audit log
     recent_logs = (
         db.query(AuditLog)
+        .options(joinedload(AuditLog.actor))
         .order_by(AuditLog.created_at.desc())
         .limit(20)
         .all()

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, timezone
 
@@ -23,22 +24,32 @@ def list_campus_users(
     """
     FR-DASH-A-04: View campus accounts, active statuses, roles, and activity totals.
     """
+    # Batch aggregation for report and claim counts to prevent N+1 queries
+    report_counts = dict(
+        db.query(Report.owner_id, func.count(Report.id))
+        .filter(Report.deleted_at.is_(None))
+        .group_by(Report.owner_id)
+        .all()
+    )
+    claim_counts = dict(
+        db.query(Claim.claimant_id, func.count(Claim.id))
+        .group_by(Claim.claimant_id)
+        .all()
+    )
+
     users = db.query(User).order_by(User.created_at.desc()).all()
-    user_items = []
-    for u in users:
-        rep_count = db.query(Report).filter(Report.owner_id == u.id, Report.deleted_at.is_(None)).count()
-        claim_count = db.query(Claim).filter(Claim.claimant_id == u.id).count()
-        user_items.append(
-            AdminUserItem(
-                id=u.id,
-                email=u.email,
-                role=u.role,
-                is_active=u.is_active,
-                created_at=u.created_at,
-                reports_count=rep_count,
-                claims_count=claim_count,
-            )
+    user_items = [
+        AdminUserItem(
+            id=u.id,
+            email=u.email,
+            role=u.role,
+            is_active=u.is_active,
+            created_at=u.created_at,
+            reports_count=report_counts.get(u.id, 0),
+            claims_count=claim_counts.get(u.id, 0),
         )
+        for u in users
+    ]
     return user_items
 
 

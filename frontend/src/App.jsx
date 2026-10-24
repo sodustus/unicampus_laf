@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  fetchHealth,
   fetchCategories,
   fetchReports,
-  markReportRecovered,
   deleteReport,
   restoreReport,
 } from './api/client';
@@ -25,11 +23,7 @@ import './App.css';
 export default function App() {
   const { user, token, isAuthenticated, isAdmin, logout } = useAuth();
   
-  // Health probe state
-  const [healthData, setHealthData] = useState(null);
-  const [loadingHealth, setLoadingHealth] = useState(true);
-  const [lastChecked, setLastChecked] = useState(null);
-  const [latency, setLatency] = useState(null);
+
 
   // Auth & Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -103,15 +97,6 @@ export default function App() {
     sort: 'newest',
   });
 
-  const checkStatus = async () => {
-    setLoadingHealth(true);
-    const res = await fetchHealth();
-    setHealthData(res);
-    setLatency(res.latency);
-    setLastChecked(new Date().toLocaleTimeString());
-    setLoadingHealth(false);
-  };
-
   const loadCategories = async () => {
     try {
       const cats = await fetchCategories();
@@ -134,7 +119,6 @@ export default function App() {
   }, [filters, token]);
 
   useEffect(() => {
-    checkStatus();
     loadCategories();
   }, []);
 

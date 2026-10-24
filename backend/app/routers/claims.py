@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
+from collections import defaultdict
 from datetime import datetime, timezone
 
 from app.db.session import get_db
@@ -25,25 +26,34 @@ def attach_queue_positions(db: Session, claims: List[Claim]) -> List[Claim]:
     """
     Computes First-Come, First-Served queue position for active claims on each report.
     Active queue statuses: SUBMITTED, UNDER_REVIEW, AWAITING_INFO, APPROVED.
+    Optimized: batch-fetches all active claims for the involved reports in a single query.
     """
     report_ids = {c.report_id for c in claims if c}
-    queue_map = {}
-    for r_id in report_ids:
-        active_claims = (
-            db.query(Claim)
-            .filter(
-                Claim.report_id == r_id,
-                Claim.status.in_([
-                    ClaimStatus.SUBMITTED.value,
-                    ClaimStatus.UNDER_REVIEW.value,
-                    ClaimStatus.AWAITING_INFO.value,
-                    ClaimStatus.APPROVED.value,
-                ]),
-            )
-            .order_by(Claim.created_at.asc(), Claim.id.asc())
-            .all()
+    if not report_ids:
+        return claims
+
+    all_active_claims = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id.in_(report_ids),
+            Claim.status.in_([
+                ClaimStatus.SUBMITTED.value,
+                ClaimStatus.UNDER_REVIEW.value,
+                ClaimStatus.AWAITING_INFO.value,
+                ClaimStatus.APPROVED.value,
+            ]),
         )
-        for idx, ac in enumerate(active_claims, start=1):
+        .order_by(Claim.report_id.asc(), Claim.created_at.asc(), Claim.id.asc())
+        .all()
+    )
+
+    report_queues = defaultdict(list)
+    for ac in all_active_claims:
+        report_queues[ac.report_id].append(ac)
+
+    queue_map = {}
+    for r_id, r_claims in report_queues.items():
+        for idx, ac in enumerate(r_claims, start=1):
             queue_map[ac.id] = idx
 
     for c in claims:
@@ -148,6 +158,13 @@ def get_my_claims(
     """
     claims = (
         db.query(Claim)
+        .options(
+            joinedload(Claim.report),
+            joinedload(Claim.claimant),
+            joinedload(Claim.reviewer),
+            joinedload(Claim.verification_record),
+            joinedload(Claim.recovery_record),
+        )
         .join(Report, Claim.report_id == Report.id)
         .filter(
             (Claim.claimant_id == current_user.id)
@@ -169,7 +186,13 @@ def get_all_claims(
     """
     Admin-only: View pending claims and verification requests.
     """
-    query = db.query(Claim)
+    query = db.query(Claim).options(
+        joinedload(Claim.report),
+        joinedload(Claim.claimant),
+        joinedload(Claim.reviewer),
+        joinedload(Claim.verification_record),
+        joinedload(Claim.recovery_record),
+    )
     if status_filter and status_filter.lower() != "all":
         query = query.filter(Claim.status == status_filter.lower())
     claims = query.order_by(Claim.created_at.desc()).all()

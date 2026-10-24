@@ -4,7 +4,6 @@ import {
   fetchAdminUsers,
   toggleUserActive,
   moderateReport,
-  permanentDeleteReport,
   fetchAuditLogs,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -116,19 +115,6 @@ export default function AdminDashboardModal({
       alert(err.message || 'Failed to moderate report');
     } finally {
       setModerating(false);
-    }
-  };
-
-  const handlePermanentDelete = async (repId) => {
-    if (!window.confirm(`CAUTION: Permanently purge Report #${repId} from the database? This cannot be undone.`)) {
-      return;
-    }
-    try {
-      await permanentDeleteReport(repId, token);
-      alert(`Report #${repId} permanently purged.`);
-      loadDashboard();
-    } catch (err) {
-      alert(err.message || 'Failed to purge report');
     }
   };
 
