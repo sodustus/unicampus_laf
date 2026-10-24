@@ -36,6 +36,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         email=normalized_email,
         password_hash=hash_password(user_in.password),
         role=UserRole.USER.value,
+        phone_number=user_in.phone_number.strip() if user_in.phone_number else None,
     )
     db.add(new_user)
     db.commit()

@@ -364,7 +364,7 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <p>UniCampus Lost & Found System &bull; Graduation Project Build v7.1 &bull; Abdurezak Anwar, 2026</p>
+        <p>UniCampus Lost & Found System &bull; Interim Prototype Build v7.11 &bull; Abdurezak Anwar, 2026</p>
       </footer>
 
       {/* Modals */}

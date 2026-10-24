@@ -113,3 +113,70 @@ def test_role_based_access_control():
     )
     assert res_admin_ok.status_code == 200
     assert res_admin_ok.json()["status"] == "authorized"
+
+
+def test_registration_phone_and_email_strictness():
+    """
+    v7.11 Field Entry Strictness:
+    - Rejects letters in phone number (only numbers and optional leading '+').
+    - Rejects invalid / gibberish email format.
+    - Persists valid numbers-only phone number.
+    """
+    valid_email = "strict_field_student@campus.edu"
+    password = "SafePassword123!"
+
+    # Clean up if leftover
+    db = SessionLocal()
+    db.query(User).filter(User.email == valid_email).delete()
+    db.commit()
+    db.close()
+
+    # 1. Invalid email format (gibberish without domain/TLD) -> 422
+    res_bad_email = client.post(
+        "/auth/register",
+        json={"email": "gibberishnonsense", "password": password},
+    )
+    assert res_bad_email.status_code == 422
+
+    # 2. Invalid phone with letters -> 422
+    res_bad_phone = client.post(
+        "/auth/register",
+        json={
+            "email": valid_email,
+            "password": password,
+            "phone_number": "+251911abc567",
+        },
+    )
+    assert res_bad_phone.status_code == 422
+    assert "Phone number must contain only numbers" in str(res_bad_phone.json())
+
+    # 3. Valid registration with clean numbers-only phone -> 201
+    res_valid = client.post(
+        "/auth/register",
+        json={
+            "email": valid_email,
+            "password": password,
+            "phone_number": "+251911234567",
+        },
+    )
+    assert res_valid.status_code == 201
+    token = res_valid.json()["access_token"]
+    assert res_valid.json()["user"]["phone_number"] == "+251911234567"
+
+    # 4. Profile update with letters in phone -> 422
+    res_profile_letters = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "0911callme"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_profile_letters.status_code == 422
+
+    # 5. Profile update with valid numbers-only phone -> 200
+    res_profile_ok = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "0911987654"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_profile_ok.status_code == 200
+    assert res_profile_ok.json()["phone_number"] == "0911987654"
+

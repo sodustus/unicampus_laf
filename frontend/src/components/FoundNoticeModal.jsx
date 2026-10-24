@@ -86,9 +86,10 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   gap: '0.75rem',
                   padding: '0.75rem 1rem',
                   borderRadius: '8px',
-                  border: possessionStatus === 'with_finder' ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                  background: possessionStatus === 'with_finder' ? '#eff6ff' : '#ffffff',
+                  border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 <input
@@ -100,8 +101,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   style={{ marginTop: '0.2rem' }}
                 />
                 <div>
-                  <strong style={{ display: 'block', color: '#1e293b' }}>I have physical custody</strong>
-                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  <strong style={{ display: 'block', color: '#F1F5F9' }}>I have physical custody</strong>
+                  <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>
                     You have the item and will arrange a direct meetup with the owner.
                   </span>
                 </div>
@@ -114,9 +115,10 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   gap: '0.75rem',
                   padding: '0.75rem 1rem',
                   borderRadius: '8px',
-                  border: possessionStatus === 'submitted_to_authority' ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                  background: possessionStatus === 'submitted_to_authority' ? '#eff6ff' : '#ffffff',
+                  border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 <input
@@ -128,8 +130,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   style={{ marginTop: '0.2rem' }}
                 />
                 <div>
-                  <strong style={{ display: 'block', color: '#1e293b' }}>I deposited it with campus staff/security</strong>
-                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                  <strong style={{ display: 'block', color: '#F1F5F9' }}>I deposited it with campus staff/security</strong>
+                  <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>
                     You handed it over to a library desk, department office, or campus security post.
                   </span>
                 </div>
@@ -156,7 +158,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
           {/* Issue #7: Double-Blind Distinguishing Proof */}
           <div className="form-group" style={{ marginTop: '0.85rem' }}>
-            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: '#1e293b' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: '#F1F5F9' }}>
               Distinguishing Physical Proof / Hidden Marks Observed <span className="req-star">*</span>
             </label>
             <textarea
@@ -167,7 +169,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               onChange={(e) => setFounderProof(e.target.value)}
               required
             />
-            <span className="field-hint" style={{ color: '#0369a1', fontWeight: 500 }}>
+            <span className="field-hint" style={{ color: '#38BDF8', fontWeight: 500 }}>
               🛡️ Anti-Theft Verification: Campus administrators will compare your description against the owner's confidential proof before authorizing handover.
             </span>
           </div>
@@ -186,15 +188,15 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <span className="field-hint">Helpful instructions for when the handover is approved.</span>
           </div>
 
-          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: '#334155' }}>
+          <div style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: '#E0F2FE' }}>
             🔒 <strong>Double-Blind Security Gate:</strong> Submitting this notice files a verification claim. Neither you nor the owner can see each other's secret proof. An administrator will review and verify that both descriptions match. <strong>Contact phone numbers remain locked until the administrator approves the claim.</strong>
           </div>
 
           <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-            <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>
+            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={submitting}>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
               {submitting ? 'Notifying Owner...' : '🚀 Submit Found Notice'}
             </button>
           </div>

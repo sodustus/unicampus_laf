@@ -48,11 +48,30 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
 
   if (!isOpen) return null;
 
+  const handlePhoneChange = (val) => {
+    let cleaned = val.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+    } else {
+      cleaned = cleaned.replace(/\+/g, '');
+    }
+    setPhoneNumber(cleaned);
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     setSuccessMsg('');
+
+    if (phoneNumber.trim()) {
+      const digits = phoneNumber.replace(/\+/g, '');
+      if (digits.length < 7 || digits.length > 15) {
+        setError('Phone number must contain between 7 and 15 digits.');
+        setSaving(false);
+        return;
+      }
+    }
 
     try {
       const updated = await updateUserProfile(
@@ -129,11 +148,14 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
               <input
                 id="prof-phone"
                 type="tel"
-                placeholder="e.g. +251 91 123 4567"
+                placeholder="e.g. +251911234567 or 0911234567"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                maxLength={30}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                maxLength={16}
               />
+              <span className="field-hint" style={{ display: 'block', marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Numbers only (letters are blocked). Digits: 7–15.
+              </span>
               <span className="proof-note" style={{ display: 'block', marginTop: '4px' }}>
                 🔒 <strong>Privacy Protection:</strong> Your phone number is masked from public listings and only disclosed to claimants/founders once an ownership claim is officially approved by administration.
               </span>

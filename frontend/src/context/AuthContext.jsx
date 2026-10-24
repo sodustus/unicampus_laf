@@ -59,11 +59,16 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const register = async (email, password) => {
+  const register = async (email, password, phoneNumber = null) => {
+    const payload = { email, password };
+    if (phoneNumber && phoneNumber.trim()) {
+      payload.phone_number = phoneNumber.trim();
+    }
+
     const res = await fetch(`${BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();

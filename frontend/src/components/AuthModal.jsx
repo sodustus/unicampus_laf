@@ -7,26 +7,62 @@ export default function AuthModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
+  // Strict email validation checking user@domain.tld structure
+  const isValidEmailFormat = (str) => {
+    if (!str || typeof str !== 'string') return false;
+    const trimmed = str.trim();
+    if (trimmed.length < 6) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(trimmed);
+  };
+
+  // Real-time phone number filter: strips out all alphabetical letters and symbols except leading '+'
+  const handlePhoneChange = (val) => {
+    let cleaned = val.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+    } else {
+      cleaned = cleaned.replace(/\+/g, '');
+    }
+    setPhoneNumber(cleaned);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (isRegister && password !== confirmPassword) {
-      setError('Passwords do not match.');
+    // Reject invalid email format or gibberish
+    if (!isValidEmailFormat(email)) {
+      setError('Please enter a valid email address (e.g. yourname@campus.edu).');
       return;
+    }
+
+    if (isRegister) {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+      if (phoneNumber.trim()) {
+        const digits = phoneNumber.replace(/\+/g, '');
+        if (digits.length < 7 || digits.length > 15) {
+          setError('Phone number must contain between 7 and 15 digits.');
+          return;
+        }
+      }
     }
 
     setSubmitting(true);
     try {
       if (isRegister) {
-        await register(email, password);
+        await register(email.trim(), password, phoneNumber.trim() || null);
       } else {
-        await login(email, password);
+        await login(email.trim(), password);
       }
       onClose();
     } catch (err) {
@@ -160,18 +196,37 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
 
           {isRegister && (
-            <div className="form-group">
-              <label htmlFor="auth-confirm">Confirm Password</label>
-              <input
-                id="auth-confirm"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label htmlFor="auth-confirm">Confirm Password</label>
+                <input
+                  id="auth-confirm"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="auth-phone">
+                  Contact Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Digits only, optional)</span>
+                </label>
+                <input
+                  id="auth-phone"
+                  type="tel"
+                  placeholder="e.g. +251911234567 or 0911234567"
+                  value={phoneNumber}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  maxLength={16}
+                />
+                <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  🔒 Numbers only (letters are blocked). Phone is kept strictly confidential until handovers.
+                </span>
+              </div>
+            </>
           )}
 
           <div className="modal-actions">
