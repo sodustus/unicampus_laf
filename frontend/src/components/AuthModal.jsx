@@ -119,7 +119,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-user"
               onClick={() => handleQuickLogin('abebe')}
               disabled={submitting}
-              title="Abebe Bikila (Computer Science & IT) - abebebikila@campus.edu | password: password123"
+              title="Abebe Bikila (Computer Science & IT) - abebebikila@campus.edu"
             >
               👤 Abebe Bikila
             </button>
@@ -128,7 +128,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-user"
               onClick={() => handleQuickLogin('fatuma')}
               disabled={submitting}
-              title="Fatuma Roba (Electrical Engineering) - fatumaroba@campus.edu | password: password123"
+              title="Fatuma Roba (Electrical Engineering) - fatumaroba@campus.edu"
             >
               👤 Fatuma Roba
             </button>
@@ -137,7 +137,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-user"
               onClick={() => handleQuickLogin('derartu')}
               disabled={submitting}
-              title="Derartu Tulu (Mechanical Engineering) - derartutulu@campus.edu | password: password123"
+              title="Derartu Tulu (Mechanical Engineering) - derartutulu@campus.edu"
             >
               👤 Derartu Tulu
             </button>
@@ -146,7 +146,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-user"
               onClick={() => handleQuickLogin('kenenisa')}
               disabled={submitting}
-              title="Kenenisa Bekele (Software Engineering) - kenenisabekele@campus.edu | password: password123"
+              title="Kenenisa Bekele (Software Engineering) - kenenisabekele@campus.edu"
             >
               👤 Kenenisa Bekele
             </button>
@@ -155,7 +155,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-user"
               onClick={() => handleQuickLogin('haile')}
               disabled={submitting}
-              title="Haile Gebrselassie (Civil & Environmental Eng.) - hailegebrselassie@campus.edu | password: password123"
+              title="Haile Gebrselassie (Civil & Environmental Eng.) - hailegebrselassie@campus.edu"
             >
               👤 Haile Gebrselassie
             </button>
@@ -164,7 +164,7 @@ export default function AuthModal({ isOpen, onClose }) {
               className="btn btn-demo-admin"
               onClick={() => handleQuickLogin('admin')}
               disabled={submitting}
-              title="Campus Administrator (Campus Security & Admin) - admin@campus.edu | password: admin123"
+              title="Campus Administrator (Campus Security & Admin) - admin@campus.edu"
             >
               🛡️ Admin Console
             </button>
