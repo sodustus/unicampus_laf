@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCategories, createReport, fetchReports } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { IconClose, IconSearch, IconTag, IconMapPin, IconShield } from './Icons';
 
 export default function ReportModal({ isOpen, onClose, onReportCreated, onInspectMatchingReport, initialData = null }) {
   const { token, isAuthenticated } = useAuth();
@@ -155,7 +156,9 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
         {/* Header */}
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">{type === 'lost' ? '🔍' : '📦'}</span>
+            <div className="modal-icon-badge">
+              {type === 'lost' ? <IconSearch size={18} /> : <IconTag size={18} />}
+            </div>
             <div>
               <h3>{type === 'lost' ? 'Report a Lost Item' : 'Register a Found Item'}</h3>
               <p className="modal-subtitle">
@@ -163,7 +166,9 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               </p>
             </div>
           </div>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" onClick={onClose} aria-label="Close">
+            <IconClose size={18} />
+          </button>
         </div>
 
         {/* Type Toggle */}
@@ -174,7 +179,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
             onClick={() => setType('lost')}
             style={type === 'lost' ? { background: 'rgba(239, 68, 68, 0.25)', color: '#FCA5A5' } : {}}
           >
-            🔍 I Lost Something
+            I Lost Something
           </button>
           <button
             type="button"
@@ -182,7 +187,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
             onClick={() => setType('found')}
             style={type === 'found' ? { background: 'rgba(16, 185, 129, 0.25)', color: '#6EE7B7' } : {}}
           >
-            📦 I Found Something
+            I Found Something
           </button>
         </div>
 
@@ -252,7 +257,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FCD34D' }}>
-                  ⚠️ Check Existing {type === 'found' ? 'Lost' : 'Found'} Items ({matchingCandidates.length} in this Category)
+                  Check Existing {type === 'found' ? 'Lost' : 'Found'} Items ({matchingCandidates.length} in this Category)
                 </span>
                 <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
                   PRE-CHECK
@@ -290,7 +295,9 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <strong style={{ color: '#F1F5F9', fontSize: '0.85rem' }}>{cand.title}</strong>
-                          <span style={{ fontSize: '0.75rem', color: '#93C5FD' }}>📍 {cand.location}</span>
+                          <span style={{ fontSize: '0.75rem', color: '#93C5FD', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <IconMapPin size={12} /> {cand.location}
+                          </span>
                         </div>
                         <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {cand.description}
@@ -306,7 +313,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                           }
                         }}
                       >
-                        {type === 'lost' ? '🤝 Inspect & Claim' : '🔍 Inspect Item'}
+                        {type === 'lost' ? 'Inspect & Claim' : 'Inspect Item'}
                       </button>
                     </li>
                   ))}
@@ -325,8 +332,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               >
                 <span style={{ fontSize: '0.8rem', color: matchConfirmed ? '#6EE7B7' : '#FCA5A5', fontWeight: 500 }}>
                   {matchConfirmed
-                    ? '✓ Confirmed: None of these match my item'
-                    : '⚠️ Please confirm that none of these match before posting'}
+                    ? 'Confirmed: None of these match my item'
+                    : 'Please confirm that none of these match before posting'}
                 </span>
                 <button
                   type="button"
@@ -334,7 +341,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                   style={{ fontSize: '0.75rem', padding: '4px 12px' }}
                   onClick={() => setMatchConfirmed(!matchConfirmed)}
                 >
-                  {matchConfirmed ? '✓ Match Checked' : 'Confirm No Match'}
+                  {matchConfirmed ? 'Match Checked' : 'Confirm No Match'}
                 </button>
               </div>
             </div>
@@ -381,7 +388,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               }}
             >
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#E2E8F0' }}>
-                📍 Physical Possession & Handover Custody *
+                Physical Possession & Handover Custody *
               </label>
               <p style={{ margin: '4px 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Clarify who currently holds the item so claimants know where handover will take place.
@@ -408,7 +415,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     checked={possessionStatus === 'with_finder'}
                     onChange={() => setPossessionStatus('with_finder')}
                   />
-                  <span>🤝 In My Custody</span>
+                  <span>In My Custody</span>
                 </label>
 
                 <label
@@ -432,7 +439,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     checked={possessionStatus === 'submitted_to_authority'}
                     onChange={() => setPossessionStatus('submitted_to_authority')}
                   />
-                  <span>🏛️ Deposited at Office</span>
+                  <span>Deposited at Office</span>
                 </label>
               </div>
 
@@ -454,7 +461,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                   {/* Optional Custodian Phone Number */}
                   <div style={{ marginTop: '10px' }}>
                     <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
-                      📞 Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
+                      Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
                     </label>
                     <input
                       type="tel"
@@ -476,8 +483,8 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
           {/* FR-SEARCH-06: Sensitive identifying details */}
           <div className="form-group proof-field-group">
             <div className="proof-label-wrap">
-              <label htmlFor="report-proof">
-                🔒 Private Identifying Proof (Optional)
+              <label htmlFor="report-proof" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IconShield size={14} /> Private Identifying Proof (Optional)
               </label>
               <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>RESTRICTED</span>
             </div>
@@ -490,7 +497,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               onChange={(e) => setIdentifyingDetails(e.target.value)}
             />
             <span className="proof-note">
-              🛡️ <strong>Privacy Protection (FR-SEARCH-06):</strong> This field will <em>never</em> appear on public listings or to other users. Only you and administrators can view it.
+              <strong>Privacy Protection (FR-SEARCH-06):</strong> This field will <em>never</em> appear on public listings or to other users. Only you and administrators can view it.
             </span>
           </div>
 
@@ -506,7 +513,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               {submitting
                 ? 'Submitting Report...'
                 : matchingCandidates.length > 0 && !matchConfirmed
-                ? '⚠️ Confirm No Match to Submit'
+                ? 'Confirm No Match to Submit'
                 : `Submit ${type === 'lost' ? 'Lost' : 'Found'} Report`}
             </button>
           </div>

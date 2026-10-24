@@ -61,6 +61,8 @@ class ClaimResponse(BaseModel):
     handover_failure_notes: Optional[str] = None
     queue_position: Optional[int] = None
     is_admin_view: bool = False
+    is_suspended: bool = False
+    suspended_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

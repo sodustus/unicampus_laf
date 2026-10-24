@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateUserProfile, fetchUserProfile } from '../api/client';
+import { IconUser, IconClose } from './Icons';
 
 export default function ProfileModal({ isOpen, onClose, targetUserId = null, isSelfEdit = false }) {
-  const { user, setUser, token, isAdmin } = useAuth();
+  const { user, setUser, token } = useAuth();
   
   // View mode state
   const [profileData, setProfileData] = useState(null);
@@ -115,7 +116,9 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
         {/* Header */}
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">{isEditing ? '👤' : '🎓'}</span>
+            <div className="modal-icon-badge">
+              <IconUser size={18} />
+            </div>
             <div>
               <h3>{isEditing ? 'My Campus Profile' : 'Student & Member Profile'}</h3>
               <p className="modal-subtitle">
@@ -125,7 +128,9 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
               </p>
             </div>
           </div>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" onClick={onClose} aria-label="Close">
+            <IconClose size={18} />
+          </button>
         </div>
 
         {error && <div className="alert-error" style={{ margin: '12px 0' }}>{error}</div>}
@@ -170,7 +175,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
                 Numbers only. Limits: 10 digits for 09... or 13 chars for +251...
               </span>
               <span className="proof-note" style={{ display: 'block', marginTop: '4px' }}>
-                🔒 <strong>Privacy Protection:</strong> Your phone number is masked from public listings and only disclosed to claimants/founders once an ownership claim is officially approved by administration.
+                <strong>Privacy Protection:</strong> Your phone number is masked from public listings and only disclosed to claimants/founders once an ownership claim is officially approved by administration.
               </span>
             </div>
 
@@ -237,25 +242,25 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Department</span>
                 <span className="detail-meta-value">
-                  🏛️ {profileData.department || 'Not specified'}
+                  {profileData.department || 'Not specified'}
                 </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Reports Posted</span>
                 <span className="detail-meta-value">
-                  📦 {profileData.reports_count} items
+                  {profileData.reports_count} items
                 </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Email</span>
                 <span className="detail-meta-value">
-                  ✉️ {profileData.email}
+                  {profileData.email}
                 </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Member Since</span>
                 <span className="detail-meta-value">
-                  📅 {new Date(profileData.created_at).toLocaleDateString()}
+                  {new Date(profileData.created_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -275,7 +280,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#E2E8F0' }}>
-                  📞 Handover Contact Phone
+                  Handover Contact Phone
                 </span>
                 {profileData.phone_number ? (
                   <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
@@ -303,7 +308,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
                 </div>
               ) : (
                 <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-                  🔒 Phone number is protected by campus privacy policy. It will be revealed automatically once an administrator approves your ownership claim for this member's item.
+                  Phone number is protected by campus privacy policy. It will be revealed automatically once an administrator approves your ownership claim for this member's item.
                 </p>
               )}
             </div>

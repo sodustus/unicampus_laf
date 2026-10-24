@@ -26,11 +26,24 @@ def attach_queue_positions(db: Session, claims: List[Claim]) -> List[Claim]:
     """
     Computes First-Come, First-Served queue position for active claims on each report.
     Active queue statuses: SUBMITTED, UNDER_REVIEW, AWAITING_INFO, APPROVED.
+    Also handles multi-claim suspension: if one claim on a report is APPROVED,
+    all other active claims on that report are marked is_suspended=True.
     Optimized: batch-fetches all active claims for the involved reports in a single query.
     """
     report_ids = {c.report_id for c in claims if c}
     if not report_ids:
         return claims
+
+    # Find reports with an active approved claim
+    approved_claims = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id.in_(report_ids),
+            Claim.status == ClaimStatus.APPROVED.value,
+        )
+        .all()
+    )
+    approved_by_report = {ac.report_id: ac.id for ac in approved_claims}
 
     all_active_claims = (
         db.query(Claim)
@@ -59,6 +72,17 @@ def attach_queue_positions(db: Session, claims: List[Claim]) -> List[Claim]:
     for c in claims:
         if c:
             c.queue_position = queue_map.get(c.id, None)
+            approved_claim_id = approved_by_report.get(c.report_id)
+            if (
+                approved_claim_id
+                and c.id != approved_claim_id
+                and c.status not in [ClaimStatus.REJECTED.value, ClaimStatus.COMPLETED.value]
+            ):
+                c.is_suspended = True
+                c.suspended_reason = f"Suspended temporarily: Claim #{approved_claim_id} is currently approved and in handover verification."
+            else:
+                c.is_suspended = False
+                c.suspended_reason = None
 
     return claims
 
@@ -114,6 +138,21 @@ def submit_claim(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You already have an ownership claim currently being processed for this item. You cannot claim an item twice while your claim is under review.",
+        )
+
+    # Rule: An item cannot be claimed if an active approved claim is undergoing handover
+    has_approved_claim = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id == report_id,
+            Claim.status == ClaimStatus.APPROVED.value,
+        )
+        .first()
+    )
+    if has_approved_claim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"This item currently has an approved claim (#{has_approved_claim.id}) undergoing handover. New claims cannot be submitted unless the active handover fails or is rejected.",
         )
 
     new_claim = Claim(
@@ -270,6 +309,22 @@ def update_claim_status(
         if claim.report:
             claim.report.status = ReportStatus.ACTIVE.value
 
+    elif target_status == ClaimStatus.APPROVED.value:
+        existing_approved = (
+            db.query(Claim)
+            .filter(
+                Claim.report_id == claim.report_id,
+                Claim.id != claim.id,
+                Claim.status == ClaimStatus.APPROVED.value,
+            )
+            .first()
+        )
+        if existing_approved:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Another claim (#{existing_approved.id}) is already approved for this item. Only one claim can be approved at a time.",
+            )
+
     elif target_status == ClaimStatus.HANDOVER_FAILED.value:
         claim.claimant_handover_failed = True
         claim.finder_handover_failed = True
@@ -413,6 +468,13 @@ def complete_claim_handover(
             detail="A claim must be in 'approved' status before confirming handover completion.",
         )
 
+    # FR-CLAIM-06 Rule: Admin can complete exchange only AFTER owner confirms they have received property
+    if not claim.owner_confirmed_receipt:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot complete handover exchange: The owner must confirm physical receipt of their property before administrator completion.",
+        )
+
     # 1. Complete claim
     claim.status = ClaimStatus.COMPLETED.value
     claim.reviewer_id = admin_user.id
@@ -433,6 +495,26 @@ def complete_claim_handover(
             handover_notes="Handover confirmed by administrator upon verified ownership proof.",
         )
         db.add(recovery_rec)
+
+        # Reject any other active/competing claims on this report because the item is now recovered
+        other_active_claims = (
+            db.query(Claim)
+            .filter(
+                Claim.report_id == report.id,
+                Claim.id != claim.id,
+                Claim.status.in_([
+                    ClaimStatus.SUBMITTED.value,
+                    ClaimStatus.UNDER_REVIEW.value,
+                    ClaimStatus.AWAITING_INFO.value,
+                    ClaimStatus.APPROVED.value,
+                ]),
+            )
+            .all()
+        )
+        for oac in other_active_claims:
+            oac.status = ClaimStatus.REJECTED.value
+            oac.rejection_reason = f"Item recovered and returned to verified owner under claim #{claim.id}."
+            oac.updated_at = datetime.now(timezone.utc)
 
         # Audit logs for both claim completion and report recovery
         log_audit(

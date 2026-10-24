@@ -35,6 +35,8 @@ class AdminDashboardStats(BaseModel):
 class AdminUserItem(BaseModel):
     id: int
     email: str
+    full_name: Optional[str] = None
+    department: Optional[str] = None
     role: str
     is_active: bool
     created_at: datetime
@@ -46,4 +48,5 @@ class AdminDashboardResponse(BaseModel):
     stats: AdminDashboardStats
     pending_claims: List[ClaimResponse]
     deleted_reports: List[ReportResponse] = []
+    recent_reports: List[ReportResponse] = []
     recent_activity: List[AuditLogResponse]

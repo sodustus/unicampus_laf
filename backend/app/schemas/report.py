@@ -73,6 +73,7 @@ class ReportResponse(BaseModel):
     category_id: int
     category: Optional[CategoryResponse] = None
     owner_id: int
+    owner: Optional[UserResponse] = None
     location: str
     item_date: datetime
     status: str

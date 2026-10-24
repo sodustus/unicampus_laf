@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { submitFoundNotice } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { IconClose, IconTag, IconMapPin, IconAlert, IconShield } from './Icons';
 
 export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess }) {
   const { user, token, isAuthenticated } = useAuth();
@@ -76,7 +77,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
       let finalNotes = foundNotes.trim();
       if (possessionStatus === 'submitted_to_authority' && allowOwnerDirectContact) {
-        const contactNote = '📞 Finder Direct Contact: Owner is permitted to call finder personal phone regarding deposit.';
+        const contactNote = 'Finder Direct Contact: Owner is permitted to call finder personal phone regarding deposit.';
         finalNotes = finalNotes ? `${finalNotes}\n${contactNote}` : contactNote;
       }
 
@@ -101,25 +102,33 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
       <div className="modal-dialog glass-panel" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">📦</span>
+            <div className="modal-icon-badge">
+              <IconTag size={18} />
+            </div>
             <div>
-              <h3>I Found This Item!</h3>
+              <h3>I Found This Item</h3>
               <p className="modal-subtitle">
                 Notifying owner of lost report: <strong>{report.title}</strong> (#{report.id})
               </p>
             </div>
           </div>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" onClick={onClose} aria-label="Close">
+            <IconClose size={18} />
+          </button>
         </div>
 
         <div className="claim-item-summary">
-          <span>📍 <strong>Reported Lost Near:</strong> {report.location}</span>
-          <span>🏷️ <strong>Category:</strong> {report.category?.name || 'General Item'}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconMapPin size={13} /> <strong>Reported Lost Near:</strong> {report.location}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconTag size={13} /> <strong>Category:</strong> {report.category?.name || 'General Item'}
+          </span>
         </div>
 
         {isReporter && (
           <div className="alert-error" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🚫</span>
+            <IconAlert size={16} />
             <span>
               <strong>Rule Enforced:</strong> You reported this lost item. A user cannot be both the reporter and claimer/finder on the same report.
             </span>
@@ -128,7 +137,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
         {hasActiveClaim && (
           <div className="alert-error" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>⏳</span>
+            <IconAlert size={16} />
             <span>
               <strong>Notice In Progress:</strong> You already have a found notice currently being processed for this item. You cannot submit another notice while under review.
             </span>
@@ -137,7 +146,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
         {!hasActiveClaim && wasRejected && (
           <div style={{ marginBottom: '1rem', padding: '12px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>💡</span>
+            <IconShield size={16} style={{ color: '#60A5FA', marginTop: '2px', flexShrink: 0 }} />
             <span style={{ fontSize: '0.85rem', color: '#E2E8F0', lineHeight: 1.4 }}>
               <strong>Previous Notice Was Rejected:</strong> If you think this was a mistake or you have clearer proof of the found item, you may submit a new found notice. Please provide distinguishing details to help administrators verify.
             </span>
@@ -174,7 +183,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   checked={possessionStatus === 'with_finder'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
                 />
-                <span style={{ color: '#F1F5F9' }}>🤝 In My Custody</span>
+                <span style={{ color: '#F1F5F9' }}>In My Custody</span>
               </label>
 
               <label
@@ -199,7 +208,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   checked={possessionStatus === 'submitted_to_authority'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
                 />
-                <span style={{ color: '#F1F5F9' }}>🏛️ Deposited at Office</span>
+                <span style={{ color: '#F1F5F9' }}>Deposited at Office</span>
               </label>
             </div>
           </div>
@@ -222,7 +231,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               {/* Optional Custodian Phone Number */}
               <div style={{ marginTop: '10px' }}>
                 <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
-                  📞 Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
+                  Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
                 </label>
                 <input
                   type="tel"
@@ -281,7 +290,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               required
             />
             <span className="field-hint" style={{ color: '#38BDF8', fontWeight: 500 }}>
-              🛡️ Anti-Theft Verification: Campus administrators will compare your description against the owner's confidential proof before authorizing handover.
+              Anti-Theft Verification: Campus administrators will compare your description against the owner's confidential proof before authorizing handover.
             </span>
           </div>
 
@@ -300,7 +309,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
           </div>
 
           <div style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: '#E0F2FE' }}>
-            🔒 <strong>Double-Blind Security Gate:</strong> Submitting this notice files a verification claim. Neither you nor the owner can see each other's secret proof. An administrator will review and verify that both descriptions match. <strong>Contact phone numbers remain locked until the administrator approves the claim.</strong>
+            <strong>Double-Blind Security Gate:</strong> Submitting this notice files a verification claim. Neither you nor the owner can see each other's secret proof. An administrator will review and verify that both descriptions match. <strong>Contact phone numbers remain locked until the administrator approves the claim.</strong>
           </div>
 
           <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
@@ -308,7 +317,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={submitting || isReporter || hasActiveClaim}>
-              {submitting ? 'Notifying Owner...' : '🚀 Submit Found Notice'}
+              {submitting ? 'Notifying Owner...' : 'Submit Found Notice'}
             </button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
+import { IconClose, IconSearch, IconTag, IconMapPin, IconClock, IconShield } from './Icons';
 
 export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onRestore, onClaim, onViewProfile, onFoundNotice }) {
   const { user, token, isAdmin } = useAuth();
@@ -26,6 +27,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
   const isOwner = user && report && user.id === report.owner_id;
   const canManage = isOwner || isAdmin;
+  const ownerDisplayName = report?.owner?.full_name || report?.owner?.email || `User #${report?.owner_id}`;
 
   const formattedDate = report
     ? new Date(report.item_date).toLocaleDateString(undefined, {
@@ -39,13 +41,13 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
   const getPossessionLabel = (st) => {
     switch (st) {
       case 'submitted_to_authority':
-        return '🏛️ Deposited with Campus Authority';
+        return 'Deposited with Campus Authority';
       case 'with_finder':
-        return '🤝 In Possession of Finder';
+        return 'In Possession of Finder';
       case 'returned':
-        return '🎉 Handed Over & Returned';
+        return 'Handed Over & Returned';
       default:
-        return '❓ Unlocated';
+        return 'Unlocated';
     }
   };
 
@@ -72,12 +74,14 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   fontSize: '0.9rem',
                 }}
               >
-                <strong>🗑️ Soft-Deleted Report</strong> &bull; Reason: {report.deletion_reason || 'No deletion reason specified'}
+                <strong>Soft-Deleted Report</strong> &bull; Reason: {report.deletion_reason || 'No deletion reason specified'}
               </div>
             )}
             <div className="modal-header">
               <div className="modal-title-wrap">
-                <span className="modal-icon">{report.type === 'lost' ? '🔍' : '📦'}</span>
+                <div className="modal-icon-badge">
+                  {report.type === 'lost' ? <IconSearch size={18} /> : <IconTag size={18} />}
+                </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className={`badge ${report.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
@@ -98,21 +102,29 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   <h3 style={{ marginTop: '6px' }}>{report.title}</h3>
                 </div>
               </div>
-              <button className="btn-close" onClick={onClose}>✕</button>
+              <button className="btn-close" onClick={onClose} aria-label="Close">
+                <IconClose size={18} />
+              </button>
             </div>
 
             <div className="detail-meta-grid">
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Category</span>
-                <span className="detail-meta-value">🏷️ {report.category?.name || 'Item'}</span>
+                <span className="detail-meta-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconTag size={14} /> {report.category?.name || 'Item'}
+                </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Location Found / Lost</span>
-                <span className="detail-meta-value">📍 {report.location}</span>
+                <span className="detail-meta-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconMapPin size={14} /> {report.location}
+                </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">{report.type === 'lost' ? 'Date Lost' : 'Date Found'}</span>
-                <span className="detail-meta-value">📅 {formattedDate}</span>
+                <span className="detail-meta-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconClock size={14} /> {formattedDate}
+                </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">
@@ -134,10 +146,10 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       }}
                       onClick={() => onViewProfile(report.owner_id)}
                     >
-                      {report.type === 'found' ? `📦 Finder (ID #${report.owner_id})` : `🔍 Owner (ID #${report.owner_id})`} &rarr;
+                      {report.type === 'found' ? `Finder: ${ownerDisplayName}` : `Owner: ${ownerDisplayName}`} &rarr;
                     </button>
                   ) : (
-                    report.type === 'found' ? `Finder #${report.owner_id}` : `Owner #${report.owner_id}`
+                    report.type === 'found' ? `Finder: ${ownerDisplayName}` : `Owner: ${ownerDisplayName}`
                   )}
                 </span>
               </div>
@@ -156,7 +168,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#93C5FD' }}>
-                    📍 PHYSICAL POSSESSION / CUSTODY
+                    PHYSICAL POSSESSION / CUSTODY
                   </span>
                   <span
                     className="badge"
@@ -176,12 +188,12 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 </div>
                 {report.possession_status === 'submitted_to_authority' && report.custody_location && (
                   <p style={{ margin: '8px 0 0 0', fontSize: '0.88rem', color: '#E2E8F0' }}>
-                    🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                    <strong>Office Custody Location:</strong> {report.custody_location}
                   </p>
                 )}
                 {report.possession_status === 'with_finder' && (
                   <p style={{ margin: '8px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    🤝 This item is currently held by the student finder. Contact information will be revealed once an admin approves your claim to coordinate physical pickup.
+                    This item is currently held by the student finder. Contact information will be revealed once an admin approves your claim to coordinate physical pickup.
                   </p>
                 )}
               </div>
@@ -201,7 +213,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34D399' }}>
-                      🤝 OFFICIAL HANDOVER COORDINATION SLIP (ADMIN APPROVED)
+                      OFFICIAL HANDOVER COORDINATION SLIP (ADMIN APPROVED)
                     </span>
                     <span
                       className="badge"
@@ -217,7 +229,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   <div style={{ marginTop: '8px', fontSize: '0.88rem', color: '#E2E8F0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>
-                        🤝 <strong>Verified Finder:</strong>{' '}
+                        <strong>Verified Finder:</strong>{' '}
                         {report.founder ? (report.founder.full_name || report.founder.email) : `Student #${report.founder_id}`}
                       </span>
                       {onViewProfile && (
@@ -243,7 +255,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     {report.possession_status === 'submitted_to_authority' && report.custody_location && (
                       <div style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <p style={{ margin: 0, color: '#E2E8F0' }}>
-                          🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                          <strong>Office Custody Location:</strong> {report.custody_location}
                         </p>
                         {report.custody_location.match(/(\+?[0-9]{7,15})/) && (
                           <a
@@ -252,7 +264,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                             style={{ padding: '2px 8px', fontSize: '0.72rem' }}
                             title="Call custodian office directly"
                           >
-                            📞 Call Office
+                            Call Office
                           </a>
                         )}
                       </div>
@@ -269,12 +281,12 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                           color: '#CBD5E1',
                         }}
                       >
-                        💬 <strong>Finder Note:</strong> "{report.found_notes}"
+                        <strong>Finder Note:</strong> "{report.found_notes}"
                       </div>
                     )}
 
                     <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#6EE7B7' }}>
-                      ✅ Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.
+                      Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.
                     </p>
                   </div>
                 </div>
@@ -290,14 +302,14 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FBBF24' }}>
-                      ⏳ DOUBLE-BLIND VERIFICATION IN PROGRESS (ADMIN REVIEW)
+                      DOUBLE-BLIND VERIFICATION IN PROGRESS (ADMIN REVIEW)
                     </span>
                     <span className="badge badge-warning">
                       Pending Admin Review
                     </span>
                   </div>
                   <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: '#E2E8F0' }}>
-                    🛡️ A student reported finding this item and submitted distinguishing physical proof. To protect against theft, campus administrators are currently comparing both explanations. Handover contact details will unlock once an administrator approves the match.
+                    A student reported finding this item and submitted distinguishing physical proof. To protect against theft, campus administrators are currently comparing both explanations. Handover contact details will unlock once an administrator approves the match.
                   </p>
                 </div>
               )
@@ -311,7 +323,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
             {/* FR-SEARCH-06: Privacy Boundary Inspection */}
             <div className="detail-proof-box">
               <div className="proof-header">
-                <h4>🔒 Ownership Verification Proof (FR-SEARCH-06)</h4>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconShield size={15} /> Ownership Verification Proof (FR-SEARCH-06)
+                </h4>
                 {report.identifying_details ? (
                   <span className="badge badge-success" style={{ fontSize: '0.65rem' }}>
                     AUTHENTICATED ({isOwner ? 'Owner' : 'Administrator'})
@@ -345,7 +359,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         onClose();
                       }}
                     >
-                      🔄 Restore / Rollback Report
+                      Restore / Rollback Report
                     </button>
                   )
                 ) : (
@@ -358,7 +372,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         onClose();
                       }}
                     >
-                      {isAdmin ? '🗑️ Delete as Duplicate' : 'Delete Report'}
+                      Delete Report
                     </button>
                   )
                 )}
@@ -380,7 +394,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                           onClose();
                         }}
                       >
-                        🎉 Confirm Receipt & Mark Recovered
+                        Confirm Receipt & Mark Recovered
                       </button>
                     ) : (
                       <button
@@ -389,7 +403,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         disabled
                         title="Administrators are comparing both double-blind proofs to prevent theft. You can confirm receipt once approved."
                       >
-                        ⏳ Awaiting Admin Verification
+                        Awaiting Admin Verification
                       </button>
                     )
                   ) : (
@@ -400,7 +414,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         onClose();
                       }}
                     >
-                      ✓ Mark as Recovered
+                      Mark as Recovered
                     </button>
                   )
                 )}
@@ -415,7 +429,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       onClose();
                     }}
                   >
-                    📦 I Found This Item!
+                    I Found This Item
                   </button>
                 )}
 
@@ -431,7 +445,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     }}
                     title="Your found notice is currently being processed by campus administration."
                   >
-                    ⏳ Found notice currently under review
+                    Found notice currently under review
                   </span>
                 )}
 
@@ -445,7 +459,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       alignItems: 'center',
                     }}
                   >
-                    {report.claim_status === 'approved' ? '✓ Handover Approved' : '⏳ Verification Under Review'}
+                    {report.claim_status === 'approved' ? 'Handover Approved' : 'Verification Under Review'}
                   </span>
                 )}
 
@@ -457,7 +471,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       onClose();
                     }}
                   >
-                    📜 Recovery Audit Record
+                    Recovery Audit Record
                   </button>
                 )}
 
@@ -466,7 +480,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     {report.user_claim_status === 'rejected' && (
                       <span style={{ fontSize: '0.8rem', color: '#93C5FD' }}>
-                        💡 Previous claim rejected. You can try claiming again if you think this is a mistake.
+                        Previous claim rejected. You can try claiming again if you think this is a mistake.
                       </span>
                     )}
                     <button
@@ -476,7 +490,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         onClose();
                       }}
                     >
-                      {report.user_claim_status === 'rejected' ? '🔄 Try Claiming Again' : '🤝 Claim This Item'}
+                      {report.user_claim_status === 'rejected' ? 'Try Claiming Again' : 'Claim This Item'}
                     </button>
                   </div>
                 )}
@@ -493,7 +507,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     }}
                     title="Your ownership claim is currently being processed by campus administration."
                   >
-                    ⏳ Ownership claim currently under review
+                    Ownership claim currently under review
                   </span>
                 )}
 
@@ -510,7 +524,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     }}
                     title="A user cannot be both the reporter and claimer on the same report."
                   >
-                    📢 You reported this item (Reporter) • Cannot claim own report
+                    You reported this item (Reporter) • Cannot claim own report
                   </span>
                 )}
               </div>

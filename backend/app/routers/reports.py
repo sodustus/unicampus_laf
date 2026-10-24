@@ -71,6 +71,7 @@ def browse_and_search_reports(
     # Eager load relationships to eliminate N+1 queries
     query = query.options(
         joinedload(Report.category),
+        joinedload(Report.owner),
         joinedload(Report.founder),
         selectinload(Report.claims),
     )
@@ -103,6 +104,7 @@ def browse_and_search_reports(
             "category_id": r.category_id,
             "category": r.category,
             "owner_id": r.owner_id,
+            "owner": r.owner,
             "location": r.location,
             "item_date": r.item_date,
             "status": r.status,
@@ -197,6 +199,7 @@ def get_report_detail(
         db.query(Report)
         .options(
             joinedload(Report.category),
+            joinedload(Report.owner),
             joinedload(Report.founder),
             selectinload(Report.claims),
         )
@@ -232,6 +235,7 @@ def get_report_detail(
         "category_id": report.category_id,
         "category": report.category,
         "owner_id": report.owner_id,
+        "owner": report.owner,
         "location": report.location,
         "item_date": report.item_date,
         "status": report.status,

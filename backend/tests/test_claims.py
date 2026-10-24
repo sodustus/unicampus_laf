@@ -128,7 +128,22 @@ def test_claims_lifecycle_and_state_machine():
     assert res_approve.status_code == 200
     assert res_approve.json()["status"] == "approved"
 
-    # 10. FR-CLAIM-06 & FR-CLAIM-07: Admin confirms handover -> claim moves to Completed, report cascades to Recovered
+    # 10. FR-CLAIM-06 & FR-CLAIM-07: Admin cannot confirm handover before owner confirms receipt
+    res_complete_fail = client.post(
+        f"/claims/{claim_id}/complete",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert res_complete_fail.status_code == 400
+    assert "owner must confirm physical receipt" in res_complete_fail.json()["detail"].lower()
+
+    # Owner confirms receipt
+    res_receipt = client.post(
+        f"/claims/{claim_id}/confirm-receipt",
+        headers={"Authorization": f"Bearer {student_token}"},
+    )
+    assert res_receipt.status_code == 200
+
+    # Admin confirms handover -> claim moves to Completed, report cascades to Recovered
     res_complete = client.post(
         f"/claims/{claim_id}/complete",
         headers={"Authorization": f"Bearer {admin_token}"},
@@ -531,6 +546,149 @@ def test_person_cannot_claim_item_more_than_once():
             clean_db.query(RecoveryRecord).filter(RecoveryRecord.report_id == r_id).delete(synchronize_session=False)
             clean_db.query(Claim).filter(Claim.report_id == r_id).delete(synchronize_session=False)
             clean_db.query(Report).filter(Report.id == r_id).delete(synchronize_session=False)
+        clean_db.commit()
+        clean_db.close()
+
+
+def test_competing_claims_suspension_and_single_approval():
+    """
+    User Request 1 & 2:
+    - If multiple claimants claim 1 item and one is approved, the other is suspended temporarily.
+    - Admin cannot approve two claims simultaneously for the same item.
+    - New claims cannot be filed while an approved claim is undergoing handover.
+    - Admin can only complete handover after owner confirms receipt.
+    - When handover completes, competing claim is closed/rejected as item recovered.
+    """
+    admin_token = get_token("admin@campus.edu", "admin123")
+    clean_db = SessionLocal()
+    clean_db.query(Report).filter(Report.title.like("%SuspensionTest%")).delete(synchronize_session=False)
+    clean_db.commit()
+    clean_db.close()
+
+    # User 1 (finder), User 2 (claimant 1), User 3 (claimant 2)
+    client.post("/auth/register", json={"email": "susp_finder@campus.edu", "password": "Password123!"})
+    client.post("/auth/register", json={"email": "susp_claimant1@campus.edu", "password": "Password123!"})
+    client.post("/auth/register", json={"email": "susp_claimant2@campus.edu", "password": "Password123!"})
+    client.post("/auth/register", json={"email": "susp_claimant3@campus.edu", "password": "Password123!"})
+    tok1 = get_token("susp_finder@campus.edu", "Password123!")
+    tok2 = get_token("susp_claimant1@campus.edu", "Password123!")
+    tok3 = get_token("susp_claimant2@campus.edu", "Password123!")
+
+    rep_res = client.post(
+        "/reports",
+        json={
+            "title": "SuspensionTest HP EliteBook Laptop",
+            "description": "Silver HP laptop found in engineering library hall 3.",
+            "category_id": 1,
+            "type": "found",
+            "location": "Engineering Library",
+            "item_date": datetime.now(timezone.utc).isoformat(),
+            "possession_status": "custodian_held",
+            "custody_location": "Main Campus Security Office",
+        },
+        headers={"Authorization": f"Bearer {tok1}"},
+    )
+    assert rep_res.status_code == 201
+    rep_id = rep_res.json()["id"]
+
+    try:
+        # Claimant 1 submits claim
+        c1_res = client.post(
+            f"/reports/{rep_id}/claims",
+            json={"proof_details": "My serial number is HP-992211, has sticker on corner"},
+            headers={"Authorization": f"Bearer {tok2}"},
+        )
+        assert c1_res.status_code == 201
+        c1_id = c1_res.json()["id"]
+
+        # Claimant 2 submits claim
+        c2_res = client.post(
+            f"/reports/{rep_id}/claims",
+            json={"proof_details": "I lost my silver HP laptop there, serial number sticker on bottom"},
+            headers={"Authorization": f"Bearer {tok3}"},
+        )
+        assert c2_res.status_code == 201
+        c2_id = c2_res.json()["id"]
+
+        # Initially, neither is suspended
+        claims_list = client.get(f"/claims/{c2_id}", headers={"Authorization": f"Bearer {tok3}"}).json()
+        assert claims_list["is_suspended"] is False
+
+        # Admin approves Claim 1
+        app_res = client.patch(
+            f"/claims/{c1_id}",
+            json={"status": "approved"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert app_res.status_code == 200
+
+        # Now Claim 2 MUST be suspended!
+        c2_check = client.get(f"/claims/{c2_id}", headers={"Authorization": f"Bearer {tok3}"}).json()
+        assert c2_check["is_suspended"] is True
+        assert "suspended temporarily" in c2_check["suspended_reason"].lower()
+
+        # Admin cannot approve Claim 2 while Claim 1 is already approved -> 400 Bad Request
+        c2_dup_app = client.patch(
+            f"/claims/{c2_id}",
+            json={"status": "approved"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert c2_dup_app.status_code == 400
+        assert "already approved" in c2_dup_app.json()["detail"].lower()
+
+        # User 1 (or any user) cannot submit a new claim while Claim 1 is approved -> 400 Bad Request
+        tok4 = get_token("susp_claimant3@campus.edu", "Password123!")
+        c3_sub = client.post(
+            f"/reports/{rep_id}/claims",
+            json={"proof_details": "Late claim attempt after approval"},
+            headers={"Authorization": f"Bearer {tok4}"},
+        )
+        assert c3_sub.status_code == 400
+        assert "approved claim" in c3_sub.json()["detail"].lower()
+
+        # Admin cannot complete handover until Claimant 1 confirms receipt
+        fail_comp = client.post(
+            f"/claims/{c1_id}/complete",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert fail_comp.status_code == 400
+        assert "owner must confirm physical receipt" in fail_comp.json()["detail"].lower()
+
+        # Claimant 1 confirms receipt
+        rec_res = client.post(
+            f"/claims/{c1_id}/confirm-receipt",
+            headers={"Authorization": f"Bearer {tok2}"},
+        )
+        assert rec_res.status_code == 200
+        assert rec_res.json()["owner_confirmed_receipt"] is True
+
+        # Now admin completes handover -> 200 OK
+        comp_res = client.post(
+            f"/claims/{c1_id}/complete",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert comp_res.status_code == 200
+        assert comp_res.json()["status"] == "completed"
+
+        # Report is recovered
+        rep_check = client.get(f"/reports/{rep_id}").json()
+        assert rep_check["status"] == "recovered"
+
+        # Claim 2 was automatically closed/rejected as item recovered
+        c2_final = client.get(f"/claims/{c2_id}", headers={"Authorization": f"Bearer {tok3}"}).json()
+        assert c2_final["status"] == "rejected"
+        assert "recovered and returned" in c2_final["rejection_reason"].lower()
+
+    finally:
+        clean_db = SessionLocal()
+        from app.models.recovery import RecoveryRecord
+        from app.models.claim import VerificationRecord
+        c_ids = [c.id for c in clean_db.query(Claim).filter(Claim.report_id == rep_id).all()]
+        if c_ids:
+            clean_db.query(VerificationRecord).filter(VerificationRecord.claim_id.in_(c_ids)).delete(synchronize_session=False)
+        clean_db.query(RecoveryRecord).filter(RecoveryRecord.report_id == rep_id).delete(synchronize_session=False)
+        clean_db.query(Claim).filter(Claim.report_id == rep_id).delete(synchronize_session=False)
+        clean_db.query(Report).filter(Report.id == rep_id).delete(synchronize_session=False)
         clean_db.commit()
         clean_db.close()
 
