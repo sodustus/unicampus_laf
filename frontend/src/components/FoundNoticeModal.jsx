@@ -16,6 +16,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   if (!isOpen || !report) return null;
 
   const isReporter = Boolean(user && report && user.id === report.owner_id);
+  const hasAlreadyClaimed = Boolean(report && report.user_has_claimed);
 
   // Real-time numbers-only filter: enforces 10 chars for 01.../09... and 13 chars for +251...
   const handleCustodianPhoneChange = (val) => {
@@ -45,6 +46,11 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
     if (isReporter) {
       setError('You cannot submit a found notice on your own lost report. A user cannot be both the reporter and claimer/finder on the same report.');
+      return;
+    }
+
+    if (hasAlreadyClaimed) {
+      setError('You have already submitted a found notice on this lost item. A person cannot claim a lost item more than once.');
       return;
     }
 
@@ -115,6 +121,15 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <span>🚫</span>
             <span>
               <strong>Rule Enforced:</strong> You reported this lost item. A user cannot be both the reporter and claimer/finder on the same report.
+            </span>
+          </div>
+        )}
+
+        {hasAlreadyClaimed && (
+          <div className="alert-error" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🚫</span>
+            <span>
+              <strong>Rule Enforced:</strong> You have already submitted a found notice on this lost item. A person cannot claim a lost item more than once.
             </span>
           </div>
         )}
@@ -282,7 +297,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter || hasAlreadyClaimed}>
               {submitting ? 'Notifying Owner...' : '🚀 Submit Found Notice'}
             </button>
           </div>

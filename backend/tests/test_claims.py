@@ -394,3 +394,129 @@ def test_owner_handover_receipt_confirmation():
         clean_db.close()
 
 
+def test_person_cannot_claim_item_more_than_once():
+    """
+    Enforces rule: A person cannot claim an item (lost or found) more than once.
+    - Cannot submit multiple found notices on the same lost report.
+    - Cannot submit multiple ownership claims on the same found report (even after rejection).
+    """
+    owner_email = "single_claim_owner@campus.edu"
+    claimer_email = "single_claim_user@campus.edu"
+    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+
+    client.post("/auth/register", json={"email": owner_email, "password": "Password123!"})
+    client.post("/auth/register", json={"email": claimer_email, "password": "Password123!"})
+
+    owner_token = get_token(owner_email, "Password123!")
+    claimer_token = get_token(claimer_email, "Password123!")
+
+    db = SessionLocal()
+    category_id = db.query(Category).first().id
+    db.close()
+
+    # 1. Test LOST report: User cannot submit found notice more than once
+    lost_res = client.post(
+        "/reports",
+        json={
+            "type": "lost",
+            "title": "Lost TI-84 Plus Calculator",
+            "description": "Left in room 204",
+            "category_id": category_id,
+            "location": "Math Building",
+            "item_date": datetime.now(timezone.utc).isoformat(),
+        },
+        headers={"Authorization": f"Bearer {owner_token}"},
+    )
+    assert lost_res.status_code == 201
+    lost_id = lost_res.json()["id"]
+
+    # 2. Test FOUND report: User cannot submit ownership claim more than once
+    found_res = client.post(
+        "/reports",
+        json={
+            "type": "found",
+            "title": "Found Black Anker PowerBank",
+            "description": "Found on cafeteria table",
+            "category_id": category_id,
+            "location": "Main Cafeteria",
+            "item_date": datetime.now(timezone.utc).isoformat(),
+        },
+        headers={"Authorization": f"Bearer {owner_token}"},
+    )
+    assert found_res.status_code == 201
+    found_id = found_res.json()["id"]
+
+    try:
+        # User submits first found notice on lost item -> 200 OK
+        notice1 = client.post(
+            f"/reports/{lost_id}/found-notice",
+            json={
+                "founder_proof": "It has green tape on battery door",
+                "possession_status": "with_finder",
+            },
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert notice1.status_code == 200
+
+        # User attempts second found notice on same lost item -> 400 Bad Request
+        notice2 = client.post(
+            f"/reports/{lost_id}/found-notice",
+            json={
+                "founder_proof": "Submitting again with extra notes",
+                "possession_status": "with_finder",
+            },
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert notice2.status_code == 400
+        assert "cannot claim a lost item more than once" in notice2.json()["detail"].lower()
+
+        # User submits first claim on found item -> 201 Created
+        claim1 = client.post(
+            f"/reports/{found_id}/claims",
+            json={"proof_details": "It has 10000mAh label with scratch across logo"},
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert claim1.status_code == 201
+        claim1_id = claim1.json()["id"]
+
+        # User attempts second claim on same found item -> 400 Bad Request
+        claim2 = client.post(
+            f"/reports/{found_id}/claims",
+            json={"proof_details": "Trying to claim again"},
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert claim2.status_code == 400
+        assert "cannot claim an item more than once" in claim2.json()["detail"].lower()
+
+        # Admin rejects first claim
+        client.patch(
+            f"/claims/{claim1_id}",
+            json={"status": "rejected", "rejection_reason": "Insufficient proof"},
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+
+        # User attempts to claim again after rejection -> 400 Bad Request
+        claim3 = client.post(
+            f"/reports/{found_id}/claims",
+            json={"proof_details": "Trying again after rejection"},
+            headers={"Authorization": f"Bearer {claimer_token}"},
+        )
+        assert claim3.status_code == 400
+        assert "cannot claim an item more than once" in claim3.json()["detail"].lower()
+
+    finally:
+        clean_db = SessionLocal()
+        from app.models.recovery import RecoveryRecord
+        from app.models.claim import VerificationRecord
+        for r_id in [lost_id, found_id]:
+            c_ids = [c.id for c in clean_db.query(Claim).filter(Claim.report_id == r_id).all()]
+            if c_ids:
+                clean_db.query(VerificationRecord).filter(VerificationRecord.claim_id.in_(c_ids)).delete(synchronize_session=False)
+            clean_db.query(RecoveryRecord).filter(RecoveryRecord.report_id == r_id).delete(synchronize_session=False)
+            clean_db.query(Claim).filter(Claim.report_id == r_id).delete(synchronize_session=False)
+            clean_db.query(Report).filter(Report.id == r_id).delete(synchronize_session=False)
+        clean_db.commit()
+        clean_db.close()
+
+
+

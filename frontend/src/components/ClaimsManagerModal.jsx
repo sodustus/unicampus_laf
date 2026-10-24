@@ -789,22 +789,9 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       gap: '8px',
                     }}
                   >
-                    <span style={{ fontSize: '0.82rem', color: '#CBD5E1' }}>
-                      Claim was rejected. Have stronger or different ownership proof?
+                    <span style={{ fontSize: '0.82rem', color: '#FCA5A5', fontWeight: 500 }}>
+                      ⛔ Claim rejected by campus administration. Per campus verification policy, a person cannot claim an item more than once.
                     </span>
-                    {onOpenClaimReport && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        style={{ fontSize: '0.75rem', padding: '4px 10px' }}
-                        onClick={() => {
-                          onClose();
-                          onOpenClaimReport(c.report);
-                        }}
-                      >
-                        🔄 Submit New Claim with Better Proof
-                      </button>
-                    )}
                   </div>
                 )}
 

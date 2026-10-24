@@ -95,6 +95,8 @@ def browse_and_search_reports(
             "founder": r.founder,
             "claim_status": r.claims[0].status if r.claims else None,
             "claim_id": r.claims[0].id if r.claims else None,
+            "user_has_claimed": any(c.claimant_id == current_user.id for c in r.claims) if current_user else False,
+            "user_claim_status": next((c.status for c in r.claims if c.claimant_id == current_user.id), None) if current_user else None,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
             "deletion_reason": r.deletion_reason,
@@ -202,6 +204,8 @@ def get_report_detail(
         "founder": report.founder,
         "claim_status": report.claims[0].status if report.claims else None,
         "claim_id": report.claims[0].id if report.claims else None,
+        "user_has_claimed": any(c.claimant_id == current_user.id for c in report.claims) if current_user else False,
+        "user_claim_status": next((c.status for c in report.claims if c.claimant_id == current_user.id), None) if current_user else None,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
         "deletion_reason": report.deletion_reason,
@@ -360,6 +364,21 @@ def submit_found_notice(
             detail="You cannot submit a found notice on your own lost report. A user cannot be both the reporter and claimer/finder on the same report.",
         )
 
+    # Rule: A person cannot claim/notify on a lost item more than once
+    existing_user_claim = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id == report_id,
+            Claim.claimant_id == current_user.id,
+        )
+        .first()
+    )
+    if existing_user_claim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have already submitted a found notice on this lost item. A person cannot claim a lost item more than once.",
+        )
+
     # Check for active claim on this report
     existing_claim = (
         db.query(Claim)
@@ -437,6 +456,8 @@ def submit_found_notice(
         "founder": report.founder,
         "claim_status": new_claim.status,
         "claim_id": new_claim.id,
+        "user_has_claimed": True,
+        "user_claim_status": new_claim.status,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details,
         "created_at": report.created_at,

@@ -11,6 +11,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
   if (!isOpen || !report) return null;
 
   const isReporter = Boolean(user && report && (user.id === report.owner_id || user.id === report.founder_id));
+  const hasAlreadyClaimed = Boolean(report && report.user_has_claimed);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,6 +24,11 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
 
     if (isReporter) {
       setError('A user cannot be both the reporter and claimer on the same report.');
+      return;
+    }
+
+    if (hasAlreadyClaimed) {
+      setError('You have already submitted an ownership claim on this item. A person cannot claim an item more than once.');
       return;
     }
 
@@ -69,6 +75,15 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
           </div>
         )}
 
+        {hasAlreadyClaimed && (
+          <div className="alert-error" style={{ margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🚫</span>
+            <span>
+              <strong>Rule Enforced:</strong> You have already submitted an ownership claim on this item. A person cannot claim an item more than once.
+            </span>
+          </div>
+        )}
+
         {error && <div className="alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -88,7 +103,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
               onChange={(e) => setProofDetails(e.target.value)}
               required
               minLength={5}
-              disabled={isReporter}
+              disabled={isReporter || hasAlreadyClaimed}
             />
             <span className="proof-note">
               🛡️ <strong>Privacy Protection (FR-CLAIM-08):</strong> Your verification details are kept strictly confidential. Only you and reviewing campus administrators can read this proof.
@@ -99,7 +114,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter || hasAlreadyClaimed}>
               {submitting ? 'Filing Claim...' : 'Submit Ownership Claim'}
             </button>
           </div>
