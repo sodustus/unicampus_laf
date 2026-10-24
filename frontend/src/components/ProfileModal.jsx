@@ -48,11 +48,43 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
 
   if (!isOpen) return null;
 
+  const handlePhoneChange = (val) => {
+    let cleaned = val.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
+    } else {
+      cleaned = cleaned.replace(/\+/g, '');
+      if (cleaned.length > 10) {
+        cleaned = cleaned.slice(0, 10);
+      }
+    }
+    setPhoneNumber(cleaned);
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     setSuccessMsg('');
+
+    if (phoneNumber.trim()) {
+      if (phoneNumber.startsWith('+')) {
+        if (phoneNumber.length > 13 || phoneNumber.length < 8) {
+          setError('International phone number (+ format) must be between 8 and 13 characters (e.g. +251983072052).');
+          setSaving(false);
+          return;
+        }
+      } else {
+        if (phoneNumber.length > 10 || phoneNumber.length < 7) {
+          setError('Local phone number must be at most 10 digits (e.g. 0983072052).');
+          setSaving(false);
+          return;
+        }
+      }
+    }
 
     try {
       const updated = await updateUserProfile(
@@ -78,7 +110,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
@@ -129,11 +161,14 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
               <input
                 id="prof-phone"
                 type="tel"
-                placeholder="e.g. +251 91 123 4567"
+                placeholder="e.g. +251983072052 or 0983072052"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                maxLength={30}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                maxLength={phoneNumber.startsWith('+') ? 13 : 10}
               />
+              <span className="field-hint" style={{ display: 'block', marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Numbers only. Limits: 10 digits for 09... or 13 chars for +251...
+              </span>
               <span className="proof-note" style={{ display: 'block', marginTop: '4px' }}>
                 🔒 <strong>Privacy Protection:</strong> Your phone number is masked from public listings and only disclosed to claimants/founders once an ownership claim is officially approved by administration.
               </span>

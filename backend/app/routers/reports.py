@@ -77,6 +77,17 @@ def browse_and_search_reports(
         can_view_proof = current_user and (
             current_user.id == r.owner_id or current_user.role == UserRole.ADMIN.value
         )
+        user_claims = [c for c in r.claims if current_user and c.claimant_id == current_user.id]
+        active_statuses = {
+            ClaimStatus.SUBMITTED.value,
+            ClaimStatus.UNDER_REVIEW.value,
+            ClaimStatus.AWAITING_INFO.value,
+            ClaimStatus.APPROVED.value,
+        }
+        has_active_claim = any(c.status in active_statuses for c in user_claims)
+        latest_user_claim = max(user_claims, key=lambda c: c.id) if user_claims else None
+        latest_user_status = latest_user_claim.status if latest_user_claim else None
+
         report_dict = {
             "id": r.id,
             "type": r.type,
@@ -95,6 +106,8 @@ def browse_and_search_reports(
             "founder": r.founder,
             "claim_status": r.claims[0].status if r.claims else None,
             "claim_id": r.claims[0].id if r.claims else None,
+            "user_has_claimed": has_active_claim,
+            "user_claim_status": latest_user_status,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
             "deletion_reason": r.deletion_reason,
@@ -184,6 +197,17 @@ def get_report_detail(
         current_user.id == report.owner_id or current_user.role == UserRole.ADMIN.value
     )
 
+    user_claims = [c for c in report.claims if current_user and c.claimant_id == current_user.id]
+    active_statuses = {
+        ClaimStatus.SUBMITTED.value,
+        ClaimStatus.UNDER_REVIEW.value,
+        ClaimStatus.AWAITING_INFO.value,
+        ClaimStatus.APPROVED.value,
+    }
+    has_active_claim = any(c.status in active_statuses for c in user_claims)
+    latest_user_claim = max(user_claims, key=lambda c: c.id) if user_claims else None
+    latest_user_status = latest_user_claim.status if latest_user_claim else None
+
     return {
         "id": report.id,
         "type": report.type,
@@ -202,6 +226,8 @@ def get_report_detail(
         "founder": report.founder,
         "claim_status": report.claims[0].status if report.claims else None,
         "claim_id": report.claims[0].id if report.claims else None,
+        "user_has_claimed": has_active_claim,
+        "user_claim_status": latest_user_status,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
         "deletion_reason": report.deletion_reason,
@@ -357,7 +383,28 @@ def submit_found_notice(
     if report.owner_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot submit a found notice on your own lost report.",
+            detail="You cannot submit a found notice on your own lost report. A user cannot be both the reporter and claimer/finder on the same report.",
+        )
+
+    # Rule: A person cannot submit multiple notices while their notice is being processed
+    active_user_claim = (
+        db.query(Claim)
+        .filter(
+            Claim.report_id == report_id,
+            Claim.claimant_id == current_user.id,
+            Claim.status.in_([
+                ClaimStatus.SUBMITTED.value,
+                ClaimStatus.UNDER_REVIEW.value,
+                ClaimStatus.AWAITING_INFO.value,
+                ClaimStatus.APPROVED.value,
+            ]),
+        )
+        .first()
+    )
+    if active_user_claim:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You already have a found notice currently being processed for this item. You cannot submit multiple notices while under review.",
         )
 
     # Check for active claim on this report
@@ -437,6 +484,8 @@ def submit_found_notice(
         "founder": report.founder,
         "claim_status": new_claim.status,
         "claim_id": new_claim.id,
+        "user_has_claimed": True,
+        "user_claim_status": new_claim.status,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details,
         "created_at": report.created_at,

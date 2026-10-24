@@ -79,14 +79,14 @@ def submit_claim(
             detail="This found item is no longer active for claims.",
         )
 
-    if report.owner_id == current_user.id:
+    if report.owner_id == current_user.id or report.founder_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot submit a claim on an item you registered as found.",
+            detail="You cannot submit a claim on an item you registered. A user cannot be both the reporter and claimer on the same report.",
         )
 
-    # Check for existing active claim by this user
-    active_claim = (
+    # Rule: A person cannot claim twice WHILE THEIR CLAIM IS BEING PROCESSED
+    active_user_claim = (
         db.query(Claim)
         .filter(
             Claim.report_id == report_id,
@@ -100,10 +100,10 @@ def submit_claim(
         )
         .first()
     )
-    if active_claim:
+    if active_user_claim:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You already have an active claim pending review on this item.",
+            detail="You already have an ownership claim currently being processed for this item. You cannot claim an item twice while your claim is under review.",
         )
 
     new_claim = Claim(
@@ -150,7 +150,9 @@ def get_my_claims(
         db.query(Claim)
         .join(Report, Claim.report_id == Report.id)
         .filter(
-            (Claim.claimant_id == current_user.id) | (Report.owner_id == current_user.id)
+            (Claim.claimant_id == current_user.id)
+            | (Report.owner_id == current_user.id)
+            | (Report.founder_id == current_user.id)
         )
         .order_by(Claim.created_at.desc())
         .all()
@@ -171,6 +173,8 @@ def get_all_claims(
     if status_filter and status_filter.lower() != "all":
         query = query.filter(Claim.status == status_filter.lower())
     claims = query.order_by(Claim.created_at.desc()).all()
+    for c in claims:
+        c.is_admin_view = True
     return attach_queue_positions(db, claims)
 
 
@@ -197,6 +201,8 @@ def get_claim_detail(
             detail="You are not authorized to view this claim's verification proof.",
         )
 
+    if is_admin:
+        claim.is_admin_view = True
     return attach_queue_positions(db, [claim])[0]
 
 
@@ -264,6 +270,7 @@ def update_claim_status(
 
     db.commit()
     db.refresh(claim)
+    claim.is_admin_view = True
     return attach_queue_positions(db, [claim])[0]
 
 
@@ -314,7 +321,53 @@ def respond_to_information_request(
 
     db.commit()
     db.refresh(claim)
-    return claim
+    return attach_queue_positions(db, [claim])[0]
+
+
+@router.post("/claims/{claim_id}/confirm-receipt", response_model=ClaimResponse)
+def confirm_claim_receipt(
+    claim_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Owner (claimant on found report, or reporter on lost report) confirms physical receipt of the item.
+    """
+    claim = db.query(Claim).filter(Claim.id == claim_id).first()
+    if not claim:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Claim not found.")
+
+    if claim.status != ClaimStatus.APPROVED.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Receipt can only be confirmed for approved claims.",
+        )
+
+    is_owner = claim.owner and claim.owner.id == current_user.id
+    is_admin = current_user.role == UserRole.ADMIN.value
+    if not (is_owner or is_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the verified owner of the item (or an administrator) can confirm physical receipt.",
+        )
+
+    claim.owner_confirmed_receipt = True
+    claim.updated_at = datetime.now(timezone.utc)
+
+    log_audit(
+        db=db,
+        action="HANDOVER_RECEIPT_CONFIRMED_BY_OWNER",
+        target_type="claim",
+        target_id=claim.id,
+        actor_id=current_user.id,
+        details=f"Item receipt confirmed by user #{current_user.id} ({current_user.full_name or current_user.email}) for claim #{claim.id} on report #{claim.report_id}. Pending administrator final verification.",
+    )
+
+    db.commit()
+    db.refresh(claim)
+    if is_admin:
+        claim.is_admin_view = True
+    return attach_queue_positions(db, [claim])[0]
 
 
 @router.post("/claims/{claim_id}/complete", response_model=ClaimResponse)
@@ -378,6 +431,7 @@ def complete_claim_handover(
 
     db.commit()
     db.refresh(claim)
+    claim.is_admin_view = True
     return attach_queue_positions(db, [claim])[0]
 
 

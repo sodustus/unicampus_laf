@@ -5,12 +5,21 @@ import {
   updateClaimStatus,
   respondToClaimInfo,
   completeClaimHandover,
+  confirmClaimReceipt,
   flagHandoverFailed,
   repostReportAfterFailedHandover,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function ClaimsManagerModal({ isOpen, onClose, onHandoverCompleted, onOpenClaimReport }) {
+export default function ClaimsManagerModal({
+  isOpen,
+  onClose,
+  onHandoverCompleted,
+  onOpenClaimReport,
+  onOpenFoundNotice,
+  onRegisterFoundReport,
+  onViewProfile,
+}) {
   const { token, user, isAdmin } = useAuth();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,6 +113,22 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
     }
   };
 
+  // Owner confirm item physical receipt
+  const handleConfirmReceipt = async (claimId) => {
+    if (!window.confirm('Confirm that you have met with the finder and physically received your item?')) return;
+    setActionLoading(true);
+    try {
+      await confirmClaimReceipt(claimId, token);
+      await loadClaims();
+      alert('Physical receipt confirmed! Handover is now awaiting administrator final verification.');
+      if (onHandoverCompleted) onHandoverCompleted();
+    } catch (err) {
+      alert(err.message || 'Failed to confirm receipt');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Flag handover failed (item mismatch)
   const handleFlagHandoverFailed = async (claimId) => {
     if (!handoverFailureReason.trim()) {
@@ -163,7 +188,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel claims-modal-dialog" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
@@ -183,8 +208,8 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
 
         {/* Admin Filter Tabs */}
         {isAdmin && (
-          <div className="tab-switcher" style={{ overflowX: 'auto' }}>
-            {['all', 'submitted', 'under_review', 'awaiting_info', 'approved', 'handover_failed', 'completed', 'rejected'].map((st) => (
+          <div className="tab-switcher claims-tab-switcher">
+            {['all', 'submitted', 'under_review', 'approved', 'handover_failed', 'completed', 'rejected'].map((st) => (
               <button
                 key={st}
                 className={`tab-btn ${statusFilter === st ? 'active' : ''}`}
@@ -214,7 +239,22 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                 <div className="claim-card-header">
                   <div className="claim-item-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h4>{c.report?.title || `Item #${c.report_id}`}</h4>
-                    <span className="claim-id-pill">Claim #{c.id}</span>
+                    <span className="claim-id-pill">{c.report?.type === 'lost' ? 'Found Notice #' : 'Claim #'}{c.id}</span>
+                    {isAdmin && (
+                      <span
+                        className="badge"
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: c.report?.type === 'lost' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                          color: c.report?.type === 'lost' ? '#6EE7B7' : '#93C5FD',
+                          border: c.report?.type === 'lost' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
+                        }}
+                      >
+                        {c.report?.type === 'lost' ? '📦 Lost Item Match' : '🤝 Found Item Claim'}
+                      </span>
+                    )}
                     {c.queue_position ? (
                       <span
                         className="badge"
@@ -243,7 +283,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   </span>
                   <span>
                     {c.report?.type === 'lost' ? '🔍 Lost by (Owner):' : '📦 Found by (Finder):'}{' '}
-                    <strong>{c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`}</strong> (ID #{c.report?.owner_id})
+                    <strong>{c.report?.type === 'lost' ? (c.owner?.full_name || c.owner?.email || `User #${c.report?.owner_id}`) : (c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`)}</strong> (ID #{c.report?.owner_id})
                   </span>
                   <span>📍 <strong>Location:</strong> {c.report?.location || 'Unknown'}</span>
                   <span>📅 <strong>Submitted:</strong> {new Date(c.created_at).toLocaleDateString()}</span>
@@ -343,6 +383,78 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   </div>
                 )}
 
+                {/* Admin Direct Contact Verification Box (Under Review / Submitted) */}
+                {isAdmin && (c.status === 'submitted' || c.status === 'under_review') && (
+                  <div
+                    style={{
+                      margin: '10px 0',
+                      padding: '12px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.78rem', color: '#93C5FD', fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>📞</span> Admin Direct Contact & Profile Verification (Confirm Details Before Decision)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600 }}>
+                          📦 FINDER DETAILS
+                        </span>
+                        <div style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                          <strong style={{ color: '#F1F5F9' }}>{c.finder?.full_name || 'Founder'}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            {c.finder?.department || 'Student'} • {c.finder?.email}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                              📞 {c.finder?.phone_number || 'No phone'}
+                            </span>
+                            {c.finder?.phone_number && (
+                              <a href={`tel:${c.finder.phone_number}`} className="btn btn-primary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>
+                                Call
+                              </a>
+                            )}
+                            {onViewProfile && c.finder?.id && (
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => onViewProfile(c.finder.id)}>
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          🎯 OWNER / CLAIMANT DETAILS
+                        </span>
+                        <div style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                          <strong style={{ color: '#F1F5F9' }}>{(c.owner || c.claimant)?.full_name || 'Claimant'}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            {(c.owner || c.claimant)?.department || 'Student'} • {(c.owner || c.claimant)?.email}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                              📞 {(c.owner || c.claimant)?.phone_number || 'No phone'}
+                            </span>
+                            {(c.owner || c.claimant)?.phone_number && (
+                              <a href={`tel:${(c.owner || c.claimant).phone_number}`} className="btn btn-primary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>
+                                Call
+                              </a>
+                            )}
+                            {onViewProfile && (c.owner || c.claimant)?.id && (
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => onViewProfile((c.owner || c.claimant).id)}>
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Issue #2: Official Handover Coordination Slip (Approved & Completed Claims) */}
                 {(c.status === 'approved' || c.status === 'completed') && (
                   <div
@@ -389,11 +501,23 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Physical Item Custody Location:
                       </span>
-                      <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
-                        {c.report?.possession_status === 'submitted_to_authority'
-                          ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
-                          : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
-                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                        <p style={{ margin: 0, fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
+                          {c.report?.possession_status === 'submitted_to_authority'
+                            ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
+                            : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
+                        </p>
+                        {c.report?.possession_status === 'submitted_to_authority' && c.report?.custody_location?.match(/(\+?[0-9]{7,15})/) && (
+                          <a
+                            href={`tel:${c.report.custody_location.match(/(\+?[0-9]{7,15})/)[0]}`}
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                            title="Call custodian office desk"
+                          >
+                            📞 Call Office Desk
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     {/* Direct Contact Exchange Box */}
@@ -417,26 +541,38 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                             {c.finder?.department || 'Student'} • {c.finder?.email}
                           </div>
-                          {c.finder?.phone_number ? (
-                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
-                              <a
-                                href={`tel:${c.finder.phone_number}`}
-                                className="btn btn-primary btn-sm"
+                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            {c.finder?.phone_number ? (
+                              <>
+                                <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
+                                <a
+                                  href={`tel:${c.finder.phone_number}`}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                >
+                                  Call
+                                </a>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                📞 Phone not provided in profile
+                              </span>
+                            )}
+                            {onViewProfile && c.finder?.id && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                onClick={() => onViewProfile(c.finder.id)}
                               >
-                                Call
-                              </a>
-                            </div>
-                          ) : (
-                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              📞 Phone not provided in profile
-                            </div>
-                          )}
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Claimant Details */}
+                      {/* True Owner Details */}
                       <div
                         style={{
                           background: 'rgba(255, 255, 255, 0.03)',
@@ -446,34 +582,104 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                         }}
                       >
                         <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
-                          🎯 VERIFIED CLAIMANT
+                          🎯 VERIFIED OWNER
                         </span>
                         <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
                           <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
-                            {c.claimant?.full_name || 'Claimant'}
+                            {(c.owner || c.claimant)?.full_name || 'Owner'}
                           </div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            {c.claimant?.department || 'Student'} • {c.claimant?.email}
+                            {(c.owner || c.claimant)?.department || 'Student'} • {(c.owner || c.claimant)?.email}
                           </div>
-                          {c.claimant?.phone_number ? (
-                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.claimant.phone_number}</span>
-                              <a
-                                href={`tel:${c.claimant.phone_number}`}
-                                className="btn btn-primary btn-sm"
+                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            {(c.owner || c.claimant)?.phone_number ? (
+                              <>
+                                <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {(c.owner || c.claimant).phone_number}</span>
+                                <a
+                                  href={`tel:${(c.owner || c.claimant).phone_number}`}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                >
+                                  Call
+                                </a>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                📞 Phone not provided in profile
+                              </span>
+                            )}
+                            {onViewProfile && (c.owner || c.claimant)?.id && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                onClick={() => onViewProfile((c.owner || c.claimant).id)}
                               >
-                                Call
-                              </a>
-                            </div>
-                          ) : (
-                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              📞 Phone not provided in profile
-                            </div>
-                          )}
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Two-Step Handover Receipt & Completion Actions */}
+                    {c.status === 'approved' && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '12px 14px',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '10px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.84rem' }}>
+                          {c.owner_confirmed_receipt ? (
+                            <span style={{ color: '#6EE7B7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>✓</span> Physical Receipt Confirmed by Owner! Awaiting Administrator final verification.
+                            </span>
+                          ) : (
+                            <span style={{ color: '#FCD34D', fontWeight: 500 }}>
+                              ⏳ Pending Physical Item Receipt: Owner must inspect item and confirm receipt.
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {/* Owner Action: Confirm Receipt */}
+                          {!c.owner_confirmed_receipt && (!isAdmin || (c.owner && user?.id === c.owner.id) || (c.claimant && user?.id === c.claimant.id)) && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              onClick={() => handleConfirmReceipt(c.id)}
+                              disabled={actionLoading}
+                            >
+                              🤝 Confirm I Have Received My Item
+                            </button>
+                          )}
+
+                          {/* Admin Action: Verify & Complete Handover */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              className="btn btn-success btn-sm"
+                              onClick={() => handleConfirmHandover(c.id)}
+                              disabled={actionLoading}
+                            >
+                              {c.owner_confirmed_receipt
+                                ? '✅ Verify & Complete Handover (Owner Confirmed)'
+                                : '✅ Verify & Complete Handover'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Handover Verification & Mismatch Flagging */}
                     {c.status === 'approved' && (
@@ -592,37 +798,139 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
 
                 {/* Rejected Claim Re-submission Action */}
                 {!isAdmin && c.status === 'rejected' && c.report && (
-                  <div
-                    style={{
-                      marginTop: '10px',
-                      padding: '10px 14px',
-                      borderRadius: '6px',
-                      background: 'rgba(239, 68, 68, 0.08)',
-                      border: '1px solid rgba(239, 68, 68, 0.2)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '8px',
-                    }}
-                  >
-                    <span style={{ fontSize: '0.82rem', color: '#CBD5E1' }}>
-                      Claim was rejected. Have stronger or different ownership proof?
-                    </span>
-                    {onOpenClaimReport && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
-                        style={{ fontSize: '0.75rem', padding: '4px 10px' }}
-                        onClick={() => {
-                          onClose();
-                          onOpenClaimReport(c.report);
+                  c.report.type === 'lost' ? (
+                    // FLOW B: Lost report match rejected
+                    user?.id === c.claimant_id ? (
+                      // Student is Finder (Abebe)
+                      <div
+                        style={{
+                          marginTop: '10px',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
                         }}
                       >
-                        🔄 Submit New Claim with Better Proof
-                      </button>
-                    )}
-                  </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '1.2rem' }}>❌</span>
+                          <div>
+                            <strong style={{ color: '#FCA5A5', fontSize: '0.86rem' }}>
+                              Found Notice Did Not Match Lost Item
+                            </strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+                              Campus administration reviewed your notice and determined the item you found does not match the owner's description.
+                              {c.rejection_reason && <span> Reason: <em>"{c.rejection_reason}"</em></span>}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          {onOpenFoundNotice && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+                              onClick={() => {
+                                onClose();
+                                onOpenFoundNotice(c.report);
+                              }}
+                            >
+                              🔄 Re-submit Found Notice
+                            </button>
+                          )}
+                          {onRegisterFoundReport && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              style={{
+                                fontSize: '0.78rem',
+                                padding: '6px 14px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                borderColor: '#059669',
+                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                              }}
+                              onClick={() => {
+                                onClose();
+                                onRegisterFoundReport({
+                                  type: 'found',
+                                  title: c.report?.title ? `Found: ${c.report.title}` : 'Found Item',
+                                  categoryId: c.report?.category_id,
+                                  location: c.report?.location || '',
+                                  description: c.verification_record?.proof_details || '',
+                                });
+                              }}
+                            >
+                              📝 Register as New Found Item
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      // Student is Owner (Derartu)
+                      <div
+                        style={{
+                          marginTop: '10px',
+                          padding: '12px 14px',
+                          borderRadius: '8px',
+                          background: 'rgba(59, 130, 246, 0.08)',
+                          border: '1px solid rgba(59, 130, 246, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
+                        <span style={{ fontSize: '0.82rem', color: '#CBD5E1', lineHeight: 1.4 }}>
+                          A finder notice was submitted by a student, but campus administration determined the item does not match your lost item description. Your lost report remains active on campus listings.
+                        </span>
+                      </div>
+                    )
+                  ) : (
+                    // FLOW A: Found report ownership claim rejected
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        border: '1px solid rgba(59, 130, 246, 0.25)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>💡</span>
+                        <span style={{ fontSize: '0.84rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+                          Claim was rejected by campus administration. If you think this is a mistake or have stronger ownership proof, you can try claiming again.
+                        </span>
+                      </div>
+                      {onOpenClaimReport && (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          style={{
+                            fontSize: '0.78rem',
+                            padding: '6px 14px',
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                          }}
+                          onClick={() => {
+                            onClose();
+                            onOpenClaimReport(c.report);
+                          }}
+                        >
+                          🔄 Try Claiming Again with Better Proof
+                        </button>
+                      )}
+                    </div>
+                  )
                 )}
 
                 {/* STUDENT ACTION: If status == 'awaiting_info', show response form */}
@@ -681,23 +989,26 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       </button>
                     )}
 
-                    {(c.status === 'under_review' || c.status === 'submitted') && (
-                      <button
-                        className="btn btn-warning btn-sm"
-                        onClick={() => handleStatusChange(c.id, 'awaiting_info')}
-                        disabled={actionLoading}
-                      >
-                        ❓ Request More Info
-                      </button>
-                    )}
-
                     {(c.status === 'under_review' || c.status === 'submitted' || c.status === 'awaiting_info') && (
                       <button
                         className="btn btn-primary btn-sm"
                         onClick={() => handleStatusChange(c.id, 'approved')}
                         disabled={actionLoading}
                       >
-                        ✅ Approve Claim
+                        {c.report?.type === 'lost' ? '✅ Approve Handover Match' : '✅ Approve Ownership Claim'}
+                      </button>
+                    )}
+
+                    {c.status === 'approved' && (
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleConfirmHandover(c.id)}
+                        disabled={actionLoading}
+                        title="Finalize item handover, record recovery, and archive report"
+                      >
+                        {c.owner_confirmed_receipt
+                          ? '✅ Verify & Complete Handover (Owner Confirmed)'
+                          : '✅ Verify & Complete Handover'}
                       </button>
                     )}
 
@@ -707,7 +1018,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           <input
                             type="text"
                             className="form-input-sm"
-                            placeholder="Mandatory rejection reason..."
+                            placeholder={c.report?.type === 'lost' ? "Rejection reason (e.g. Item markings do not match owner secret description)..." : "Rejection reason (e.g. Insufficient ownership proof)..."}
                             value={rejectionReasonText}
                             onChange={(e) => setRejectionReasonText(e.target.value)}
                           />
@@ -716,7 +1027,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                             onClick={() => handleStatusChange(c.id, 'rejected', rejectionReasonText)}
                             disabled={actionLoading || !rejectionReasonText.trim()}
                           >
-                            Confirm Reject
+                            {c.report?.type === 'lost' ? 'Confirm Reject Match' : 'Confirm Reject Claim'}
                           </button>
                           <button
                             className="btn btn-secondary btn-sm"
@@ -731,7 +1042,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           onClick={() => setRejectingClaimId(c.id)}
                           disabled={actionLoading}
                         >
-                          ❌ Reject Claim
+                          {c.report?.type === 'lost' ? '❌ Reject Match (Does Not Match Lost Item)' : '❌ Reject Ownership Claim'}
                         </button>
                       )
                     )}

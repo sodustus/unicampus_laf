@@ -50,7 +50,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -241,9 +241,21 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     </div>
 
                     {report.possession_status === 'submitted_to_authority' && report.custody_location && (
-                      <p style={{ margin: '8px 0 0 0', color: '#E2E8F0' }}>
-                        🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
-                      </p>
+                      <div style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <p style={{ margin: 0, color: '#E2E8F0' }}>
+                          🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                        </p>
+                        {report.custody_location.match(/(\+?[0-9]{7,15})/) && (
+                          <a
+                            href={`tel:${report.custody_location.match(/(\+?[0-9]{7,15})/)[0]}`}
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                            title="Call custodian office directly"
+                          >
+                            📞 Call Office
+                          </a>
+                        )}
+                      </div>
                     )}
 
                     {report.found_notes && (
@@ -394,7 +406,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 )}
 
                 {/* Issue #7: Lost Item Found Notice Action for non-owners */}
-                {report.type === 'lost' && report.status === 'active' && !isOwner && !report.founder_id && (
+                {report.type === 'lost' && report.status === 'active' && !isOwner && !report.founder_id && !report.user_has_claimed && (
                   <button
                     className="btn btn-primary"
                     style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
@@ -407,7 +419,23 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   </button>
                 )}
 
-                {report.type === 'lost' && report.status === 'active' && !isOwner && report.founder_id && (
+                {report.type === 'lost' && report.status === 'active' && !isOwner && report.user_has_claimed && (
+                  <span
+                    className="badge badge-info"
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                    title="Your found notice is currently being processed by campus administration."
+                  >
+                    ⏳ Found notice currently under review
+                  </span>
+                )}
+
+                {report.type === 'lost' && report.status === 'active' && !isOwner && !report.user_has_claimed && report.founder_id && (
                   <span
                     className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
                     style={{
@@ -434,16 +462,56 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 )}
 
                 {/* Found Item Claim Action */}
-                {report.type === 'found' && report.status === 'active' && !isOwner && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => {
-                      onClaim(report);
-                      onClose();
+                {report.type === 'found' && report.status === 'active' && !isOwner && !report.user_has_claimed && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    {report.user_claim_status === 'rejected' && (
+                      <span style={{ fontSize: '0.8rem', color: '#93C5FD' }}>
+                        💡 Previous claim rejected. You can try claiming again if you think this is a mistake.
+                      </span>
+                    )}
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => {
+                        onClaim(report);
+                        onClose();
+                      }}
+                    >
+                      {report.user_claim_status === 'rejected' ? '🔄 Try Claiming Again' : '🤝 Claim This Item'}
+                    </button>
+                  </div>
+                )}
+
+                {report.type === 'found' && report.status === 'active' && !isOwner && report.user_has_claimed && (
+                  <span
+                    className="badge badge-info"
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
                     }}
+                    title="Your ownership claim is currently being processed by campus administration."
                   >
-                    🤝 Claim This Item
-                  </button>
+                    ⏳ Ownership claim currently under review
+                  </span>
+                )}
+
+                {/* Reporter Rule Badge for Found Item */}
+                {report.type === 'found' && report.status === 'active' && isOwner && (
+                  <span
+                    className="badge badge-info"
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                    title="A user cannot be both the reporter and claimer on the same report."
+                  >
+                    📢 You reported this item (Reporter) • Cannot claim own report
+                  </span>
                 )}
               </div>
             </div>

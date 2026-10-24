@@ -57,8 +57,10 @@ class ClaimResponse(BaseModel):
     rejection_reason: Optional[str] = None
     finder_handover_failed: bool = False
     claimant_handover_failed: bool = False
+    owner_confirmed_receipt: bool = False
     handover_failure_notes: Optional[str] = None
     queue_position: Optional[int] = None
+    is_admin_view: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -66,13 +68,16 @@ class ClaimResponse(BaseModel):
     report: Optional[ReportResponse] = None
     claimant: Optional[UserResponse] = None
     finder: Optional[UserResponse] = None
+    owner: Optional[UserResponse] = None
     verification_record: Optional[VerificationRecordResponse] = None
 
     @model_validator(mode="after")
     def mask_contact_info_if_not_approved(self):
-        if self.status not in ["approved", "completed"]:
+        if not self.is_admin_view and self.status not in ["approved", "completed"]:
             if self.finder and self.finder.phone_number:
                 self.finder = self.finder.model_copy(update={"phone_number": None})
             if self.claimant and self.claimant.phone_number:
                 self.claimant = self.claimant.model_copy(update={"phone_number": None})
+            if self.owner and self.owner.phone_number:
+                self.owner = self.owner.model_copy(update={"phone_number": None})
         return self

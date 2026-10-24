@@ -7,26 +7,68 @@ export default function AuthModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
+  // Strict email validation checking user@domain.tld structure
+  const isValidEmailFormat = (str) => {
+    if (!str || typeof str !== 'string') return false;
+    const trimmed = str.trim();
+    if (trimmed.length < 6) return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(trimmed);
+  };
+
+  // Real-time phone number filter: strips out letters/symbols, enforces 10 chars for 09... and 13 chars for +251...
+  const handlePhoneChange = (val) => {
+    let cleaned = val.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
+    } else {
+      cleaned = cleaned.replace(/\+/g, '');
+      if (cleaned.length > 10) {
+        cleaned = cleaned.slice(0, 10);
+      }
+    }
+    setPhoneNumber(cleaned);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (isRegister && password !== confirmPassword) {
-      setError('Passwords do not match.');
+    // Reject invalid email format or gibberish
+    if (!isValidEmailFormat(email)) {
+      setError('Please enter a valid email address (e.g. yourname@campus.edu).');
       return;
+    }
+
+    if (isRegister) {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+      if (phoneNumber.trim()) {
+        const digits = phoneNumber.replace(/\+/g, '');
+        if (digits.length < 7 || digits.length > 15) {
+          setError('Phone number must contain between 7 and 15 digits.');
+          return;
+        }
+      }
     }
 
     setSubmitting(true);
     try {
       if (isRegister) {
-        await register(email, password);
+        await register(email.trim(), password, phoneNumber.trim() || null);
       } else {
-        await login(email, password);
+        await login(email.trim(), password);
       }
       onClose();
     } catch (err) {
@@ -50,7 +92,7 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-dialog glass-panel" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header">
@@ -75,36 +117,54 @@ export default function AuthModal({ isOpen, onClose }) {
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student0')}
+              onClick={() => handleQuickLogin('abebe')}
               disabled={submitting}
-              title="Abebe Bikila (Computer Science) - Password: password0"
+              title="Abebe Bikila (Computer Science & IT) - abebebikila@campus.edu"
             >
-              👤 Student 0 (Abebe)
+              👤 Abebe Bikila
             </button>
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student1')}
+              onClick={() => handleQuickLogin('fatuma')}
               disabled={submitting}
-              title="Fatuma Roba (Electrical Eng.) - Password: password1"
+              title="Fatuma Roba (Electrical Engineering) - fatumaroba@campus.edu"
             >
-              👤 Student 1 (Fatuma)
+              👤 Fatuma Roba
             </button>
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student2')}
+              onClick={() => handleQuickLogin('derartu')}
               disabled={submitting}
-              title="Derartu Tulu (Mechanical Eng.) - Password: password2"
+              title="Derartu Tulu (Mechanical Engineering) - derartutulu@campus.edu"
             >
-              👤 Student 2 (Derartu)
+              👤 Derartu Tulu
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('kenenisa')}
+              disabled={submitting}
+              title="Kenenisa Bekele (Software Engineering) - kenenisabekele@campus.edu"
+            >
+              👤 Kenenisa Bekele
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('haile')}
+              disabled={submitting}
+              title="Haile Gebrselassie (Civil & Environmental Eng.) - hailegebrselassie@campus.edu"
+            >
+              👤 Haile Gebrselassie
             </button>
             <button
               type="button"
               className="btn btn-demo-admin"
               onClick={() => handleQuickLogin('admin')}
               disabled={submitting}
-              title="Campus Administrator - Password: AdminPass2026!"
+              title="Campus Administrator (Campus Security & Admin) - admin@campus.edu"
             >
               🛡️ Admin Console
             </button>
@@ -142,6 +202,7 @@ export default function AuthModal({ isOpen, onClose }) {
               placeholder="e.g. yourname@campus.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -154,24 +215,45 @@ export default function AuthModal({ isOpen, onClose }) {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isRegister ? "new-password" : "current-password"}
               required
               minLength={8}
             />
           </div>
 
           {isRegister && (
-            <div className="form-group">
-              <label htmlFor="auth-confirm">Confirm Password</label>
-              <input
-                id="auth-confirm"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label htmlFor="auth-confirm">Confirm Password</label>
+                <input
+                  id="auth-confirm"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="auth-phone">
+                  Contact Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Digits only, optional)</span>
+                </label>
+                <input
+                  id="auth-phone"
+                  type="tel"
+                  placeholder="e.g. +251983072052 or 0983072052"
+                  value={phoneNumber}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  maxLength={phoneNumber.startsWith('+') ? 13 : 10}
+                />
+                <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  🔒 Numbers only. Limits: 10 digits for 09... or 13 chars for +251...
+                </span>
+              </div>
+            </>
           )}
 
           <div className="modal-actions">

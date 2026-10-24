@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUserDashboard, respondToClaimInfo } from '../api/client';
+import { fetchUserDashboard, respondToClaimInfo, confirmClaimReceipt } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserDashboardModal({
@@ -19,6 +19,7 @@ export default function UserDashboardModal({
   const [activeRespondId, setActiveRespondId] = useState(null);
   const [additionalText, setAdditionalText] = useState('');
   const [responding, setResponding] = useState(false);
+  const [confirmingReceiptId, setConfirmingReceiptId] = useState(null);
 
   const loadData = async () => {
     if (!token) return;
@@ -57,6 +58,19 @@ export default function UserDashboardModal({
     }
   };
 
+  const handleConfirmReceipt = async (claimId) => {
+    if (!window.confirm("Are you sure you have physically met and received your item back in good condition?")) return;
+    setConfirmingReceiptId(claimId);
+    try {
+      await confirmClaimReceipt(claimId, token);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'Failed to confirm item receipt');
+    } finally {
+      setConfirmingReceiptId(null);
+    }
+  };
+
   const stats = data?.stats || {
     active_reports_count: 0,
     recovered_reports_count: 0,
@@ -65,7 +79,7 @@ export default function UserDashboardModal({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div
         className="modal-dialog glass-panel dashboard-dialog"
         style={{ maxWidth: '900px' }}
@@ -255,7 +269,10 @@ export default function UserDashboardModal({
                     <div key={claim.id} className="dash-item-card">
                       <div className="dash-item-header">
                         <div>
-                          <h4>Claim for Found Item #{claim.report_id}</h4>
+                          <h4>
+                            {claim.report?.type === 'lost' ? 'Handover for Lost Item' : 'Claim for Found Item'} #{claim.report_id}
+                            {claim.report?.title ? ` — ${claim.report.title}` : ''}
+                          </h4>
                           <span className="claim-card-meta">
                             Claim #{claim.id} &bull; Filed {new Date(claim.created_at).toLocaleDateString()}
                           </span>
@@ -319,9 +336,63 @@ export default function UserDashboardModal({
                         </div>
                       )}
 
-                      {claim.status === 'rejected' && claim.rejection_reason && (
+                      {claim.status === 'approved' && (
+                        <div style={{
+                          marginTop: '10px',
+                          padding: '12px 14px',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                            <span style={{ fontSize: '0.85rem', color: '#10B981', fontWeight: 600 }}>
+                              🎉 Claim Approved — Coordinate Pickup
+                            </span>
+                            {claim.owner_confirmed_receipt ? (
+                              <span style={{ fontSize: '0.8125rem', color: '#34D399', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ✓ You confirmed receipt! Awaiting final admin verification.
+                              </span>
+                            ) : (
+                              <button
+                                className="btn btn-success btn-sm"
+                                disabled={confirmingReceiptId === claim.id}
+                                onClick={() => handleConfirmReceipt(claim.id)}
+                                style={{
+                                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                                  color: '#fff',
+                                  fontWeight: 600,
+                                  border: 'none',
+                                  boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                                  cursor: 'pointer',
+                                  padding: '6px 12px',
+                                  borderRadius: '6px'
+                                }}
+                              >
+                                {confirmingReceiptId === claim.id ? 'Confirming...' : '🤝 Confirm I Have Received My Item'}
+                              </button>
+                            )}
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            Once you have physically met up with the founder or visited the custodian desk and verified your item, click the confirmation button above.
+                          </p>
+                        </div>
+                      )}
+
+                      {claim.status === 'rejected' && (
                         <div className="claim-rejection-box" style={{ marginTop: '8px' }}>
-                          <strong>Rejection Reason:</strong> {claim.rejection_reason}
+                          <div style={{ fontWeight: 600, color: '#F87171', marginBottom: '4px' }}>
+                            {claim.report?.type === 'lost'
+                              ? '❌ Found Notice Did Not Match Lost Item Description'
+                              : '❌ Ownership Claim Rejected by Administration'}
+                          </div>
+                          {claim.rejection_reason && (
+                            <div style={{ fontSize: '0.8125rem', color: '#E2E8F0' }}>
+                              <strong>Reason:</strong> {claim.rejection_reason}
+                            </div>
+                          )}
                         </div>
                       )}
 

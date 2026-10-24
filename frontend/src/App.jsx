@@ -39,6 +39,7 @@ export default function App() {
   const [reports, setReports] = useState([]);
   const [loadingReports, setLoadingReports] = useState(true);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportModalInitialData, setReportModalInitialData] = useState(null);
   const [selectedReportId, setSelectedReportId] = useState(null);
   
   // Step 5: Claims & Verification state
@@ -364,14 +365,18 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <p>UniCampus Lost & Found System &bull; Graduation Project Build v7.1 &bull; Abdurezak Anwar, 2026</p>
+        <p>UniCampus Lost & Found System &bull; Interim Expansion Bug Fixes v7.12 &bull; Abdurezak Anwar, 2026</p>
       </footer>
 
       {/* Modals */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <ReportModal
         isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
+        initialData={reportModalInitialData}
+        onClose={() => {
+          setIsReportModalOpen(false);
+          setReportModalInitialData(null);
+        }}
         onReportCreated={handleReportCreated}
         onInspectMatchingReport={(repId) => {
           setSelectedReportId(repId);
@@ -416,6 +421,14 @@ export default function App() {
         onOpenClaimReport={(rep) => {
           setClaimReport(rep);
         }}
+        onOpenFoundNotice={(rep) => {
+          setFoundNoticeReport(rep);
+        }}
+        onRegisterFoundReport={(data) => {
+          setReportModalInitialData(data);
+          setIsReportModalOpen(true);
+        }}
+        onViewProfile={handleViewMemberProfile}
       />
       <RecoveryDetailModal
         isOpen={Boolean(recoveryReport)}

@@ -83,6 +83,8 @@ class ReportResponse(BaseModel):
     founder: Optional[UserResponse] = None
     claim_status: Optional[str] = None
     claim_id: Optional[int] = None
+    user_has_claimed: bool = False
+    user_claim_status: Optional[str] = None
     photo_path: Optional[str] = None
     identifying_details: Optional[str] = None
     deletion_reason: Optional[str] = None

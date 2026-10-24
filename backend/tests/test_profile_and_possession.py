@@ -18,7 +18,7 @@ def get_token(email: str, password: str) -> str:
 
 def test_update_student_profile():
     """Verify PATCH /auth/profile/me updates full_name, phone_number, department."""
-    token = get_token("student@campus.edu", "StudentPass2026!")
+    token = get_token("abebebikila@campus.edu", "password123")
     headers = {"Authorization": f"Bearer {token}"}
 
     update_payload = {
@@ -46,25 +46,26 @@ def test_profile_phone_number_privacy_gating():
     """
     db = SessionLocal()
     # Ensure student has phone number
-    student = db.query(User).filter(User.email == "student@campus.edu").first()
+    student = db.query(User).filter(User.email == "abebebikila@campus.edu").first()
     student.phone_number = "+251911223344"
     student.full_name = "Abebe Bikila"
     student.department = "Computer Science"
 
     # Create a secondary test student
-    other_student = db.query(User).filter(User.email == "other_student@campus.edu").first()
+    other_student = db.query(User).filter(User.email == "hailegebrselassie@campus.edu").first()
     if not other_student:
         other_student = User(
-            email="other_student@campus.edu",
+            email="hailegebrselassie@campus.edu",
             password_hash="$argon2id$v=19$m=65536,t=3,p=4$fakehashfortest123456789",
             role=UserRole.USER.value,
-            full_name="Fatuma Roba",
-            phone_number="+251988776655",
-            department="Electrical Engineering",
+            full_name="Haile Gebrselassie",
+            phone_number="+251944556677",
+            department="Civil & Environmental Engineering",
         )
         db.add(other_student)
     else:
-        other_student.phone_number = "+251988776655"
+        other_student.phone_number = "+251944556677"
+        other_student.full_name = "Haile Gebrselassie"
     db.commit()
     db.refresh(student)
     db.refresh(other_student)
@@ -72,8 +73,8 @@ def test_profile_phone_number_privacy_gating():
     other_student_id = other_student.id
     db.close()
 
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
+    student_token = get_token("abebebikila@campus.edu", "password123")
 
     # 1. Admin views student profile: phone is visible
     res_admin = client.get(
@@ -99,13 +100,13 @@ def test_profile_phone_number_privacy_gating():
     )
     assert res_other.status_code == 200
     assert res_other.json()["phone_number"] is None
-    assert res_other.json()["full_name"] == "Fatuma Roba"
-    assert res_other.json()["department"] == "Electrical Engineering"
+    assert res_other.json()["full_name"] == "Haile Gebrselassie"
+    assert res_other.json()["department"] == "Civil & Environmental Engineering"
 
 
 def test_possession_status_and_custody_in_reports():
     """Verify report creation with possession_status, custody_location and filtering."""
-    token = get_token("student@campus.edu", "StudentPass2026!")
+    token = get_token("abebebikila@campus.edu", "password123")
     headers = {"Authorization": f"Bearer {token}"}
 
     db = SessionLocal()
@@ -150,14 +151,14 @@ def test_claim_handover_slip_and_contact_disclosure():
     - After approval: finder phone revealed in claim & profile
     - Complete handover sets report possession_status to returned
     """
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
+    student_token = get_token("abebebikila@campus.edu", "password123")
     admin_headers = {"Authorization": f"Bearer {admin_token}"}
     student_headers = {"Authorization": f"Bearer {student_token}"}
 
     db = SessionLocal()
     admin_user = db.query(User).filter(User.role == UserRole.ADMIN.value).first()
-    student_user = db.query(User).filter(User.email == "student@campus.edu").first()
+    student_user = db.query(User).filter(User.email == "abebebikila@campus.edu").first()
     category = db.query(Category).first()
 
     # Create a report owned by admin (so student can submit a claim on it)
@@ -340,7 +341,7 @@ def test_lost_item_found_notice_handshake_and_direct_recovery():
     assert "pending admin verification" in res_premature_rec.json()["detail"]
 
     # 6. Admin logs in and performs double-blind verification in Claims Manager
-    admin_token = client.post("/auth/login", json={"email": "admin@campus.edu", "password": "AdminPass2026!"}).json()["access_token"]
+    admin_token = client.post("/auth/login", json={"email": "admin@campus.edu", "password": "admin123"}).json()["access_token"]
     admin_headers = {"Authorization": f"Bearer {admin_token}"}
 
     res_claims = client.get("/claims", headers=admin_headers)
