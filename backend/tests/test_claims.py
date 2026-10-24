@@ -195,3 +195,73 @@ def test_claim_rejection_requires_reason():
     assert good_reject.status_code == 200
     assert good_reject.json()["status"] == "rejected"
     assert good_reject.json()["rejection_reason"] == "Proof provided does not match item contents."
+
+
+def test_reporter_cannot_be_claimer():
+    """
+    Enforces the rule that a user cannot be both the reporter and claimer on the same report.
+    - User who reported a FOUND item cannot file an ownership claim on it.
+    - User who reported a LOST item cannot file a found notice on their own report.
+    - Rule applies regardless of user role.
+    """
+    reporter_email = "sole_reporter@campus.edu"
+    client.post("/auth/register", json={"email": reporter_email, "password": "Password123!"})
+    reporter_token = get_token(reporter_email, "Password123!")
+
+    db = SessionLocal()
+    category_id = db.query(Category).first().id
+    db.close()
+
+    # 1. Reporter submits a FOUND item report
+    found_res = client.post(
+        "/reports",
+        json={
+            "type": "found",
+            "title": "Silver iPad Pro in Library",
+            "description": "Found on 3rd floor study desk",
+            "category_id": category_id,
+            "location": "Library 3rd Floor",
+            "item_date": datetime.now(timezone.utc).isoformat(),
+        },
+        headers={"Authorization": f"Bearer {reporter_token}"},
+    )
+    assert found_res.status_code == 201
+    found_id = found_res.json()["id"]
+
+    # Reporter tries to claim their own found report -> 400
+    claim_attempt = client.post(
+        f"/reports/{found_id}/claims",
+        json={"proof_details": "I am actually the owner claiming it back"},
+        headers={"Authorization": f"Bearer {reporter_token}"},
+    )
+    assert claim_attempt.status_code == 400
+    assert "cannot be both the reporter and claimer" in claim_attempt.json()["detail"].lower()
+
+    # 2. Reporter submits a LOST item report
+    lost_res = client.post(
+        "/reports",
+        json={
+            "type": "lost",
+            "title": "Lost Hydro Flask Blue",
+            "description": "Left in gym locker room",
+            "category_id": category_id,
+            "location": "Campus Recreation Center",
+            "item_date": datetime.now(timezone.utc).isoformat(),
+        },
+        headers={"Authorization": f"Bearer {reporter_token}"},
+    )
+    assert lost_res.status_code == 201
+    lost_id = lost_res.json()["id"]
+
+    # Reporter tries to submit a found notice on their own lost item -> 400
+    found_notice_attempt = client.post(
+        f"/reports/{lost_id}/found-notice",
+        json={
+            "founder_proof": "I found my own water bottle",
+            "possession_status": "with_finder",
+        },
+        headers={"Authorization": f"Bearer {reporter_token}"},
+    )
+    assert found_notice_attempt.status_code == 400
+    assert "cannot be both the reporter and claimer" in found_notice_attempt.json()["detail"].lower()
+

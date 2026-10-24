@@ -357,7 +357,7 @@ def submit_found_notice(
     if report.owner_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot submit a found notice on your own lost report.",
+            detail="You cannot submit a found notice on your own lost report. A user cannot be both the reporter and claimer/finder on the same report.",
         )
 
     # Check for active claim on this report

@@ -3,12 +3,14 @@ import { submitClaim } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }) {
-  const { token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const [proofDetails, setProofDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen || !report) return null;
+
+  const isReporter = Boolean(user && report && (user.id === report.owner_id || user.id === report.founder_id));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,6 +18,11 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
 
     if (!isAuthenticated) {
       setError('You must be logged in to file an ownership claim.');
+      return;
+    }
+
+    if (isReporter) {
+      setError('A user cannot be both the reporter and claimer on the same report.');
       return;
     }
 
@@ -53,6 +60,15 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
           <span>🏷️ <strong>Category:</strong> {report.category?.name || 'General Item'}</span>
         </div>
 
+        {isReporter && (
+          <div className="alert-error" style={{ margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🚫</span>
+            <span>
+              <strong>Rule Enforced:</strong> You are the reporter of this item. A user cannot be both the reporter and claimer on the same report.
+            </span>
+          </div>
+        )}
+
         {error && <div className="alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -72,6 +88,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
               onChange={(e) => setProofDetails(e.target.value)}
               required
               minLength={5}
+              disabled={isReporter}
             />
             <span className="proof-note">
               🛡️ <strong>Privacy Protection (FR-CLAIM-08):</strong> Your verification details are kept strictly confidential. Only you and reviewing campus administrators can read this proof.
@@ -82,7 +99,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter}>
               {submitting ? 'Filing Claim...' : 'Submit Ownership Claim'}
             </button>
           </div>

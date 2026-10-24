@@ -79,10 +79,10 @@ def submit_claim(
             detail="This found item is no longer active for claims.",
         )
 
-    if report.owner_id == current_user.id:
+    if report.owner_id == current_user.id or report.founder_id == current_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot submit a claim on an item you registered as found.",
+            detail="You cannot submit a claim on an item you registered. A user cannot be both the reporter and claimer on the same report.",
         )
 
     # Check for existing active claim by this user

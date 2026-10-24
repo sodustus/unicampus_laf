@@ -3,7 +3,7 @@ import { submitFoundNotice } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess }) {
-  const { token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
   const [custodianPhone, setCustodianPhone] = useState('');
@@ -14,6 +14,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   const [error, setError] = useState('');
 
   if (!isOpen || !report) return null;
+
+  const isReporter = Boolean(user && report && user.id === report.owner_id);
 
   // Real-time numbers-only filter for custodian phone
   const handleCustodianPhoneChange = (val) => {
@@ -32,6 +34,11 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
     if (!isAuthenticated) {
       setError('You must be logged in to notify the owner.');
+      return;
+    }
+
+    if (isReporter) {
+      setError('You cannot submit a found notice on your own lost report. A user cannot be both the reporter and claimer/finder on the same report.');
       return;
     }
 
@@ -96,6 +103,15 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
           <span>📍 <strong>Reported Lost Near:</strong> {report.location}</span>
           <span>🏷️ <strong>Category:</strong> {report.category?.name || 'General Item'}</span>
         </div>
+
+        {isReporter && (
+          <div className="alert-error" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🚫</span>
+            <span>
+              <strong>Rule Enforced:</strong> You reported this lost item. A user cannot be both the reporter and claimer/finder on the same report.
+            </span>
+          </div>
+        )}
 
         {error && <div className="alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
 
@@ -268,7 +284,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
+            <button type="submit" className="btn btn-primary" disabled={submitting || isReporter}>
               {submitting ? 'Notifying Owner...' : '🚀 Submit Found Notice'}
             </button>
           </div>

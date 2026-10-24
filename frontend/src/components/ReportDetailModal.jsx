@@ -457,6 +457,23 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     🤝 Claim This Item
                   </button>
                 )}
+
+                {/* Reporter Rule Badge for Found Item */}
+                {report.type === 'found' && report.status === 'active' && isOwner && (
+                  <span
+                    className="badge badge-info"
+                    style={{
+                      padding: '8px 14px',
+                      fontSize: '0.85rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                    title="A user cannot be both the reporter and claimer on the same report."
+                  >
+                    📢 You reported this item (Reporter) • Cannot claim own report
+                  </span>
+                )}
               </div>
             </div>
           </>
