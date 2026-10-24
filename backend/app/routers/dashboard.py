@@ -30,11 +30,11 @@ def get_user_dashboard(
     Personalized student/staff portal showing active reports, recovered items,
     claims tracker, and summary statistics.
     """
-    # Active reports posted by user
+    # Active reports posted or found by user
     active_reports = (
         db.query(Report)
         .filter(
-            Report.owner_id == current_user.id,
+            (Report.owner_id == current_user.id) | (Report.founder_id == current_user.id),
             Report.deleted_at.is_(None),
             Report.status == ReportStatus.ACTIVE.value,
         )
@@ -42,11 +42,11 @@ def get_user_dashboard(
         .all()
     )
 
-    # Recovered or closed reports posted by user
+    # Recovered or closed reports (items returned) for owner or finder
     recovered_reports = (
         db.query(Report)
         .filter(
-            Report.owner_id == current_user.id,
+            (Report.owner_id == current_user.id) | (Report.founder_id == current_user.id),
             Report.deleted_at.is_(None),
             Report.status.in_([ReportStatus.RECOVERED.value, ReportStatus.CLOSED.value]),
         )
@@ -54,10 +54,15 @@ def get_user_dashboard(
         .all()
     )
 
-    # Claims filed by user
+    # Claims filed by or involving user (claimant, reporter, or founder)
     my_claims = (
         db.query(Claim)
-        .filter(Claim.claimant_id == current_user.id)
+        .join(Report, Claim.report_id == Report.id)
+        .filter(
+            (Claim.claimant_id == current_user.id)
+            | (Report.owner_id == current_user.id)
+            | (Report.founder_id == current_user.id)
+        )
         .order_by(Claim.created_at.desc())
         .all()
     )

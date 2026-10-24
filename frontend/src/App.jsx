@@ -416,6 +416,7 @@ export default function App() {
         onOpenClaimReport={(rep) => {
           setClaimReport(rep);
         }}
+        onViewProfile={handleViewMemberProfile}
       />
       <RecoveryDetailModal
         isOpen={Boolean(recoveryReport)}

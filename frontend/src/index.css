@@ -57,6 +57,39 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
+/* Global Form Controls Styling (enforces dark glassmorphism everywhere) */
+input,
+textarea,
+select {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+select option {
+  background: #111827;
+  color: #F3F4F6;
+}
+
 a {
   color: var(--primary);
   text-decoration: none;

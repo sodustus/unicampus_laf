@@ -126,17 +126,19 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
               Where is the item right now? <span className="req-star">*</span>
             </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
               <label
                 style={{
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.75rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
                   border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.65)',
+                  background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
+                  fontSize: '0.84rem',
+                  fontWeight: 500,
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -146,26 +148,22 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   value="with_finder"
                   checked={possessionStatus === 'with_finder'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
-                  style={{ marginTop: '0.2rem' }}
                 />
-                <div>
-                  <strong style={{ display: 'block', color: '#F1F5F9' }}>I have physical custody</strong>
-                  <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>
-                    You have the item and will arrange a direct meetup with the owner.
-                  </span>
-                </div>
+                <span style={{ color: '#F1F5F9' }}>🤝 In My Custody</span>
               </label>
 
               <label
                 style={{
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.75rem',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
                   border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.65)',
+                  background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
+                  fontSize: '0.84rem',
+                  fontWeight: 500,
                   transition: 'all 0.2s ease',
                 }}
               >
@@ -175,14 +173,8 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   value="submitted_to_authority"
                   checked={possessionStatus === 'submitted_to_authority'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
-                  style={{ marginTop: '0.2rem' }}
                 />
-                <div>
-                  <strong style={{ display: 'block', color: '#F1F5F9' }}>I deposited it with campus staff/security</strong>
-                  <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>
-                    You handed it over to a library desk, department office, or campus security post.
-                  </span>
-                </div>
+                <span style={{ color: '#F1F5F9' }}>🏛️ Deposited at Office</span>
               </label>
             </div>
           </div>

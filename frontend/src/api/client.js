@@ -239,6 +239,18 @@ export async function completeClaimHandover(claimId, token) {
   return data;
 }
 
+export async function confirmClaimReceipt(claimId, token) {
+  const res = await fetch(`${BASE_URL}/claims/${claimId}/confirm-receipt`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to confirm receipt of item');
+  return data;
+}
+
 /* ==========================================================================
    Step 6: Recovery Tracking & Immutable Audit Log APIs
    ========================================================================== */

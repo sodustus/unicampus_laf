@@ -5,12 +5,13 @@ import {
   updateClaimStatus,
   respondToClaimInfo,
   completeClaimHandover,
+  confirmClaimReceipt,
   flagHandoverFailed,
   repostReportAfterFailedHandover,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function ClaimsManagerModal({ isOpen, onClose, onHandoverCompleted, onOpenClaimReport }) {
+export default function ClaimsManagerModal({ isOpen, onClose, onHandoverCompleted, onOpenClaimReport, onViewProfile }) {
   const { token, user, isAdmin } = useAuth();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +100,22 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
       if (onHandoverCompleted) onHandoverCompleted();
     } catch (err) {
       alert(err.message || 'Failed to complete handover');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Owner confirm item physical receipt
+  const handleConfirmReceipt = async (claimId) => {
+    if (!window.confirm('Confirm that you have met with the finder and physically received your item?')) return;
+    setActionLoading(true);
+    try {
+      await confirmClaimReceipt(claimId, token);
+      await loadClaims();
+      alert('Physical receipt confirmed! Handover is now awaiting administrator final verification.');
+      if (onHandoverCompleted) onHandoverCompleted();
+    } catch (err) {
+      alert(err.message || 'Failed to confirm receipt');
     } finally {
       setActionLoading(false);
     }
@@ -343,6 +360,78 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   </div>
                 )}
 
+                {/* Admin Direct Contact Verification Box (Under Review / Submitted) */}
+                {isAdmin && (c.status === 'submitted' || c.status === 'under_review') && (
+                  <div
+                    style={{
+                      margin: '10px 0',
+                      padding: '12px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.78rem', color: '#93C5FD', fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>📞</span> Admin Direct Contact & Profile Verification (Confirm Details Before Decision)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600 }}>
+                          📦 FINDER DETAILS
+                        </span>
+                        <div style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                          <strong style={{ color: '#F1F5F9' }}>{c.finder?.full_name || 'Founder'}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            {c.finder?.department || 'Student'} • {c.finder?.email}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                              📞 {c.finder?.phone_number || 'No phone'}
+                            </span>
+                            {c.finder?.phone_number && (
+                              <a href={`tel:${c.finder.phone_number}`} className="btn btn-primary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>
+                                Call
+                              </a>
+                            )}
+                            {onViewProfile && c.finder?.id && (
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => onViewProfile(c.finder.id)}>
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 12px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          🎯 OWNER / CLAIMANT DETAILS
+                        </span>
+                        <div style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                          <strong style={{ color: '#F1F5F9' }}>{(c.owner || c.claimant)?.full_name || 'Claimant'}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            {(c.owner || c.claimant)?.department || 'Student'} • {(c.owner || c.claimant)?.email}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                              📞 {(c.owner || c.claimant)?.phone_number || 'No phone'}
+                            </span>
+                            {(c.owner || c.claimant)?.phone_number && (
+                              <a href={`tel:${(c.owner || c.claimant).phone_number}`} className="btn btn-primary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }}>
+                                Call
+                              </a>
+                            )}
+                            {onViewProfile && (c.owner || c.claimant)?.id && (
+                              <button type="button" className="btn btn-secondary btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => onViewProfile((c.owner || c.claimant).id)}>
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Issue #2: Official Handover Coordination Slip (Approved & Completed Claims) */}
                 {(c.status === 'approved' || c.status === 'completed') && (
                   <div
@@ -429,26 +518,38 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                             {c.finder?.department || 'Student'} • {c.finder?.email}
                           </div>
-                          {c.finder?.phone_number ? (
-                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
-                              <a
-                                href={`tel:${c.finder.phone_number}`}
-                                className="btn btn-primary btn-sm"
+                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            {c.finder?.phone_number ? (
+                              <>
+                                <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.finder.phone_number}</span>
+                                <a
+                                  href={`tel:${c.finder.phone_number}`}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                >
+                                  Call
+                                </a>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                📞 Phone not provided in profile
+                              </span>
+                            )}
+                            {onViewProfile && c.finder?.id && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                onClick={() => onViewProfile(c.finder.id)}
                               >
-                                Call
-                              </a>
-                            </div>
-                          ) : (
-                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              📞 Phone not provided in profile
-                            </div>
-                          )}
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Claimant Details */}
+                      {/* True Owner Details */}
                       <div
                         style={{
                           background: 'rgba(255, 255, 255, 0.03)',
@@ -458,34 +559,104 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                         }}
                       >
                         <span style={{ fontSize: '0.75rem', color: '#6EE7B7', fontWeight: 600 }}>
-                          🎯 VERIFIED CLAIMANT
+                          🎯 VERIFIED OWNER
                         </span>
                         <div style={{ marginTop: '6px', fontSize: '0.85rem' }}>
                           <div style={{ fontWeight: 600, color: '#F1F5F9' }}>
-                            {c.claimant?.full_name || 'Claimant'}
+                            {(c.owner || c.claimant)?.full_name || 'Owner'}
                           </div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            {c.claimant?.department || 'Student'} • {c.claimant?.email}
+                            {(c.owner || c.claimant)?.department || 'Student'} • {(c.owner || c.claimant)?.email}
                           </div>
-                          {c.claimant?.phone_number ? (
-                            <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {c.claimant.phone_number}</span>
-                              <a
-                                href={`tel:${c.claimant.phone_number}`}
-                                className="btn btn-primary btn-sm"
+                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            {(c.owner || c.claimant)?.phone_number ? (
+                              <>
+                                <span style={{ color: '#6EE7B7', fontWeight: 600 }}>📞 {(c.owner || c.claimant).phone_number}</span>
+                                <a
+                                  href={`tel:${(c.owner || c.claimant).phone_number}`}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                >
+                                  Call
+                                </a>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                📞 Phone not provided in profile
+                              </span>
+                            )}
+                            {onViewProfile && (c.owner || c.claimant)?.id && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
                                 style={{ padding: '2px 8px', fontSize: '0.7rem' }}
+                                onClick={() => onViewProfile((c.owner || c.claimant).id)}
                               >
-                                Call
-                              </a>
-                            </div>
-                          ) : (
-                            <div style={{ marginTop: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                              📞 Phone not provided in profile
-                            </div>
-                          )}
+                                👤 Profile
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Two-Step Handover Receipt & Completion Actions */}
+                    {c.status === 'approved' && (
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '12px 14px',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '10px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.84rem' }}>
+                          {c.owner_confirmed_receipt ? (
+                            <span style={{ color: '#6EE7B7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span>✓</span> Physical Receipt Confirmed by Owner! Awaiting Administrator final verification.
+                            </span>
+                          ) : (
+                            <span style={{ color: '#FCD34D', fontWeight: 500 }}>
+                              ⏳ Pending Physical Item Receipt: Owner must inspect item and confirm receipt.
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          {/* Owner Action: Confirm Receipt */}
+                          {!c.owner_confirmed_receipt && (!isAdmin || (c.owner && user?.id === c.owner.id) || (c.claimant && user?.id === c.claimant.id)) && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              onClick={() => handleConfirmReceipt(c.id)}
+                              disabled={actionLoading}
+                            >
+                              🤝 Confirm I Have Received My Item
+                            </button>
+                          )}
+
+                          {/* Admin Action: Verify & Complete Handover */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              className="btn btn-success btn-sm"
+                              onClick={() => handleConfirmHandover(c.id)}
+                              disabled={actionLoading}
+                            >
+                              {c.owner_confirmed_receipt
+                                ? '✅ Verify & Complete Handover (Owner Confirmed)'
+                                : '✅ Verify & Complete Handover'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Handover Verification & Mismatch Flagging */}
                     {c.status === 'approved' && (
@@ -700,6 +871,19 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                         disabled={actionLoading}
                       >
                         ✅ Approve Claim
+                      </button>
+                    )}
+
+                    {c.status === 'approved' && (
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={() => handleConfirmHandover(c.id)}
+                        disabled={actionLoading}
+                        title="Finalize item handover, record recovery, and archive report"
+                      >
+                        {c.owner_confirmed_receipt
+                          ? '✅ Verify & Complete Handover (Owner Confirmed)'
+                          : '✅ Verify & Complete Handover'}
                       </button>
                     )}
 

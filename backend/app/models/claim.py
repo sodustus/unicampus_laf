@@ -26,6 +26,7 @@ class Claim(Base):
     rejection_reason = Column(Text, nullable=True)
     finder_handover_failed = Column(Boolean, default=False, nullable=False)
     claimant_handover_failed = Column(Boolean, default=False, nullable=False)
+    owner_confirmed_receipt = Column(Boolean, default=False, nullable=False)
     handover_failure_notes = Column(Text, nullable=True)
 
     created_at = Column(

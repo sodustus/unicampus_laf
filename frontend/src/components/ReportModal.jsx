@@ -14,6 +14,16 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
   const [identifyingDetails, setIdentifyingDetails] = useState('');
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
+  const [custodianPhone, setCustodianPhone] = useState('');
+
+  const handleCustodianPhoneChange = (val) => {
+    let sanitized = val.replace(/[^0-9+]/g, '');
+    if (sanitized.indexOf('+') > 0) {
+      sanitized = sanitized.charAt(0) + sanitized.slice(1).replace(/\+/g, '');
+    }
+    const maxLen = sanitized.startsWith('+') ? 13 : 10;
+    setCustodianPhone(sanitized.slice(0, maxLen));
+  };
   
   // Issue #7: Pre-submission Category Match Check state
   const [matchingCandidates, setMatchingCandidates] = useState([]);
@@ -93,6 +103,13 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
 
     setSubmitting(true);
     try {
+      let finalCustodyLocation = null;
+      if (type === 'found' && possessionStatus === 'submitted_to_authority') {
+        finalCustodyLocation = custodianPhone.trim()
+          ? `${custodyLocation.trim()} (Office Tel: ${custodianPhone.trim()})`
+          : custodyLocation.trim();
+      }
+
       const payload = {
         type,
         title: title.trim(),
@@ -102,7 +119,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
         item_date: new Date(itemDate).toISOString(),
         identifying_details: identifyingDetails.trim() || null,
         possession_status: type === 'found' ? possessionStatus : 'lost_unknown',
-        custody_location: type === 'found' && possessionStatus === 'submitted_to_authority' ? custodyLocation.trim() : null,
+        custody_location: finalCustodyLocation,
       };
 
       const newReport = await createReport(payload, token);
@@ -114,6 +131,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
       setLocation('');
       setIdentifyingDetails('');
       setCustodyLocation('');
+      setCustodianPhone('');
       setPossessionStatus('with_finder');
     } catch (err) {
       setError(err.message || 'Failed to submit report');
@@ -360,18 +378,19 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               <p style={{ margin: '4px 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Clarify who currently holds the item so claimants know where handover will take place.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
                 <label
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '10px',
+                    padding: '8px 12px',
                     borderRadius: '6px',
-                    background: possessionStatus === 'with_finder' ? 'rgba(59, 130, 246, 0.18)' : 'rgba(255, 255, 255, 0.02)',
-                    border: possessionStatus === 'with_finder' ? '1px solid #3B82F6' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                    border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                     cursor: 'pointer',
-                    fontSize: '0.85rem',
+                    fontSize: '0.84rem',
+                    fontWeight: 500,
                   }}
                 >
                   <input
@@ -381,7 +400,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     checked={possessionStatus === 'with_finder'}
                     onChange={() => setPossessionStatus('with_finder')}
                   />
-                  <span>🤝 In My Custody (With Finder)</span>
+                  <span>🤝 In My Custody</span>
                 </label>
 
                 <label
@@ -389,12 +408,13 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '10px',
+                    padding: '8px 12px',
                     borderRadius: '6px',
-                    background: possessionStatus === 'submitted_to_authority' ? 'rgba(168, 85, 247, 0.18)' : 'rgba(255, 255, 255, 0.02)',
-                    border: possessionStatus === 'submitted_to_authority' ? '1px solid #A855F7' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
+                    border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                     cursor: 'pointer',
-                    fontSize: '0.85rem',
+                    fontSize: '0.84rem',
+                    fontWeight: 500,
                   }}
                 >
                   <input
@@ -404,7 +424,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     checked={possessionStatus === 'submitted_to_authority'}
                     onChange={() => setPossessionStatus('submitted_to_authority')}
                   />
-                  <span>🏛️ Handed to Campus Authority</span>
+                  <span>🏛️ Deposited at Office</span>
                 </label>
               </div>
 
@@ -422,6 +442,24 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     required
                     style={{ marginTop: '4px' }}
                   />
+
+                  {/* Optional Custodian Phone Number */}
+                  <div style={{ marginTop: '10px' }}>
+                    <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
+                      📞 Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      className="form-input"
+                      placeholder="e.g. +251111234567 or 0111234567"
+                      value={custodianPhone}
+                      onChange={(e) => handleCustodianPhoneChange(e.target.value)}
+                      maxLength={custodianPhone.startsWith('+') ? 13 : 10}
+                    />
+                    <span className="field-hint" style={{ display: 'block', marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Helpful for direct calls. Limits: 10 digits for local (01.../09...) or 13 chars for (+251...).
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
