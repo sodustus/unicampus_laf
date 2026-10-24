@@ -26,6 +26,7 @@ class AdminDashboardStats(BaseModel):
     found_reports: int
     active_reports: int
     recovered_reports: int
+    deleted_reports_count: int = 0
     recovery_rate_percent: float
     total_users: int
     pending_claims: int
@@ -44,4 +45,5 @@ class AdminUserItem(BaseModel):
 class AdminDashboardResponse(BaseModel):
     stats: AdminDashboardStats
     pending_claims: List[ClaimResponse]
+    deleted_reports: List[ReportResponse] = []
     recent_activity: List[AuditLogResponse]

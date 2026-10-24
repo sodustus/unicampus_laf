@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function SearchFilters({
   filters,
@@ -6,6 +7,7 @@ export default function SearchFilters({
   categories,
   onOpenReportModal,
 }) {
+  const { isAdmin } = useAuth();
   return (
     <div className="glass-panel search-filters-panel">
       {/* Top Bar: Search Bar + Post Report CTA */}
@@ -96,6 +98,23 @@ export default function SearchFilters({
               <option value="active">Active Only</option>
               <option value="recovered">Recovered</option>
               <option value="all">All Statuses</option>
+              {isAdmin && <option value="deleted">🗑️ Deleted Reports (Admin)</option>}
+            </select>
+          </div>
+
+          {/* Possession Status Filter (Issue #2) */}
+          <div className="filter-select-wrap">
+            <label htmlFor="filter-possession">Custody:</label>
+            <select
+              id="filter-possession"
+              className="filter-select"
+              value={filters.possession_status || ''}
+              onChange={(e) => onFilterChange('possession_status', e.target.value)}
+            >
+              <option value="">All Custody</option>
+              <option value="with_finder">🤝 With Finder</option>
+              <option value="submitted_to_authority">🏛️ At Campus Office</option>
+              <option value="returned">🎉 Returned</option>
             </select>
           </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
-export default function ReportCard({ report, onSelect, onRecover, onDelete }) {
+export default function ReportCard({ report, onSelect, onRecover, onDelete, onViewProfile }) {
   const { user, isAdmin } = useAuth();
   const isOwner = user && user.id === report.owner_id;
   const canManage = isOwner || isAdmin;
@@ -12,15 +12,51 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete }) {
     year: 'numeric',
   });
 
+  const getPossessionBadge = () => {
+    if (!report.possession_status || report.possession_status === 'lost_unknown') return null;
+    if (report.possession_status === 'returned') {
+      return (
+        <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#6EE7B7' }}>
+          🎉 Returned
+        </span>
+      );
+    }
+    if (report.possession_status === 'submitted_to_authority') {
+      return (
+        <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#C084FC' }}>
+          🏛️ At Campus Office
+        </span>
+      );
+    }
+    return (
+      <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#93C5FD' }}>
+        🤝 With Finder
+      </span>
+    );
+  };
+
   return (
     <div className={`glass-panel item-card ${report.type === 'lost' ? 'card-lost' : 'card-found'}`}>
       <div className="card-top-row">
-        <span className={`badge ${report.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
-          {report.type === 'lost' ? '🔍 LOST' : '📦 FOUND'}
-        </span>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className={`badge ${report.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
+            {report.type === 'lost' ? '🔍 LOST' : '📦 FOUND'}
+          </span>
+          {getPossessionBadge()}
+          {report.type === 'lost' && report.founder_id && report.status === 'active' && (
+            <span
+              className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
+              style={{ fontSize: '0.7rem' }}
+            >
+              {report.claim_status === 'approved' ? '✓ Handover Approved' : '⏳ Verification Review'}
+            </span>
+          )}
+        </div>
         <span
           className={`badge ${
-            report.status === 'active'
+            report.status === 'deleted'
+              ? 'badge-danger'
+              : report.status === 'active'
               ? 'badge-info'
               : report.status === 'recovered'
               ? 'badge-success'
@@ -36,12 +72,39 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete }) {
         <span className="item-category">
           🏷️ {report.category?.name || 'General Item'}
         </span>
+        {report.status === 'deleted' && report.deletion_reason && (
+          <p style={{ margin: '4px 0', fontSize: '0.78rem', color: '#F87171' }}>
+            🗑️ <em>Reason: {report.deletion_reason}</em>
+          </p>
+        )}
         <p className="item-description">{report.description}</p>
       </div>
 
       <div className="card-meta">
         <span title="Location">📍 {report.location}</span>
         <span title="Date">📅 {formattedDate}</span>
+        {onViewProfile && (
+          <button
+            type="button"
+            className="btn-link"
+            style={{
+              padding: '2px 6px',
+              fontSize: '0.75rem',
+              color: '#93C5FD',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewProfile(report.owner_id);
+            }}
+            title="View member profile"
+          >
+            {report.type === 'found' ? `📦 Finder: ID #${report.owner_id}` : `🔍 Lost by: ID #${report.owner_id}`}
+          </button>
+        )}
       </div>
 
       <div className="card-footer">
