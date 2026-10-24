@@ -12,6 +12,7 @@ import {
   IconScale,
   IconAudit,
   IconLogout,
+  IconClose,
 } from './Icons';
 
 export default function GlobalSidebar({
@@ -19,8 +20,20 @@ export default function GlobalSidebar({
   onNavigate,
   onOpenReportModal,
   claimsCount = 0,
+  isOpen = false,
+  onClose,
 }) {
   const { user, isAdmin, logout } = useAuth();
+
+  const handleNavClick = (page) => {
+    onNavigate(page);
+    if (onClose) onClose();
+  };
+
+  const handleCreateClick = () => {
+    onOpenReportModal();
+    if (onClose) onClose();
+  };
 
   const userInitial = user?.full_name
     ? user.full_name[0].toUpperCase()
@@ -29,16 +42,30 @@ export default function GlobalSidebar({
     : 'U';
 
   return (
-    <aside className="global-sidebar">
+    <aside className={`global-sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       {/* Brand Header */}
       <div className="sidebar-brand-header">
-        <div className="sidebar-brand-crest">
-          <IconLogo size={26} />
+        <div className="sidebar-brand-left">
+          <div className="sidebar-brand-crest">
+            <IconLogo size={26} />
+          </div>
+          <div className="sidebar-brand-meta">
+            <div className="sidebar-title">UniCampus LAF</div>
+            <div className="sidebar-subtitle">Lost & Found System</div>
+          </div>
         </div>
-        <div className="sidebar-brand-meta">
-          <div className="sidebar-title">UniCampus LAF</div>
-          <div className="sidebar-subtitle">Lost & Found System</div>
-        </div>
+
+        {onClose && (
+          <button
+            type="button"
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="Close sidebar menu"
+            title="Close Menu"
+          >
+            <IconClose size={18} />
+          </button>
+        )}
       </div>
 
       {/* Primary Action Button */}
@@ -46,7 +73,7 @@ export default function GlobalSidebar({
         <button
           type="button"
           className="btn-sidebar-create"
-          onClick={onOpenReportModal}
+          onClick={handleCreateClick}
           title="Create a new lost or found report"
         >
           <IconPlus size={16} />
@@ -58,13 +85,14 @@ export default function GlobalSidebar({
       <nav className="sidebar-nav-container">
         {/* Campus Group */}
         <div className="nav-group">
+
           <div className="nav-group-title">Campus</div>
           <ul className="nav-items-list">
             <li>
               <button
                 type="button"
                 className={`nav-link-btn ${activePage === 'feed' ? 'active' : ''}`}
-                onClick={() => onNavigate('feed')}
+                  onClick={() => handleNavClick('feed')}
               >
                 <IconSearch size={17} />
                 <span>Browse Listings</span>
@@ -81,7 +109,7 @@ export default function GlobalSidebar({
               <button
                 type="button"
                 className={`nav-link-btn ${activePage === 'dashboard' ? 'active' : ''}`}
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => handleNavClick('dashboard')}
               >
                 <IconDashboard size={17} />
                 <span>My Dashboard</span>
@@ -91,7 +119,7 @@ export default function GlobalSidebar({
               <button
                 type="button"
                 className={`nav-link-btn ${activePage === 'claims' ? 'active' : ''}`}
-                onClick={() => onNavigate('claims')}
+                onClick={() => handleNavClick('claims')}
               >
                 <IconClaims size={17} />
                 <span>My Claims & Slips</span>
@@ -104,7 +132,7 @@ export default function GlobalSidebar({
               <button
                 type="button"
                 className={`nav-link-btn ${activePage === 'profile' ? 'active' : ''}`}
-                onClick={() => onNavigate('profile')}
+                onClick={() => handleNavClick('profile')}
               >
                 <IconUser size={17} />
                 <span>Profile & Settings</span>
@@ -122,7 +150,7 @@ export default function GlobalSidebar({
                 <button
                   type="button"
                   className={`nav-link-btn ${activePage === 'admin-analytics' ? 'active' : ''}`}
-                  onClick={() => onNavigate('admin-analytics')}
+                  onClick={() => handleNavClick('admin-analytics')}
                 >
                   <IconAnalytics size={17} />
                   <span>System Analytics</span>
@@ -132,7 +160,7 @@ export default function GlobalSidebar({
                 <button
                   type="button"
                   className={`nav-link-btn ${activePage === 'admin-users' ? 'active' : ''}`}
-                  onClick={() => onNavigate('admin-users')}
+                  onClick={() => handleNavClick('admin-users')}
                 >
                   <IconUsers size={17} />
                   <span>User Directory</span>
@@ -142,7 +170,7 @@ export default function GlobalSidebar({
                 <button
                   type="button"
                   className={`nav-link-btn ${activePage === 'admin-claims' ? 'active' : ''}`}
-                  onClick={() => onNavigate('admin-claims')}
+                  onClick={() => handleNavClick('admin-claims')}
                 >
                   <IconScale size={17} />
                   <span>Claims Verification</span>
@@ -152,7 +180,7 @@ export default function GlobalSidebar({
                 <button
                   type="button"
                   className={`nav-link-btn ${activePage === 'admin-audit' ? 'active' : ''}`}
-                  onClick={() => onNavigate('admin-audit')}
+                  onClick={() => handleNavClick('admin-audit')}
                 >
                   <IconAudit size={17} />
                   <span>Compliance Audit</span>

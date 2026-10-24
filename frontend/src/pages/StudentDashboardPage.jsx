@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchUserDashboard, respondToClaimInfo, confirmClaimReceipt } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { IconPlus, IconAlert } from '../components/Icons';
 
 export default function StudentDashboardPage({
   onOpenReport,

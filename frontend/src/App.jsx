@@ -32,6 +32,7 @@ export default function App() {
 
   // Navigation State
   const [activePage, setActivePage] = useState('feed');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Health probe state
   const [healthData, setHealthData] = useState(null);
@@ -233,7 +234,18 @@ export default function App() {
         }}
         onOpenReportModal={() => setIsReportModalOpen(true)}
         claimsCount={claimsCount}
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
       />
+
+      {/* Mobile Drawer Backdrop Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Main Viewport Container */}
       <div className="main-viewport">
@@ -242,6 +254,7 @@ export default function App() {
           searchQuery={filters.q}
           onSearchChange={(q) => handleFilterChange('q', q)}
           isBackendOnline={isBackendOnline}
+          onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
         />
 
         <main className="page-body">

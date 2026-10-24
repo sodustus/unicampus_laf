@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { IconLogo, IconAlert } from '../components/Icons';
+import { useTheme } from '../context/ThemeContext';
+import { IconLogo, IconAlert, IconSun, IconMoon } from '../components/Icons';
 
 export default function GuestLandingPage({ onLoginSuccess }) {
   const { login, register, quickLogin } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,6 +87,18 @@ export default function GuestLandingPage({ onLoginSuccess }) {
 
   return (
     <div className="guest-page-wrapper">
+      <div className="guest-top-controls">
+        <button
+          type="button"
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label="Toggle dark/light theme"
+        >
+          {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
+        </button>
+      </div>
+
       <div className="guest-hero-container">
         <div className="guest-hero-crest">
           <IconLogo size={42} />
