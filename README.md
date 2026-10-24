@@ -1,6 +1,4 @@
-# unicampus_laf
-
-Campus Lost & Found Management System
+# UniCampus Lost & Found Management System
 
 A web-based platform designed to help university students report lost items, register found belongings, and reconnect possessions with their rightful owners.
 
