@@ -117,36 +117,54 @@ export default function AuthModal({ isOpen, onClose }) {
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student0')}
+              onClick={() => handleQuickLogin('abebe')}
               disabled={submitting}
-              title="Abebe Bikila (Computer Science) - Password: password0"
+              title="Abebe Bikila (Computer Science & IT) - abebebikila@campus.edu | password: password123"
             >
-              👤 Student 0 (Abebe)
+              👤 Abebe Bikila
             </button>
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student1')}
+              onClick={() => handleQuickLogin('fatuma')}
               disabled={submitting}
-              title="Fatuma Roba (Electrical Eng.) - Password: password1"
+              title="Fatuma Roba (Electrical Engineering) - fatumaroba@campus.edu | password: password123"
             >
-              👤 Student 1 (Fatuma)
+              👤 Fatuma Roba
             </button>
             <button
               type="button"
               className="btn btn-demo-user"
-              onClick={() => handleQuickLogin('student2')}
+              onClick={() => handleQuickLogin('derartu')}
               disabled={submitting}
-              title="Derartu Tulu (Mechanical Eng.) - Password: password2"
+              title="Derartu Tulu (Mechanical Engineering) - derartutulu@campus.edu | password: password123"
             >
-              👤 Student 2 (Derartu)
+              👤 Derartu Tulu
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('kenenisa')}
+              disabled={submitting}
+              title="Kenenisa Bekele (Software Engineering) - kenenisabekele@campus.edu | password: password123"
+            >
+              👤 Kenenisa Bekele
+            </button>
+            <button
+              type="button"
+              className="btn btn-demo-user"
+              onClick={() => handleQuickLogin('haile')}
+              disabled={submitting}
+              title="Haile Gebrselassie (Civil & Environmental Eng.) - hailegebrselassie@campus.edu | password: password123"
+            >
+              👤 Haile Gebrselassie
             </button>
             <button
               type="button"
               className="btn btn-demo-admin"
               onClick={() => handleQuickLogin('admin')}
               disabled={submitting}
-              title="Campus Administrator - Password: AdminPass2026!"
+              title="Campus Administrator (Campus Security & Admin) - admin@campus.edu | password: admin123"
             >
               🛡️ Admin Console
             </button>

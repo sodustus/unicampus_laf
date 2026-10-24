@@ -12,7 +12,7 @@ client = TestClient(app)
 def test_browse_and_search_filters():
     """FR-SEARCH-01–04: Search by text, filter by type, category, status, and sort."""
     db = SessionLocal()
-    user = db.query(User).filter(User.email == "student@campus.edu").first()
+    user = db.query(User).filter(User.email == "abebebikila@campus.edu").first()
     electronics = db.query(Category).filter(Category.name == "Electronics").first()
     keys = db.query(Category).filter(Category.name == "Keys & Access Cards").first()
     electronics_id = electronics.id

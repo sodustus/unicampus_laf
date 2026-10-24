@@ -13,37 +13,9 @@ client = TestClient(app)
 
 def setup_dashboard_data():
     db = SessionLocal()
-    # Student
-    student = db.query(User).filter(User.email == "student_dash@campus.edu").first()
-    if not student:
-        student = User(
-            email="student_dash@campus.edu",
-            password_hash=hash_password("StudentPass2026!"),
-            role=UserRole.USER.value,
-            is_active=True,
-        )
-        db.add(student)
-        db.commit()
-        db.refresh(student)
-
-    # Admin
-    admin = db.query(User).filter(User.email == "admin_dash@campus.edu").first()
-    if not admin:
-        admin = User(
-            email="admin_dash@campus.edu",
-            password_hash=hash_password("AdminPass2026!"),
-            role=UserRole.ADMIN.value,
-            is_active=True,
-        )
-        db.add(admin)
-        db.commit()
+    student = db.query(User).filter(User.email == "abebebikila@campus.edu").first()
+    admin = db.query(User).filter(User.email == "admin@campus.edu").first()
     cat = db.query(Category).first()
-    if not cat:
-        cat = Category(name="Electronics", description="Electronics")
-        db.add(cat)
-        db.commit()
-        db.refresh(cat)
-
     student_id = student.id
     student_role = student.role
     admin_id = admin.id

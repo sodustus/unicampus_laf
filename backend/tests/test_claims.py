@@ -20,8 +20,8 @@ def test_claims_lifecycle_and_state_machine():
     Tests the complete 6-state claim machine (§6.2), verification record,
     info-request loop, rejection reason requirement, and handover completion.
     """
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    student_token = get_token("abebebikila@campus.edu", "password123")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     # Register finder
     client.post(
@@ -144,8 +144,8 @@ def test_claims_lifecycle_and_state_machine():
 
 def test_claim_rejection_requires_reason():
     """FR-CLAIM-05: Rejection requires a recorded reason and sets end state."""
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    student_token = get_token("abebebikila@campus.edu", "password123")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     db = SessionLocal()
     cat = db.query(Category).first()
@@ -294,7 +294,7 @@ def test_owner_handover_receipt_confirmation():
     owner_token = get_token(owner_email, "Password123!")
     finder_token = get_token(finder_email, "Password123!")
     random_token = get_token(random_email, "Password123!")
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     db = SessionLocal()
     category_id = db.query(Category).first().id
@@ -402,7 +402,7 @@ def test_person_cannot_claim_item_more_than_once():
     """
     owner_email = "single_claim_owner@campus.edu"
     claimer_email = "single_claim_user@campus.edu"
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     client.post("/auth/register", json={"email": owner_email, "password": "Password123!"})
     client.post("/auth/register", json={"email": claimer_email, "password": "Password123!"})

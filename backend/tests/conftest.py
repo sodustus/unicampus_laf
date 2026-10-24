@@ -64,6 +64,8 @@ def cleanup_test_database():
         # 6. Clean up temporary test users created during test run
         new_user_ids = set(u.id for u in db.query(User.id).all()) - initial_user_ids
         if new_user_ids:
+            db.query(AuditLog).filter(AuditLog.actor_id.in_(new_user_ids)).delete(synchronize_session=False)
+            db.query(Report).filter(Report.founder_id.in_(new_user_ids)).update({Report.founder_id: None}, synchronize_session=False)
             db.query(User).filter(User.id.in_(new_user_ids)).delete(synchronize_session=False)
 
         db.commit()

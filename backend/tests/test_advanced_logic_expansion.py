@@ -21,8 +21,8 @@ def test_admin_delete_duplicate_and_restore_rollback():
     Feature 1: Admin delete duplicate reports with reason,
     querying soft-deleted reports, and 1-click rollback / restore.
     """
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
+    student_token = get_token("abebebikila@campus.edu", "password123")
 
     db = SessionLocal()
     cat = db.query(Category).first()
@@ -103,7 +103,7 @@ def test_multiple_claimers_priority_queue_and_promotion():
     Admin checks ownership proof (hidden from public) and rejects claim #1,
     which automatically promotes claim #2 to Priority #1.
     """
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     # Register claimer 1, claimer 2, and finder
     client.post(
@@ -199,7 +199,7 @@ def test_mutual_handover_failure_and_repost():
     Both parties confirm handover failure -> transitions to handover_failed.
     Admin can then reactivate / repost the report for other potential owners.
     """
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     client.post(
         "/auth/register",

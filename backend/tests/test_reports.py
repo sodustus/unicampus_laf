@@ -24,7 +24,7 @@ def test_list_categories():
 
 def test_create_lost_and_found_reports():
     """FR-LOST-01 & FR-FOUND-01: Create lost and found item reports."""
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
+    student_token = get_token("abebebikila@campus.edu", "password123")
 
     db = SessionLocal()
     electronics = db.query(Category).filter(Category.name == "Electronics").first()
@@ -74,8 +74,8 @@ def test_create_lost_and_found_reports():
 
 def test_report_detail_and_privacy_boundary():
     """FR-SEARCH-06 & NFR-09: Sensitive identifying details never exposed to non-owners."""
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
-    admin_token = get_token("admin@campus.edu", "AdminPass2026!")
+    student_token = get_token("abebebikila@campus.edu", "password123")
+    admin_token = get_token("admin@campus.edu", "admin123")
 
     db = SessionLocal()
     cat = db.query(Category).first()
@@ -136,7 +136,7 @@ def test_report_detail_and_privacy_boundary():
 
 def test_report_edit_delete_and_recovery():
     """FR-LOST-04, FR-LOST-05, FR-LOST-06: Edit, recovery, and soft-delete."""
-    student_token = get_token("student@campus.edu", "StudentPass2026!")
+    student_token = get_token("abebebikila@campus.edu", "password123")
     second_token = get_token("second_student@campus.edu", "SecondStudentPass1!")
 
     db = SessionLocal()

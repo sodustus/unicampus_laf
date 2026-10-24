@@ -92,15 +92,22 @@ export function AuthProvider({ children }) {
   const quickLogin = async (roleType) => {
     switch (roleType) {
       case 'admin':
-        return await login('admin@campus.edu', 'AdminPass2026!');
+        return await login('admin@campus.edu', 'admin123');
+      case 'abebe':
       case 'student0':
-        return await login('student0@campus.edu', 'password0');
+        return await login('abebebikila@campus.edu', 'password123');
+      case 'fatuma':
       case 'student1':
-        return await login('student1@campus.edu', 'password1');
+        return await login('fatumaroba@campus.edu', 'password123');
+      case 'derartu':
       case 'student2':
-        return await login('student2@campus.edu', 'password2');
+        return await login('derartutulu@campus.edu', 'password123');
+      case 'kenenisa':
+        return await login('kenenisabekele@campus.edu', 'password123');
+      case 'haile':
+        return await login('hailegebrselassie@campus.edu', 'password123');
       default:
-        return await login('student0@campus.edu', 'password0');
+        return await login('abebebikila@campus.edu', 'password123');
     }
   };
 

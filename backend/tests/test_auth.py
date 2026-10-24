@@ -44,7 +44,7 @@ def test_login_success_and_invalid_credentials():
     # 1. Valid login using seeded student account
     res_valid = client.post(
         "/auth/login",
-        json={"email": "student@campus.edu", "password": "StudentPass2026!"},
+        json={"email": "abebebikila@campus.edu", "password": "password123"},
     )
     assert res_valid.status_code == 200
     token_data = res_valid.json()
@@ -54,7 +54,7 @@ def test_login_success_and_invalid_credentials():
     # 2. Invalid password
     res_bad_pw = client.post(
         "/auth/login",
-        json={"email": "student@campus.edu", "password": "WrongPassword!"},
+        json={"email": "abebebikila@campus.edu", "password": "WrongPassword!"},
     )
     assert res_bad_pw.status_code == 401
     assert res_bad_pw.json()["detail"] == "Invalid email or password"
@@ -77,13 +77,13 @@ def test_auth_me_protected_route():
     # 2. With valid student token
     login_res = client.post(
         "/auth/login",
-        json={"email": "student@campus.edu", "password": "StudentPass2026!"},
+        json={"email": "abebebikila@campus.edu", "password": "password123"},
     )
     token = login_res.json()["access_token"]
 
     res_auth = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert res_auth.status_code == 200
-    assert res_auth.json()["email"] == "student@campus.edu"
+    assert res_auth.json()["email"] == "abebebikila@campus.edu"
 
 
 def test_role_based_access_control():
@@ -91,7 +91,7 @@ def test_role_based_access_control():
     # 1. Regular student attempts admin endpoint -> 403 Forbidden
     student_login = client.post(
         "/auth/login",
-        json={"email": "student@campus.edu", "password": "StudentPass2026!"},
+        json={"email": "abebebikila@campus.edu", "password": "password123"},
     )
     student_token = student_login.json()["access_token"]
     res_student_forbidden = client.get(
@@ -104,7 +104,7 @@ def test_role_based_access_control():
     # 2. Administrator attempts admin endpoint -> 200 OK
     admin_login = client.post(
         "/auth/login",
-        json={"email": "admin@campus.edu", "password": "AdminPass2026!"},
+        json={"email": "admin@campus.edu", "password": "admin123"},
     )
     admin_token = admin_login.json()["access_token"]
     res_admin_ok = client.get(
