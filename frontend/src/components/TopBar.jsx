@@ -1,26 +1,26 @@
 import React from 'react';
-import { IconSearch, IconSun, IconMoon, IconMenu } from './Icons';
-import { useTheme } from '../context/ThemeContext';
+import { IconMenu } from './Icons';
 
 const PAGE_TITLES = {
   feed: 'Campus Listings Feed',
   dashboard: 'Student Dashboard',
-  claims: 'Claims & Handover Center',
+  'my-reports': 'My Campus Listings',
+  'my-claims': 'My Ownership Claims',
+  handovers: 'Official Handover Slips & Coordination',
+  claims: 'My Claims Tracker',
   profile: 'Student Profile & Settings',
   'admin-analytics': 'System Overview & Analytics',
   'admin-users': 'Campus User Directory',
   'admin-claims': 'Claims Review & Verification Desk',
   'admin-audit': 'Compliance Audit Trail',
+  'admin-deleted': 'Soft-Deleted & Duplicate Listings',
 };
 
 export default function TopBar({
   activePage,
-  searchQuery,
-  onSearchChange,
   isBackendOnline,
   onToggleSidebar,
 }) {
-  const { isDark, toggleTheme } = useTheme();
   const title = PAGE_TITLES[activePage] || 'Campus Portal';
 
   return (
@@ -39,27 +39,6 @@ export default function TopBar({
       </div>
 
       <div className="topbar-actions-section">
-        <div className="topbar-search-box">
-          <IconSearch size={16} className="topbar-search-icon" />
-          <input
-            type="text"
-            className="topbar-search-input"
-            placeholder="Search listings, keywords, locations..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
-
-        <button
-          type="button"
-          className="theme-toggle-btn"
-          onClick={toggleTheme}
-          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          aria-label="Toggle dark/light theme"
-        >
-          {isDark ? <IconSun size={17} /> : <IconMoon size={17} />}
-        </button>
-
         <div className={`topbar-status-badge ${isBackendOnline ? 'status-online' : 'status-warning'}`}>
           <span className={`status-pulse-dot ${isBackendOnline ? 'online' : 'warning'}`}></span>
           <span>{isBackendOnline ? 'System Online' : 'Connecting...'}</span>
@@ -68,4 +47,3 @@ export default function TopBar({
     </header>
   );
 }
-

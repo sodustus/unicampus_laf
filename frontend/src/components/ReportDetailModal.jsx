@@ -27,6 +27,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
   const isOwner = user && report && user.id === report.owner_id;
   const canManage = isOwner || isAdmin;
+  const ownerDisplayName = report?.owner?.full_name || report?.owner?.email || `User #${report?.owner_id}`;
 
   const formattedDate = report
     ? new Date(report.item_date).toLocaleDateString(undefined, {
@@ -145,10 +146,10 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       }}
                       onClick={() => onViewProfile(report.owner_id)}
                     >
-                      {report.type === 'found' ? `Finder (ID #${report.owner_id})` : `Owner (ID #${report.owner_id})`} &rarr;
+                      {report.type === 'found' ? `Finder: ${ownerDisplayName}` : `Owner: ${ownerDisplayName}`} &rarr;
                     </button>
                   ) : (
-                    report.type === 'found' ? `Finder #${report.owner_id}` : `Owner #${report.owner_id}`
+                    report.type === 'found' ? `Finder: ${ownerDisplayName}` : `Owner: ${ownerDisplayName}`
                   )}
                 </span>
               </div>
@@ -371,7 +372,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         onClose();
                       }}
                     >
-                      {isAdmin ? 'Delete as Duplicate' : 'Delete Report'}
+                      Delete Report
                     </button>
                   )
                 )}

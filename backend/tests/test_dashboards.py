@@ -63,6 +63,9 @@ def test_user_and_admin_dashboards():
     assert admin_dash["stats"]["total_reports"] >= 1
     assert "pending_claims" in admin_dash
     assert "recent_activity" in admin_dash
+    assert "recent_reports" in admin_dash
+    assert isinstance(admin_dash["recent_reports"], list)
+    assert len(admin_dash["recent_reports"]) >= 1
 
     # 4. Non-admin forbidden from admin dashboard
     res_unauth_dash = client.get("/dashboard/admin", headers={"Authorization": f"Bearer {student_token}"})

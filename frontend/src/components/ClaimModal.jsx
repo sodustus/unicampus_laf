@@ -124,7 +124,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
               minLength={5}
               disabled={isReporter || hasActiveClaim}
             />
-            <span className="proof-note" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="proof-note">
               <strong>Privacy Protection (FR-CLAIM-08):</strong> Your verification details are kept strictly confidential. Only you and reviewing campus administrators can read this proof.
             </span>
           </div>

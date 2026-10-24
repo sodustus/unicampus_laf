@@ -222,7 +222,10 @@ def test_claim_handover_slip_and_contact_disclosure():
     assert res_prof.status_code == 200
     assert res_prof.json()["phone_number"] == "+251922334455"
 
-    # 3. Admin confirms handover completion
+    # 3. Owner confirms physical receipt, then admin completes handover
+    res_receipt = client.post(f"/claims/{claim_id}/confirm-receipt", headers=student_headers)
+    assert res_receipt.status_code == 200
+
     res_complete = client.post(f"/claims/{claim_id}/complete", headers=admin_headers)
     assert res_complete.status_code == 200
     assert res_complete.json()["status"] == "completed"

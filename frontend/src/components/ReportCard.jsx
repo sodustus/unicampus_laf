@@ -91,7 +91,7 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
           <IconClock size={13} />
           <span>{formattedDate}</span>
         </span>
-        {onViewProfile && (
+        {onViewProfile && report.owner_id && (
           <button
             type="button"
             className="btn-member-tag"
@@ -99,11 +99,11 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
               e.stopPropagation();
               onViewProfile(report.owner_id);
             }}
-            title="View member profile"
+            title={`View profile for ${report.owner?.full_name || report.owner?.email || `User #${report.owner_id}`}`}
           >
             {report.type === 'found'
-              ? (isOwner ? 'Reported by You (Finder)' : `Finder ID: #${report.owner_id}`)
-              : (isOwner ? 'Reported by You (Owner)' : `Owner ID: #${report.owner_id}`)}
+              ? (isOwner ? 'Finder: You' : `Finder: ${report.owner?.full_name || report.owner?.email || `User #${report.owner_id}`}`)
+              : (isOwner ? 'Owner: You' : `Owner: ${report.owner?.full_name || report.owner?.email || `User #${report.owner_id}`}`)}
           </button>
         )}
       </div>

@@ -5,12 +5,15 @@ import {
   IconSearch,
   IconPlus,
   IconDashboard,
+  IconReports,
   IconClaims,
+  IconHandover,
   IconUser,
   IconAnalytics,
   IconUsers,
   IconScale,
   IconAudit,
+  IconTrash,
   IconLogout,
   IconClose,
 } from './Icons';
@@ -118,14 +121,34 @@ export default function GlobalSidebar({
             <li>
               <button
                 type="button"
-                className={`nav-link-btn ${activePage === 'claims' ? 'active' : ''}`}
-                onClick={() => handleNavClick('claims')}
+                className={`nav-link-btn ${activePage === 'my-reports' ? 'active' : ''}`}
+                onClick={() => handleNavClick('my-reports')}
+              >
+                <IconReports size={17} />
+                <span>My Reports</span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`nav-link-btn ${activePage === 'my-claims' ? 'active' : ''}`}
+                onClick={() => handleNavClick('my-claims')}
               >
                 <IconClaims size={17} />
-                <span>My Claims & Slips</span>
+                <span>My Claims</span>
                 {claimsCount > 0 && (
                   <span className="nav-count-badge">{claimsCount}</span>
                 )}
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className={`nav-link-btn ${activePage === 'handovers' ? 'active' : ''}`}
+                onClick={() => handleNavClick('handovers')}
+              >
+                <IconHandover size={17} />
+                <span>Handovers & Slips</span>
               </button>
             </li>
             <li>
@@ -184,6 +207,16 @@ export default function GlobalSidebar({
                 >
                   <IconAudit size={17} />
                   <span>Compliance Audit</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`nav-link-btn ${activePage === 'admin-deleted' ? 'active' : ''}`}
+                  onClick={() => handleNavClick('admin-deleted')}
+                >
+                  <IconTrash size={17} />
+                  <span>Deleted Listings</span>
                 </button>
               </li>
             </ul>

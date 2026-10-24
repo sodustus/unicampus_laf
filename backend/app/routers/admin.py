@@ -42,6 +42,8 @@ def list_campus_users(
         AdminUserItem(
             id=u.id,
             email=u.email,
+            full_name=u.full_name,
+            department=u.department,
             role=u.role,
             is_active=u.is_active,
             created_at=u.created_at,

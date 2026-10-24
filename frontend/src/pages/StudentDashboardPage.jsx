@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { fetchUserDashboard, respondToClaimInfo, confirmClaimReceipt } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { IconPlus, IconAlert } from '../components/Icons';
+import ActionDialogModal from '../components/ActionDialogModal';
 
 export default function StudentDashboardPage({
+  onNavigate,
   onOpenReport,
   onRecoverReport,
   onDeleteReport,
@@ -20,6 +22,7 @@ export default function StudentDashboardPage({
   const [additionalText, setAdditionalText] = useState('');
   const [responding, setResponding] = useState(false);
   const [confirmingReceiptId, setConfirmingReceiptId] = useState(null);
+  const [dialogConfig, setDialogConfig] = useState(null);
 
   const loadData = useCallback(async () => {
     if (!token) return;
@@ -54,17 +57,25 @@ export default function StudentDashboardPage({
     }
   };
 
-  const handleConfirmReceipt = async (claimId) => {
-    if (!window.confirm("Are you sure you have physically met and received your item back in good condition?")) return;
-    setConfirmingReceiptId(claimId);
-    try {
-      await confirmClaimReceipt(claimId, token);
-      await loadData();
-    } catch (err) {
-      alert(err.message || 'Failed to confirm item receipt');
-    } finally {
-      setConfirmingReceiptId(null);
-    }
+  const handleConfirmReceipt = (claimId) => {
+    setDialogConfig({
+      title: 'Confirm Physical Receipt',
+      message: 'Are you sure you have physically met and received your item back in good condition?',
+      confirmLabel: 'Confirm Receipt',
+      confirmVariant: 'success',
+      onConfirm: async () => {
+        setDialogConfig(null);
+        setConfirmingReceiptId(claimId);
+        try {
+          await confirmClaimReceipt(claimId, token);
+          await loadData();
+        } catch (err) {
+          alert(err.message || 'Failed to confirm item receipt');
+        } finally {
+          setConfirmingReceiptId(null);
+        }
+      },
+    });
   };
 
   const stats = data?.stats || {
@@ -101,8 +112,27 @@ export default function StudentDashboardPage({
         </button>
       </div>
 
+      {/* Action Required Banner */}
+      {stats.action_required_claims_count > 0 && (
+        <div style={{ marginTop: '16px', padding: '14px 18px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FCD34D', fontWeight: 700 }}>
+            <IconAlert size={20} />
+            <span>Action Required: You have {stats.action_required_claims_count} claim(s) awaiting your additional information!</span>
+          </div>
+          {onNavigate && (
+            <button
+              type="button"
+              className="btn btn-warning btn-sm"
+              onClick={() => onNavigate('my-claims')}
+            >
+              Respond in My Claims
+            </button>
+          )}
+        </div>
+      )}
+
       {/* KPI Metric Cards */}
-      <div className="kpi-grid" style={{ marginTop: '20px' }}>
+      <div className="kpi-grid" style={{ marginTop: '16px' }}>
         <div className={`kpi-card ${activeTab === 'active' ? 'kpi-selected' : ''}`} onClick={() => setActiveTab('active')}>
           <div className="kpi-info">
             <span className="kpi-label">Active Listings</span>
@@ -134,8 +164,35 @@ export default function StudentDashboardPage({
         </div>
       </div>
 
+      {/* Quick Navigation Action Hub */}
+      {onNavigate && (
+        <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onNavigate('my-reports')}
+          >
+            Go to My Reports
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onNavigate('my-claims')}
+          >
+            Go to My Claims Tracker
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => onNavigate('handovers')}
+          >
+            Go to Handovers & Slips
+          </button>
+        </div>
+      )}
+
       {/* Tab Switcher */}
-      <div className="dashboard-tab-bar" style={{ marginTop: '24px' }}>
+      <div className="dashboard-tab-bar" style={{ marginTop: '20px' }}>
         <button
           className={`dashboard-tab ${activeTab === 'active' ? 'active' : ''}`}
           onClick={() => setActiveTab('active')}
@@ -265,7 +322,8 @@ export default function StudentDashboardPage({
                 filedClaims.map((claim) => {
                   const needsInfo = claim.status === 'awaiting_info' || claim.status === 'more_info_needed';
                   const isApproved = claim.status === 'approved';
-                  const needsReceipt = isApproved && !claim.owner_confirmed_receipt && !claim.receipt_confirmed;
+                  const isClaimOwner = user && (claim.owner?.id === user.id || (!claim.owner && (claim.report?.type === 'lost' ? claim.report?.owner_id === user.id : claim.claimant_id === user.id)));
+                  const needsReceipt = isApproved && isClaimOwner && !claim.owner_confirmed_receipt && !claim.receipt_confirmed;
 
                   return (
                     <div key={claim.id} className="dash-item-card glass-panel">
@@ -302,7 +360,7 @@ export default function StudentDashboardPage({
                       </div>
 
                       <div style={{ margin: '10px 0', fontSize: '0.88rem' }}>
-                        <strong>Your Submitted Proof:</strong> {claim.ownership_proof}
+                        <strong>Your Submitted Proof:</strong> {claim.verification_record?.proof_details || claim.ownership_proof || '(Proof details attached)'}
                       </div>
 
                       {claim.admin_notes && (
@@ -384,6 +442,12 @@ export default function StudentDashboardPage({
           )}
         </div>
       )}
+
+      <ActionDialogModal
+        isOpen={Boolean(dialogConfig)}
+        {...dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </div>
   );
 }

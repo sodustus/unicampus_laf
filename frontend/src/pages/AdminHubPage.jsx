@@ -7,21 +7,22 @@ import {
   fetchAuditLogs,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { IconShield, IconAnalytics, IconUsers, IconAudit, IconAlert, IconCheck } from '../components/Icons';
+import { IconAlert, IconCheck } from '../components/Icons';
 import ClaimsCenterPage from './ClaimsCenterPage';
 
 export default function AdminHubPage({
   activeSubTab = 'analytics',
   initialTab,
-  onNavigateSubTab,
+  _onNavigateSubTab,
   onOpenReport,
-  _onRestoreReport,
-  onOpenClaimsDesk,
+  onRestoreReport,
+  _onOpenClaimsDesk,
+  onViewProfile,
 }) {
   const { token } = useAuth();
-  const currentTab = ['analytics', 'users', 'claims', 'audit'].includes(activeSubTab)
+  const currentTab = ['analytics', 'users', 'claims', 'audit', 'deleted'].includes(activeSubTab)
     ? activeSubTab
-    : (['analytics', 'users', 'claims', 'audit'].includes(initialTab) ? initialTab : 'analytics');
+    : (['analytics', 'users', 'claims', 'audit', 'deleted'].includes(initialTab) ? initialTab : 'analytics');
 
   // Overview data
   const [dashboardData, setDashboardData] = useState(null);
@@ -141,42 +142,14 @@ export default function AdminHubPage({
             Enterprise management hub for campus reports, compliance auditing, user roles, and system oversight.
           </p>
         </div>
-      </div>
-
-      {/* Admin Navigation Tabs */}
-      <div className="admin-tab-bar" style={{ marginTop: '16px' }}>
-        <button
-          type="button"
-          className={`admin-tab-btn ${currentTab === 'analytics' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab && onNavigateSubTab('analytics')}
-        >
-          <IconAnalytics size={16} />
-          <span>System Analytics</span>
-        </button>
-        <button
-          type="button"
-          className={`admin-tab-btn ${currentTab === 'users' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab && onNavigateSubTab('users')}
-        >
-          <IconUsers size={16} />
-          <span>User Directory</span>
-        </button>
-        <button
-          type="button"
-          className={`admin-tab-btn ${currentTab === 'claims' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab && onNavigateSubTab('claims')}
-        >
-          <IconShield size={16} />
-          <span>Claims Verification</span>
-        </button>
-        <button
-          type="button"
-          className={`admin-tab-btn ${currentTab === 'audit' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab && onNavigateSubTab('audit')}
-        >
-          <IconAudit size={16} />
-          <span>Compliance Audit</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="badge badge-info" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {currentTab === 'analytics' && 'System Analytics'}
+            {currentTab === 'users' && 'User Directory'}
+            {currentTab === 'claims' && 'Claims Verification'}
+            {currentTab === 'audit' && 'Compliance Audit'}
+          </span>
+        </div>
       </div>
 
       {error && (
@@ -269,6 +242,7 @@ export default function AdminHubPage({
                   <div className="form-group" style={{ margin: 0 }}>
                     <label>Mandatory Audit Reason</label>
                     <input
+                      id="moderationReasonInput"
                       type="text"
                       className="form-input"
                       placeholder="e.g. Duplicate listing of #14 / Policy violation"
@@ -302,32 +276,68 @@ export default function AdminHubPage({
                       </tr>
                     </thead>
                     <tbody>
-                      {(dashboardData?.recent_reports || []).map((rep) => (
-                        <tr key={rep.id}>
-                          <td>#{rep.id}</td>
-                          <td>
-                            <span className={`badge ${rep.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
-                              {rep.type.toUpperCase()}
-                            </span>
-                          </td>
-                          <td style={{ fontWeight: 600 }}>{rep.title}</td>
-                          <td>User #{rep.owner_id}</td>
-                          <td>
-                            <span className={`badge ${rep.status === 'active' ? 'badge-info' : 'badge-success'}`}>
-                              {rep.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td>{new Date(rep.item_date).toLocaleDateString()}</td>
-                          <td>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => onOpenReport(rep.id)}
-                            >
-                              Inspect
-                            </button>
+                      {(!dashboardData?.recent_reports || dashboardData.recent_reports.length === 0) ? (
+                        <tr>
+                          <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#94A3B8' }}>
+                            No recent campus listings found.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        dashboardData.recent_reports.map((rep) => (
+                          <tr key={rep.id}>
+                            <td><strong>#{rep.id}</strong></td>
+                            <td>
+                              <span className={`badge ${rep.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
+                                {rep.type.toUpperCase()}
+                              </span>
+                            </td>
+                            <td>
+                              <span
+                                style={{ fontWeight: 600, color: '#93C5FD', cursor: 'pointer' }}
+                                onClick={() => onOpenReport(rep.id)}
+                                title="Click to inspect report details"
+                              >
+                                {rep.title}
+                              </span>
+                            </td>
+                            <td>{rep.owner?.full_name || rep.owner?.email || `User #${rep.owner_id}`}</td>
+                            <td>
+                              <span className={`badge ${rep.status === 'active' ? 'badge-info' : 'badge-success'}`}>
+                                {rep.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td>{new Date(rep.item_date).toLocaleDateString()}</td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => onOpenReport(rep.id)}
+                                  title="Inspect report details"
+                                >
+                                  Inspect
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => {
+                                    setModerateReportId(String(rep.id));
+                                    setModerateStatus(rep.status === 'active' ? 'closed' : 'active');
+                                    const el = document.getElementById('moderationReasonInput');
+                                    if (el) {
+                                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                      el.focus();
+                                    }
+                                  }}
+                                  title="Select this report for administrative moderation"
+                                >
+                                  Moderate
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -371,9 +381,9 @@ export default function AdminHubPage({
                   {users.map((u) => (
                     <tr key={u.id}>
                       <td>#{u.id}</td>
-                      <td style={{ fontWeight: 700 }}>{u.full_name || 'Anonymous Student'}</td>
+                      <td style={{ fontWeight: 700 }}>{u.full_name || u.email?.split('@')[0] || 'Campus Member'}</td>
                       <td>{u.email}</td>
-                      <td>{u.department || 'General'}</td>
+                      <td>{u.department || 'Undeclared'}</td>
                       <td>
                         <span className={`badge ${u.role === 'admin' ? 'badge-role-admin' : 'badge-role-user'}`}>
                           {u.role.toUpperCase()}
@@ -408,7 +418,7 @@ export default function AdminHubPage({
       {/* Subtab View 3: Claims Verification Desk */}
       {currentTab === 'claims' && (
         <div style={{ marginTop: '20px' }}>
-          <ClaimsCenterPage embedded={true} onOpenReport={onOpenReport} />
+          <ClaimsCenterPage embedded={true} onOpenReport={onOpenReport} onViewProfile={onViewProfile} />
         </div>
       )}
 
@@ -473,6 +483,91 @@ export default function AdminHubPage({
                       <td>{log.target_type} #{log.target_id}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{new Date(log.created_at).toLocaleString()}</td>
                       <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{log.details || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Subtab View 5: Deleted & Duplicate Reports */}
+      {currentTab === 'deleted' && (
+        <div className="glass-panel" style={{ padding: '24px', marginTop: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Soft-Deleted & Duplicate Listings ({dashboardData?.deleted_reports?.length || 0})</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Reports removed from the public feed due to duplicate status or campus policy violations. Administrators can inspect or restore them at any time.
+              </p>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={loadDashboard}>
+              Refresh
+            </button>
+          </div>
+
+          {(!dashboardData?.deleted_reports || dashboardData.deleted_reports.length === 0) ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              No deleted or duplicate reports found. All campus listings are active.
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Item Title</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Deletion Reason</th>
+                    <th>Deleted Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboardData.deleted_reports.map((r) => (
+                    <tr key={r.id}>
+                      <td><strong>#{r.id}</strong></td>
+                      <td>
+                        <span
+                          style={{ fontWeight: 600, cursor: 'pointer', color: '#93C5FD' }}
+                          onClick={() => onOpenReport(r.id)}
+                          title="Click to inspect report details"
+                        >
+                          {r.title}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`badge ${r.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
+                          {r.type.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>{r.location}</td>
+                      <td>
+                        <span style={{ color: '#FCA5A5', fontSize: '0.85rem' }}>
+                          {r.deletion_reason || 'Administrative removal'}
+                        </span>
+                      </td>
+                      <td>
+                        {r.deleted_at ? new Date(r.deleted_at).toLocaleString() : 'N/A'}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            className="btn btn-primary btn-sm"
+                            onClick={async () => {
+                              if (onRestoreReport) {
+                                await onRestoreReport(r.id);
+                                loadDashboard();
+                              }
+                            }}
+                          >
+                            Restore Report
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

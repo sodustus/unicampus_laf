@@ -185,9 +185,24 @@ def get_admin_dashboard(
         for l in recent_logs
     ]
 
+    # Recent campus listings (non-deleted, eagerly loading category and owner)
+    recent_reports = (
+        db.query(Report)
+        .options(
+            joinedload(Report.category),
+            joinedload(Report.owner),
+            joinedload(Report.founder),
+        )
+        .filter(Report.deleted_at.is_(None))
+        .order_by(Report.created_at.desc())
+        .limit(20)
+        .all()
+    )
+
     return AdminDashboardResponse(
         stats=stats,
         pending_claims=pending_claims,
         deleted_reports=deleted_reports,
+        recent_reports=recent_reports,
         recent_activity=recent_activity,
     )

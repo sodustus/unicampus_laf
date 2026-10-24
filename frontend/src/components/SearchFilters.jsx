@@ -76,12 +76,12 @@ export default function SearchFilters({
             <select
               id="filter-cat"
               className="filter-select"
-              value={filters.category_id}
+              value={filters.category_id || ''}
               onChange={(e) => onFilterChange('category_id', e.target.value)}
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={String(c.id)}>
                   {c.name}
                 </option>
               ))}

@@ -496,7 +496,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               value={identifyingDetails}
               onChange={(e) => setIdentifyingDetails(e.target.value)}
             />
-            <span className="proof-note" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="proof-note">
               <strong>Privacy Protection (FR-SEARCH-06):</strong> This field will <em>never</em> appear on public listings or to other users. Only you and administrators can view it.
             </span>
           </div>

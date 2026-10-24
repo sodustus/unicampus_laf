@@ -14,7 +14,9 @@ import TopBar from './components/TopBar';
 import GuestLandingPage from './pages/GuestLandingPage';
 import CampusFeedPage from './pages/CampusFeedPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
-import ClaimsCenterPage from './pages/ClaimsCenterPage';
+import MyReportsPage from './pages/MyReportsPage';
+import MyClaimsPage from './pages/MyClaimsPage';
+import HandoversPage from './pages/HandoversPage';
 import AdminHubPage from './pages/AdminHubPage';
 import ProfilePage from './pages/ProfilePage';
 
@@ -25,6 +27,7 @@ import ClaimModal from './components/ClaimModal';
 import FoundNoticeModal from './components/FoundNoticeModal';
 import RecoveryDetailModal from './components/RecoveryDetailModal';
 import ProfileModal from './components/ProfileModal';
+import ActionDialogModal from './components/ActionDialogModal';
 import './App.css';
 
 export default function App() {
@@ -55,6 +58,7 @@ export default function App() {
     targetUserId: null,
     isSelfEdit: false,
   });
+  const [dialogConfig, setDialogConfig] = useState(null);
 
   const [filters, setFilters] = useState({
     type: '',
@@ -85,6 +89,9 @@ export default function App() {
   const loadReports = useCallback(async () => {
     setLoadingReports(true);
     try {
+      if (categories.length === 0) {
+        loadCategories();
+      }
       const data = await fetchReports(filters, token);
       setReports(data || []);
     } catch (err) {
@@ -92,7 +99,7 @@ export default function App() {
     } finally {
       setLoadingReports(false);
     }
-  }, [filters, token]);
+  }, [filters, token, categories.length]);
 
   const loadClaimsBadge = useCallback(async () => {
     if (!token) {
@@ -135,6 +142,7 @@ export default function App() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      loadCategories();
       loadClaimsBadge();
     }
   }, [isAuthenticated, loadClaimsBadge]);
@@ -157,20 +165,52 @@ export default function App() {
 
   const handleDeleteReport = async (reportId, reason = null) => {
     if (!token) return;
-    let delReason = reason;
-    if (delReason === null) {
-      if (isAdmin) {
-        delReason = window.prompt('Reason for deletion / duplicate reference (e.g. "Duplicate of #14"):', '');
-        if (delReason === null) return;
-      } else {
-        if (!window.confirm('Are you sure you want to delete this report?')) return;
+    if (reason !== null) {
+      try {
+        await deleteReport(reportId, token, reason);
+        loadReports();
+      } catch (err) {
+        alert(err.message || 'Failed to delete report');
       }
+      return;
     }
-    try {
-      await deleteReport(reportId, token, delReason);
-      loadReports();
-    } catch (err) {
-      alert(err.message || 'Failed to delete report');
+
+    if (isAdmin) {
+      setDialogConfig({
+        title: 'Delete Report',
+        message: 'Please provide a reason or duplicate reference for archiving this report:',
+        needsInput: true,
+        inputLabel: 'Reason for deletion (mandatory for admin)',
+        inputPlaceholder: 'e.g. Duplicate of #14, spam, or resolved offline',
+        confirmLabel: 'Delete',
+        confirmVariant: 'danger',
+        onConfirm: async (inputVal) => {
+          setDialogConfig(null);
+          try {
+            await deleteReport(reportId, token, inputVal);
+            loadReports();
+          } catch (err) {
+            alert(err.message || 'Failed to delete report');
+          }
+        },
+      });
+    } else {
+      setDialogConfig({
+        title: 'Delete Report',
+        message: 'Are you sure you want to remove this report? It will be archived and hidden from campus listings.',
+        needsInput: false,
+        confirmLabel: 'Delete',
+        confirmVariant: 'danger',
+        onConfirm: async () => {
+          setDialogConfig(null);
+          try {
+            await deleteReport(reportId, token, null);
+            loadReports();
+          } catch (err) {
+            alert(err.message || 'Failed to delete report');
+          }
+        },
+      });
     }
   };
 
@@ -216,6 +256,7 @@ export default function App() {
       <GuestLandingPage
         onLoginSuccess={() => {
           setActivePage('feed');
+          loadCategories();
           loadReports();
         }}
       />
@@ -251,8 +292,6 @@ export default function App() {
       <div className="main-viewport">
         <TopBar
           activePage={activePage}
-          searchQuery={filters.q}
-          onSearchChange={(q) => handleFilterChange('q', q)}
           isBackendOnline={isBackendOnline}
           onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
         />
@@ -275,6 +314,7 @@ export default function App() {
 
           {activePage === 'dashboard' && (
             <StudentDashboardPage
+              onNavigate={(page) => setActivePage(page)}
               onOpenReport={(repId) => setSelectedReportId(repId)}
               onRecoverReport={handleRecoverReport}
               onDeleteReport={handleDeleteReport}
@@ -285,17 +325,31 @@ export default function App() {
             />
           )}
 
-          {activePage === 'claims' && (
-            <ClaimsCenterPage
+          {activePage === 'my-reports' && (
+            <MyReportsPage
               onOpenReport={(repId) => setSelectedReportId(repId)}
-              onViewProfile={handleViewMemberProfile}
+              onRecoverReport={handleRecoverReport}
+              onDeleteReport={handleDeleteReport}
+              onOpenReportModal={() => setIsReportModalOpen(true)}
+            />
+          )}
+
+          {(activePage === 'my-claims' || activePage === 'claims') && (
+            <MyClaimsPage
+              onOpenReport={(repId) => setSelectedReportId(repId)}
+              onNavigateToHandovers={() => setActivePage('handovers')}
               onOpenClaimReport={(rep) => setClaimReport(rep)}
-              onOpenFoundNotice={(rep) => setFoundNoticeReport(rep)}
               onRegisterFoundReport={(initialData) => {
                 setReportModalInitialData(initialData);
                 setIsReportModalOpen(true);
               }}
-              onReportsUpdated={loadReports}
+            />
+          )}
+
+          {activePage === 'handovers' && (
+            <HandoversPage
+              onOpenReport={(repId) => setSelectedReportId(repId)}
+              onViewProfile={handleViewMemberProfile}
             />
           )}
 
@@ -305,6 +359,7 @@ export default function App() {
               onNavigateSubTab={(tab) => setActivePage('admin-' + tab)}
               onOpenReport={(repId) => setSelectedReportId(repId)}
               onRestoreReport={handleRestoreReport}
+              onViewProfile={handleViewMemberProfile}
               onSelectClaimReport={(claim) => {
                 if (claim.report_id) setSelectedReportId(claim.report_id);
               }}
@@ -385,6 +440,12 @@ export default function App() {
         onClose={handleCloseProfileModal}
         targetUserId={profileModalConfig.targetUserId}
         isSelfEdit={profileModalConfig.isSelfEdit}
+      />
+
+      <ActionDialogModal
+        isOpen={Boolean(dialogConfig)}
+        {...dialogConfig}
+        onClose={() => setDialogConfig(null)}
       />
     </div>
   );
