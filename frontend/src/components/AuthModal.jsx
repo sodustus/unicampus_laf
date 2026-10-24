@@ -184,6 +184,7 @@ export default function AuthModal({ isOpen, onClose }) {
               placeholder="e.g. yourname@campus.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -196,6 +197,7 @@ export default function AuthModal({ isOpen, onClose }) {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isRegister ? "new-password" : "current-password"}
               required
               minLength={8}
             />
@@ -211,6 +213,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
                   required
                   minLength={8}
                 />
