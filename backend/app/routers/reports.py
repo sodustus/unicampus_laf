@@ -8,8 +8,8 @@ from app.db.session import get_db
 from app.models.report import Report, ReportType, ReportStatus, PossessionStatus
 from app.models.category import Category
 from app.models.user import User, UserRole
-from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse, FoundNoticeCreate
-from app.core.dependencies import get_current_user, get_optional_current_user
+from app.schemas.report import ReportCreate, ReportUpdate, ReportResponse, FoundNoticeCreate, ReportDeleteRequest
+from app.core.dependencies import get_current_user, get_optional_current_user, require_admin
 from app.models.recovery import RecoveryRecord
 from app.models.claim import Claim, ClaimStatus, VerificationRecord
 from app.services.audit import log_audit
@@ -33,16 +33,24 @@ def browse_and_search_reports(
     FR-SEARCH-01–04: Search and filter reports with sorting.
     FR-SEARCH-06: Identifying details are NEVER exposed on public listings.
     """
-    query = db.query(Report).filter(Report.deleted_at.is_(None))
+    if status and status.lower() == "deleted":
+        if not (current_user and current_user.role == UserRole.ADMIN.value):
+            raise HTTPException(
+                status_code=403,
+                detail="Only administrators can view deleted reports.",
+            )
+        query = db.query(Report).filter(Report.deleted_at.is_not(None))
+    else:
+        query = db.query(Report).filter(Report.deleted_at.is_(None))
+        if status and status.lower() != "all":
+            query = query.filter(Report.status == status.lower())
 
-    if type:
+    if type and type.lower() != "all":
         query = query.filter(Report.type == type.lower())
     if category_id:
         query = query.filter(Report.category_id == category_id)
     if location:
         query = query.filter(Report.location.ilike(f"%{location.strip()}%"))
-    if status and status.lower() != "all":
-        query = query.filter(Report.status == status.lower())
     if possession_status and possession_status.lower() != "all":
         query = query.filter(Report.possession_status == possession_status.lower())
     if q:
@@ -89,6 +97,8 @@ def browse_and_search_reports(
             "claim_id": r.claims[0].id if r.claims else None,
             "photo_path": r.photo_path,
             "identifying_details": r.identifying_details if can_view_proof else None,
+            "deletion_reason": r.deletion_reason,
+            "deleted_at": r.deleted_at,
             "created_at": r.created_at,
             "updated_at": r.updated_at,
         }
@@ -163,8 +173,8 @@ def get_report_detail(
     FR-SEARCH-05 & FR-SEARCH-06: View full report details.
     Sensitive identifying details are only returned if the viewer is the owner or an admin.
     """
-    report = db.query(Report).filter(Report.id == report_id, Report.deleted_at.is_(None)).first()
-    if not report:
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report or (report.deleted_at is not None and not (current_user and current_user.role == UserRole.ADMIN.value)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Report not found or has been deleted.",
@@ -194,6 +204,8 @@ def get_report_detail(
         "claim_id": report.claims[0].id if report.claims else None,
         "photo_path": report.photo_path,
         "identifying_details": report.identifying_details if can_view_proof else None,
+        "deletion_reason": report.deletion_reason,
+        "deleted_at": report.deleted_at,
         "created_at": report.created_at,
         "updated_at": report.updated_at,
     }
@@ -241,6 +253,7 @@ def update_report(
 @router.delete("/{report_id}")
 def delete_report(
     report_id: int,
+    delete_in: Optional[ReportDeleteRequest] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -262,6 +275,8 @@ def delete_report(
 
     report.deleted_at = datetime.now(timezone.utc)
     report.status = ReportStatus.CLOSED.value
+    if delete_in and delete_in.reason:
+        report.deletion_reason = delete_in.reason.strip()
 
     # Log audit entry (FR-AUDIT-01, FR-AUDIT-03)
     log_audit(
@@ -270,11 +285,46 @@ def delete_report(
         target_type="report",
         target_id=report.id,
         actor_id=current_user.id,
-        details=f"Report #{report.id} ({report.title}) soft-deleted by user #{current_user.id}",
+        details=f"Report #{report.id} ({report.title}) soft-deleted by user #{current_user.id}. Reason: {report.deletion_reason or 'No reason provided'}",
     )
 
     db.commit()
     return {"message": "Report has been deleted successfully."}
+
+
+@router.post("/{report_id}/restore", response_model=ReportResponse)
+def restore_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin),
+):
+    """
+    Admin-only: Rollback / restore a soft-deleted report to Active state.
+    """
+    report = db.query(Report).filter(Report.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found.")
+
+    if not report.deleted_at:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Report is not deleted.")
+
+    report.deleted_at = None
+    report.status = ReportStatus.ACTIVE.value
+    report.deletion_reason = None
+    report.updated_at = datetime.now(timezone.utc)
+
+    log_audit(
+        db=db,
+        action="REPORT_RESTORED",
+        target_type="report",
+        target_id=report.id,
+        actor_id=admin_user.id,
+        details=f"Report #{report.id} ({report.title}) restored by admin #{admin_user.id}",
+    )
+
+    db.commit()
+    db.refresh(report)
+    return report
 
 
 @router.post("/{report_id}/found-notice", response_model=ReportResponse)

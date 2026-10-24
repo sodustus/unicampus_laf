@@ -135,12 +135,23 @@ def get_admin_dashboard(
     pending_claims = pending_claims_query.limit(20).all()
     pending_claims_count = db.query(Claim).filter(Claim.status.in_(pending_statuses)).count()
 
+    # Deleted reports for admin rollback/inspection
+    deleted_reports = (
+        db.query(Report)
+        .filter(Report.deleted_at.is_not(None))
+        .order_by(Report.deleted_at.desc())
+        .limit(30)
+        .all()
+    )
+    deleted_reports_count = db.query(Report).filter(Report.deleted_at.is_not(None)).count()
+
     stats = AdminDashboardStats(
         total_reports=total_reports,
         lost_reports=lost_reports,
         found_reports=found_reports,
         active_reports=active_reports,
         recovered_reports=recovered_reports,
+        deleted_reports_count=deleted_reports_count,
         recovery_rate_percent=recovery_rate,
         total_users=total_users,
         pending_claims=pending_claims_count,
@@ -171,5 +182,6 @@ def get_admin_dashboard(
     return AdminDashboardResponse(
         stats=stats,
         pending_claims=pending_claims,
+        deleted_reports=deleted_reports,
         recent_activity=recent_activity,
     )

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
 
-export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onClaim, onViewProfile, onFoundNotice }) {
+export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onRestore, onClaim, onViewProfile, onFoundNotice }) {
   const { user, token, isAdmin } = useAuth();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +60,21 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
           <div className="alert-error">{error}</div>
         ) : report ? (
           <>
+            {report.deleted_at && (
+              <div
+                style={{
+                  marginBottom: '16px',
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                  color: '#FCA5A5',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <strong>🗑️ Soft-Deleted Report</strong> &bull; Reason: {report.deletion_reason || 'No deletion reason specified'}
+              </div>
+            )}
             <div className="modal-header">
               <div className="modal-title-wrap">
                 <span className="modal-icon">{report.type === 'lost' ? '🔍' : '📦'}</span>
@@ -307,16 +322,33 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
             <div className="modal-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                {canManage && (
-                  <button
-                    className="btn btn-delete btn-sm"
-                    onClick={() => {
-                      onDelete(report.id);
-                      onClose();
-                    }}
-                  >
-                    Delete Report
-                  </button>
+                {report.deleted_at ? (
+                  isAdmin && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
+                      onClick={() => {
+                        if (onRestore) onRestore(report.id);
+                        onClose();
+                      }}
+                    >
+                      🔄 Restore / Rollback Report
+                    </button>
+                  )
+                ) : (
+                  canManage && (
+                    <button
+                      type="button"
+                      className="btn btn-delete btn-sm"
+                      onClick={() => {
+                        onDelete(report.id);
+                        onClose();
+                      }}
+                    >
+                      {isAdmin ? '🗑️ Delete as Duplicate' : 'Delete Report'}
+                    </button>
+                  )
                 )}
               </div>
 

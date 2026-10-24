@@ -5,6 +5,7 @@ import {
   fetchReports,
   markReportRecovered,
   deleteReport,
+  restoreReport,
 } from './api/client';
 import { useAuth } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
@@ -161,14 +162,32 @@ export default function App() {
     }
   };
 
-  const handleDeleteReport = async (reportId) => {
+  const handleDeleteReport = async (reportId, reason = null) => {
     if (!token) return;
-    if (!window.confirm('Are you sure you want to delete this report?')) return;
+    let delReason = reason;
+    if (delReason === null) {
+      if (isAdmin) {
+        delReason = window.prompt('Reason for deletion / duplicate reference (e.g. "Duplicate of #14"):', '');
+        if (delReason === null) return; // user cancelled prompt
+      } else {
+        if (!window.confirm('Are you sure you want to delete this report?')) return;
+      }
+    }
     try {
-      await deleteReport(reportId, token);
+      await deleteReport(reportId, token, delReason);
       loadReports();
     } catch (err) {
       alert(err.message || 'Failed to delete report');
+    }
+  };
+
+  const handleRestoreReport = async (reportId) => {
+    if (!token) return;
+    try {
+      await restoreReport(reportId, token);
+      loadReports();
+    } catch (err) {
+      alert(err.message || 'Failed to restore report');
     }
   };
 
@@ -364,6 +383,7 @@ export default function App() {
         onClose={() => setSelectedReportId(null)}
         onRecover={handleRecoverReport}
         onDelete={handleDeleteReport}
+        onRestore={handleRestoreReport}
         onClaim={handleClaimItem}
         onViewProfile={handleViewMemberProfile}
         onFoundNotice={handleOpenFoundNotice}
@@ -393,6 +413,9 @@ export default function App() {
         onHandoverCompleted={() => {
           loadReports();
         }}
+        onOpenClaimReport={(rep) => {
+          setClaimReport(rep);
+        }}
       />
       <RecoveryDetailModal
         isOpen={Boolean(recoveryReport)}
@@ -419,6 +442,7 @@ export default function App() {
         onOpenReport={(repId) => {
           setSelectedReportId(repId);
         }}
+        onRestoreReport={handleRestoreReport}
         onOpenClaimsManager={() => {
           setIsAdminDashboardOpen(false);
           setIsClaimsManagerOpen(true);

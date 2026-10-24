@@ -59,6 +59,7 @@ class Report(Base):
         nullable=False,
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)  # Soft delete
+    deletion_reason = Column(Text, nullable=True)
 
     # Relationships
     category = relationship("Category", back_populates="reports")

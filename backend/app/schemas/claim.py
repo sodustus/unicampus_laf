@@ -23,7 +23,7 @@ class ClaimCreate(BaseModel):
 
 
 class ClaimStatusUpdate(BaseModel):
-    status: Literal["under_review", "awaiting_info", "approved", "rejected"]
+    status: Literal["under_review", "awaiting_info", "approved", "rejected", "handover_failed"]
     rejection_reason: Optional[str] = Field(
         None,
         description="Reason for rejection (mandatory when status is 'rejected')",
@@ -38,6 +38,14 @@ class ClaimRespondInfo(BaseModel):
     )
 
 
+class HandoverFailureRequest(BaseModel):
+    reason: str = Field(
+        ...,
+        min_length=3,
+        description="Reason why physical handover failed (e.g. item did not match description, wrong serial number)",
+    )
+
+
 class ClaimResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,6 +55,10 @@ class ClaimResponse(BaseModel):
     status: str
     reviewer_id: Optional[int] = None
     rejection_reason: Optional[str] = None
+    finder_handover_failed: bool = False
+    claimant_handover_failed: bool = False
+    handover_failure_notes: Optional[str] = None
+    queue_position: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

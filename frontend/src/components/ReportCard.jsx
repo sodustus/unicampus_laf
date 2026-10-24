@@ -54,7 +54,9 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
         </div>
         <span
           className={`badge ${
-            report.status === 'active'
+            report.status === 'deleted'
+              ? 'badge-danger'
+              : report.status === 'active'
               ? 'badge-info'
               : report.status === 'recovered'
               ? 'badge-success'
@@ -70,6 +72,11 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
         <span className="item-category">
           🏷️ {report.category?.name || 'General Item'}
         </span>
+        {report.status === 'deleted' && report.deletion_reason && (
+          <p style={{ margin: '4px 0', fontSize: '0.78rem', color: '#F87171' }}>
+            🗑️ <em>Reason: {report.deletion_reason}</em>
+          </p>
+        )}
         <p className="item-description">{report.description}</p>
       </div>
 

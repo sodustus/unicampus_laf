@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
@@ -11,6 +11,7 @@ class ClaimStatus(str, enum.Enum):
     AWAITING_INFO = "awaiting_info"
     APPROVED = "approved"
     REJECTED = "rejected"
+    HANDOVER_FAILED = "handover_failed"
     COMPLETED = "completed"
 
 
@@ -23,6 +24,9 @@ class Claim(Base):
     status = Column(String(30), default=ClaimStatus.SUBMITTED.value, nullable=False, index=True)
     reviewer_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     rejection_reason = Column(Text, nullable=True)
+    finder_handover_failed = Column(Boolean, default=False, nullable=False)
+    claimant_handover_failed = Column(Boolean, default=False, nullable=False)
+    handover_failure_notes = Column(Text, nullable=True)
 
     created_at = Column(
         DateTime(timezone=True),

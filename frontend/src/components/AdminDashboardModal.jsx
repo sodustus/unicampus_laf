@@ -13,6 +13,7 @@ export default function AdminDashboardModal({
   isOpen,
   onClose,
   onOpenReport,
+  onRestoreReport,
   onOpenClaimsManager,
 }) {
   const { token, user } = useAuth();
@@ -175,6 +176,12 @@ export default function AdminDashboardModal({
             onClick={() => setActiveTab('moderation')}
           >
             ⚖️ Content Moderation
+          </button>
+          <button
+            className={`dashboard-tab ${activeTab === 'deleted' ? 'active' : ''}`}
+            onClick={() => setActiveTab('deleted')}
+          >
+            🗑️ Deleted Reports ({stats.deleted_reports_count || 0})
           </button>
           <button
             className={`dashboard-tab ${activeTab === 'users' ? 'active' : ''}`}
@@ -491,6 +498,92 @@ export default function AdminDashboardModal({
                           <td style={{ fontSize: '0.85rem' }}>{log.actor_email}</td>
                           <td style={{ fontSize: '0.85rem' }}>{log.target_type} #{log.target_id}</td>
                           <td style={{ fontSize: '0.8125rem', color: '#E2E8F0' }}>{log.details || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 5: DELETED & DUPLICATE REPORTS */}
+          {activeTab === 'deleted' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4>Soft-Deleted & Duplicate Listings ({dashboardData?.deleted_reports?.length || 0})</h4>
+                <button className="btn btn-secondary btn-sm" onClick={loadDashboard}>
+                  🔄 Refresh List
+                </button>
+              </div>
+
+              {(!dashboardData?.deleted_reports || dashboardData.deleted_reports.length === 0) ? (
+                <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No deleted or duplicate reports found. All listings are healthy.
+                </div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Item Details</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Deletion Reason</th>
+                        <th>Deleted Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboardData.deleted_reports.map((r) => (
+                        <tr key={r.id}>
+                          <td><strong>#{r.id}</strong></td>
+                          <td>
+                            <span
+                              style={{ fontWeight: 600, cursor: 'pointer', color: '#93C5FD' }}
+                              onClick={() => {
+                                onOpenReport(r.id);
+                              }}
+                              title="Click to view details"
+                            >
+                              {r.title}
+                            </span>
+                            <br />
+                            <small style={{ color: 'var(--text-muted)' }}>{r.location}</small>
+                          </td>
+                          <td>
+                            <span className={`badge ${r.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
+                              {r.type.toUpperCase()}
+                            </span>
+                          </td>
+                          <td>{r.category?.name || `Cat #${r.category_id}`}</td>
+                          <td>
+                            <span style={{ color: '#FCA5A5', fontSize: '0.85rem' }}>
+                              {r.deletion_reason || 'Manual deletion'}
+                            </span>
+                          </td>
+                          <td>
+                            <small>
+                              {r.deleted_at ? new Date(r.deleted_at).toLocaleString() : 'N/A'}
+                            </small>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                className="btn btn-primary btn-sm"
+                                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
+                                onClick={async () => {
+                                  if (onRestoreReport) {
+                                    await onRestoreReport(r.id);
+                                    loadDashboard();
+                                  }
+                                }}
+                              >
+                                🔄 Restore
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

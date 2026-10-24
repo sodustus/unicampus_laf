@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function SearchFilters({
   filters,
@@ -6,6 +7,7 @@ export default function SearchFilters({
   categories,
   onOpenReportModal,
 }) {
+  const { isAdmin } = useAuth();
   return (
     <div className="glass-panel search-filters-panel">
       {/* Top Bar: Search Bar + Post Report CTA */}
@@ -96,6 +98,7 @@ export default function SearchFilters({
               <option value="active">Active Only</option>
               <option value="recovered">Recovered</option>
               <option value="all">All Statuses</option>
+              {isAdmin && <option value="deleted">🗑️ Deleted Reports (Admin)</option>}
             </select>
           </div>
 

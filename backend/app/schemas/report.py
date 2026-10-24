@@ -59,6 +59,10 @@ class FoundNoticeCreate(BaseModel):
     )
 
 
+class ReportDeleteRequest(BaseModel):
+    reason: Optional[str] = Field(None, description="Optional reason for deletion (e.g. Duplicate of Report #12)")
+
+
 class ReportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -81,5 +85,7 @@ class ReportResponse(BaseModel):
     claim_id: Optional[int] = None
     photo_path: Optional[str] = None
     identifying_details: Optional[str] = None
+    deletion_reason: Optional[str] = None
+    deleted_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime

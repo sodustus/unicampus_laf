@@ -104,15 +104,58 @@ export async function submitFoundNotice(reportId, noticeData, token) {
   return data;
 }
 
-export async function deleteReport(reportId, token) {
-  const res = await fetch(`${BASE_URL}/reports/${reportId}`, {
+export async function deleteReport(reportId, token, reason = null) {
+  const options = {
     method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  if (reason) {
+    options.headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify({ reason });
+  }
+  const res = await fetch(`${BASE_URL}/reports/${reportId}`, options);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to delete report');
+  return data;
+}
+
+export async function restoreReport(reportId, token) {
+  const res = await fetch(`${BASE_URL}/reports/${reportId}/restore`, {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || 'Failed to delete report');
+  if (!res.ok) throw new Error(data.detail || 'Failed to restore report');
+  return data;
+}
+
+export async function flagHandoverFailed(claimId, reason, token) {
+  const res = await fetch(`${BASE_URL}/claims/${claimId}/flag-handover-failed`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ reason }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to flag handover failure');
+  return data;
+}
+
+export async function repostReportAfterFailedHandover(claimId, token) {
+  const res = await fetch(`${BASE_URL}/claims/${claimId}/repost-report`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to repost report');
   return data;
 }
 
