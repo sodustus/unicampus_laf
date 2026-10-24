@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { submitClaim } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { IconClaims, IconClose, IconMapPin, IconTag, IconAlert, IconShield } from './Icons';
 
 export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }) {
   const { user, token, isAuthenticated } = useAuth();
@@ -51,7 +52,9 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
       <div className="modal-dialog glass-panel" style={{ maxWidth: '540px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">🤝</span>
+            <div className="modal-icon-badge">
+              <IconClaims size={18} />
+            </div>
             <div>
               <h3>Claim Ownership of Found Item</h3>
               <p className="modal-subtitle">
@@ -59,17 +62,23 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
               </p>
             </div>
           </div>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" onClick={onClose} aria-label="Close">
+            <IconClose size={18} />
+          </button>
         </div>
 
         <div className="claim-item-summary">
-          <span>📍 <strong>Location:</strong> {report.location}</span>
-          <span>🏷️ <strong>Category:</strong> {report.category?.name || 'General Item'}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconMapPin size={13} /> <strong>Location:</strong> {report.location}
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconTag size={13} /> <strong>Category:</strong> {report.category?.name || 'General Item'}
+          </span>
         </div>
 
         {isReporter && (
           <div className="alert-error" style={{ margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>🚫</span>
+            <IconAlert size={16} />
             <span>
               <strong>Rule Enforced:</strong> You are the reporter of this item. A user cannot be both the reporter and claimer on the same report.
             </span>
@@ -78,7 +87,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
 
         {hasActiveClaim && (
           <div className="alert-error" style={{ margin: '12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>⏳</span>
+            <IconAlert size={16} />
             <span>
               <strong>Claim In Progress:</strong> You already have an ownership claim currently being processed for this item. You cannot claim an item twice while your claim is under review.
             </span>
@@ -87,7 +96,7 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
 
         {!hasActiveClaim && wasRejected && (
           <div style={{ margin: '12px 0', padding: '12px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>💡</span>
+            <IconShield size={16} style={{ color: '#60A5FA', marginTop: '2px', flexShrink: 0 }} />
             <span style={{ fontSize: '0.85rem', color: '#E2E8F0', lineHeight: 1.4 }}>
               <strong>Previous Claim Was Rejected:</strong> If you think this was a mistake or you have stronger proof of ownership, you can submit a new claim. Please provide specific, distinguishing details (serial number, scratches, contents) to help administrators verify your ownership.
             </span>
@@ -99,8 +108,8 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group proof-field-group">
             <div className="proof-label-wrap">
-              <label htmlFor="claim-proof">
-                🔒 Ownership Verification Details (FR-CLAIM-02) *
+              <label htmlFor="claim-proof" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IconShield size={14} /> Ownership Verification Details (FR-CLAIM-02) *
               </label>
               <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>RESTRICTED</span>
             </div>
@@ -115,8 +124,8 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
               minLength={5}
               disabled={isReporter || hasActiveClaim}
             />
-            <span className="proof-note">
-              🛡️ <strong>Privacy Protection (FR-CLAIM-08):</strong> Your verification details are kept strictly confidential. Only you and reviewing campus administrators can read this proof.
+            <span className="proof-note" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <strong>Privacy Protection (FR-CLAIM-08):</strong> Your verification details are kept strictly confidential. Only you and reviewing campus administrators can read this proof.
             </span>
           </div>
 

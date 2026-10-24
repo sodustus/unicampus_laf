@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchRecoveryRecord, markDirectRecovery } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { IconCheck, IconClose, IconClock, IconShield } from './Icons';
 
 export default function RecoveryDetailModal({ report, isOpen, onClose, onRecovered }) {
   const { token } = useAuth();
@@ -55,13 +56,17 @@ export default function RecoveryDetailModal({ report, isOpen, onClose, onRecover
       <div className="modal-dialog glass-panel" style={{ maxWidth: '560px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">{isRecovered ? '🎉' : '🤝'}</span>
+            <div className="modal-icon-badge">
+              <IconCheck size={18} />
+            </div>
             <div>
               <h3>{isRecovered ? 'Recovery Record & Verification' : 'Confirm Item Recovery'}</h3>
               <p className="modal-subtitle">Report: <strong>{report.title}</strong> (#{report.id})</p>
             </div>
           </div>
-          <button className="btn-close" onClick={onClose}>✕</button>
+          <button className="btn-close" onClick={onClose} aria-label="Close">
+            <IconClose size={18} />
+          </button>
         </div>
 
         {error && <div className="alert-error" style={{ margin: '12px 0' }}>{error}</div>}
@@ -74,9 +79,9 @@ export default function RecoveryDetailModal({ report, isOpen, onClose, onRecover
           ) : record ? (
             <div className="recovery-receipt-card">
               <div className="recovery-badge-row">
-                <span className="badge badge-success">✓ RECOVERY CONFIRMED</span>
-                <span className="recovery-timestamp">
-                  📅 {new Date(record.recovered_at).toLocaleString()}
+                <span className="badge badge-success">RECOVERY CONFIRMED</span>
+                <span className="recovery-timestamp" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <IconClock size={13} /> {new Date(record.recovered_at).toLocaleString()}
                 </span>
               </div>
 
@@ -100,8 +105,8 @@ export default function RecoveryDetailModal({ report, isOpen, onClose, onRecover
                 </p>
               </div>
 
-              <div className="audit-proof-notice">
-                🔒 Immutable Audit Entry recorded under FR-RECOVER-01 & FR-AUDIT-01.
+              <div className="audit-proof-notice" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IconShield size={14} /> Immutable Audit Entry recorded under FR-RECOVER-01 & FR-AUDIT-01.
               </div>
 
               <div className="modal-actions" style={{ justifyContent: 'flex-end', marginTop: '16px' }}>
@@ -140,7 +145,7 @@ export default function RecoveryDetailModal({ report, isOpen, onClose, onRecover
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting ? 'Confirming...' : '✓ Confirm Recovery'}
+                {submitting ? 'Confirming...' : 'Confirm Recovery'}
               </button>
             </div>
           </form>
