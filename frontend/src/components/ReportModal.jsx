@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCategories, createReport, fetchReports } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import { IconClose, IconSearch, IconTag, IconMapPin, IconShield } from './Icons';
 
 export default function ReportModal({ isOpen, onClose, onReportCreated, onInspectMatchingReport, initialData = null }) {
