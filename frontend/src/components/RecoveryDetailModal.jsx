@@ -3,14 +3,13 @@ import { fetchRecoveryRecord, markDirectRecovery } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function RecoveryDetailModal({ report, isOpen, onClose, onRecovered }) {
-  const { token, user, isAdmin } = useAuth();
+  const { token } = useAuth();
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [handoverNotes, setHandoverNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const isOwner = user && report && user.id === report.owner_id;
   const isRecovered = report && report.status === 'recovered';
 
   useEffect(() => {
