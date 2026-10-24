@@ -241,9 +241,21 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     </div>
 
                     {report.possession_status === 'submitted_to_authority' && report.custody_location && (
-                      <p style={{ margin: '8px 0 0 0', color: '#E2E8F0' }}>
-                        🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
-                      </p>
+                      <div style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <p style={{ margin: 0, color: '#E2E8F0' }}>
+                          🏛️ <strong>Office Custody Location:</strong> {report.custody_location}
+                        </p>
+                        {report.custody_location.match(/(\+?[0-9]{7,15})/) && (
+                          <a
+                            href={`tel:${report.custody_location.match(/(\+?[0-9]{7,15})/)[0]}`}
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                            title="Call custodian office directly"
+                          >
+                            📞 Call Office
+                          </a>
+                        )}
+                      </div>
                     )}
 
                     {report.found_notes && (

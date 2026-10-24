@@ -389,11 +389,23 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                       <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         Physical Item Custody Location:
                       </span>
-                      <p style={{ margin: '4px 0 0 0', fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
-                        {c.report?.possession_status === 'submitted_to_authority'
-                          ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
-                          : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
-                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                        <p style={{ margin: 0, fontWeight: 600, color: '#F1F5F9', fontSize: '0.9rem' }}>
+                          {c.report?.possession_status === 'submitted_to_authority'
+                            ? `🏛️ Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration'}`
+                            : '🤝 Held Directly by Founder (Coordinate Safe Campus Pickup)'}
+                        </p>
+                        {c.report?.possession_status === 'submitted_to_authority' && c.report?.custody_location?.match(/(\+?[0-9]{7,15})/) && (
+                          <a
+                            href={`tel:${c.report.custody_location.match(/(\+?[0-9]{7,15})/)[0]}`}
+                            className="btn btn-primary btn-sm"
+                            style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                            title="Call custodian office desk"
+                          >
+                            📞 Call Office Desk
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     {/* Direct Contact Exchange Box */}

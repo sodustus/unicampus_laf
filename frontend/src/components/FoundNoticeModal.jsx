@@ -6,12 +6,25 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
   const { token, isAuthenticated } = useAuth();
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
+  const [custodianPhone, setCustodianPhone] = useState('');
+  const [allowOwnerDirectContact, setAllowOwnerDirectContact] = useState(false);
   const [founderProof, setFounderProof] = useState('');
   const [foundNotes, setFoundNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen || !report) return null;
+
+  // Real-time numbers-only filter for custodian phone
+  const handleCustodianPhoneChange = (val) => {
+    let cleaned = val.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+    } else {
+      cleaned = cleaned.replace(/\+/g, '');
+    }
+    setCustodianPhone(cleaned);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,11 +47,24 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
     setSubmitting(true);
     try {
+      let finalCustodyLocation = null;
+      if (possessionStatus === 'submitted_to_authority') {
+        finalCustodyLocation = custodianPhone.trim()
+          ? `${custodyLocation.trim()} (Office Tel: ${custodianPhone.trim()})`
+          : custodyLocation.trim();
+      }
+
+      let finalNotes = foundNotes.trim();
+      if (possessionStatus === 'submitted_to_authority' && allowOwnerDirectContact) {
+        const contactNote = '📞 Finder Direct Contact: Owner is permitted to call finder personal phone regarding deposit.';
+        finalNotes = finalNotes ? `${finalNotes}\n${contactNote}` : contactNote;
+      }
+
       const payload = {
         founder_proof: founderProof.trim(),
         possession_status: possessionStatus,
-        custody_location: possessionStatus === 'submitted_to_authority' ? custodyLocation.trim() : null,
-        found_notes: foundNotes.trim() || null,
+        custody_location: finalCustodyLocation,
+        found_notes: finalNotes || null,
       };
       const updatedReport = await submitFoundNotice(report.id, payload, token);
       if (onSuccess) onSuccess(updatedReport);
@@ -153,6 +179,52 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                 required
               />
               <span className="field-hint">Tell the owner exactly which office or desk they can collect it from.</span>
+
+              {/* Optional Custodian Phone Number */}
+              <div style={{ marginTop: '10px' }}>
+                <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
+                  📞 Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
+                </label>
+                <input
+                  type="tel"
+                  className="form-input"
+                  placeholder="e.g. +251111234567 or 0111234567"
+                  value={custodianPhone}
+                  onChange={(e) => handleCustodianPhoneChange(e.target.value)}
+                  maxLength={16}
+                />
+                <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  Helpful so the owner/claimer can call the office desk directly instead of blindly going to an office.
+                </span>
+              </div>
+
+              {/* Optional Checkbox for Owner to contact finder */}
+              <div style={{ marginTop: '10px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.84rem',
+                    color: '#E2E8F0',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={allowOwnerDirectContact}
+                    onChange={(e) => setAllowOwnerDirectContact(e.target.checked)}
+                    style={{ marginTop: '3px' }}
+                  />
+                  <span>
+                    <strong>Allow owner to contact me via phone:</strong> Check this if you are comfortable with the owner reaching out to your phone number if they have questions about where you deposited it.
+                  </span>
+                </label>
+              </div>
             </div>
           )}
 
