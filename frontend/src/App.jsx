@@ -25,7 +25,9 @@ export default function App() {
   const { user, token, isAuthenticated, isAdmin, logout } = useAuth();
 
   // Health probe state
-  const [healthData, setHealthData] = useState(null);  // Auth & Modal state
+  const [healthData, setHealthData] = useState(null);
+
+  // Auth & Modal state
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Step 3 & 4: Reports, Categories & Filters state
