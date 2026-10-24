@@ -65,6 +65,7 @@ def test_profile_phone_number_privacy_gating():
         db.add(other_student)
     else:
         other_student.phone_number = "+251988776655"
+        other_student.full_name = "Fatuma Roba"
     db.commit()
     db.refresh(student)
     db.refresh(other_student)

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchCategories, createReport, fetchReports } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function ReportModal({ isOpen, onClose, onReportCreated, onInspectMatchingReport }) {
+export default function ReportModal({ isOpen, onClose, onReportCreated, onInspectMatchingReport, initialData = null }) {
   const { token, isAuthenticated } = useAuth();
   const [categories, setCategories] = useState([]);
   const [type, setType] = useState('lost');
@@ -35,16 +35,25 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
 
   useEffect(() => {
     if (isOpen) {
+      if (initialData) {
+        if (initialData.type) setType(initialData.type);
+        if (initialData.title) setTitle(initialData.title);
+        if (initialData.description) setDescription(initialData.description);
+        if (initialData.categoryId) setCategoryId(initialData.categoryId);
+        if (initialData.location) setLocation(initialData.location);
+        if (initialData.possessionStatus) setPossessionStatus(initialData.possessionStatus);
+        if (initialData.custodyLocation) setCustodyLocation(initialData.custodyLocation);
+      }
       fetchCategories()
         .then((cats) => {
           setCategories(cats);
-          if (cats.length > 0 && !categoryId) {
+          if (cats.length > 0 && !categoryId && !initialData?.categoryId) {
             setCategoryId(cats[0].id);
           }
         })
         .catch((err) => console.error('Failed to load categories:', err));
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   // Issue #7: Fetch matching opposite-type reports when category or type changes
   useEffect(() => {

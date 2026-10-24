@@ -381,9 +381,18 @@ export default function UserDashboardModal({
                         </div>
                       )}
 
-                      {claim.status === 'rejected' && claim.rejection_reason && (
+                      {claim.status === 'rejected' && (
                         <div className="claim-rejection-box" style={{ marginTop: '8px' }}>
-                          <strong>Rejection Reason:</strong> {claim.rejection_reason}
+                          <div style={{ fontWeight: 600, color: '#F87171', marginBottom: '4px' }}>
+                            {claim.report?.type === 'lost'
+                              ? '❌ Found Notice Did Not Match Lost Item Description'
+                              : '❌ Ownership Claim Rejected by Administration'}
+                          </div>
+                          {claim.rejection_reason && (
+                            <div style={{ fontSize: '0.8125rem', color: '#E2E8F0' }}>
+                              <strong>Reason:</strong> {claim.rejection_reason}
+                            </div>
+                          )}
                         </div>
                       )}
 

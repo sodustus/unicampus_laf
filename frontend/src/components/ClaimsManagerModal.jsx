@@ -11,7 +11,15 @@ import {
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export default function ClaimsManagerModal({ isOpen, onClose, onHandoverCompleted, onOpenClaimReport, onViewProfile }) {
+export default function ClaimsManagerModal({
+  isOpen,
+  onClose,
+  onHandoverCompleted,
+  onOpenClaimReport,
+  onOpenFoundNotice,
+  onRegisterFoundReport,
+  onViewProfile,
+}) {
   const { token, user, isAdmin } = useAuth();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -231,7 +239,22 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                 <div className="claim-card-header">
                   <div className="claim-item-title-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h4>{c.report?.title || `Item #${c.report_id}`}</h4>
-                    <span className="claim-id-pill">Claim #{c.id}</span>
+                    <span className="claim-id-pill">{c.report?.type === 'lost' ? 'Found Notice #' : 'Claim #'}{c.id}</span>
+                    {isAdmin && (
+                      <span
+                        className="badge"
+                        style={{
+                          fontSize: '0.72rem',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          background: c.report?.type === 'lost' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                          color: c.report?.type === 'lost' ? '#6EE7B7' : '#93C5FD',
+                          border: c.report?.type === 'lost' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
+                        }}
+                      >
+                        {c.report?.type === 'lost' ? '📦 Lost Item Match' : '🤝 Found Item Claim'}
+                      </span>
+                    )}
                     {c.queue_position ? (
                       <span
                         className="badge"
@@ -260,7 +283,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                   </span>
                   <span>
                     {c.report?.type === 'lost' ? '🔍 Lost by (Owner):' : '📦 Found by (Finder):'}{' '}
-                    <strong>{c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`}</strong> (ID #{c.report?.owner_id})
+                    <strong>{c.report?.type === 'lost' ? (c.owner?.full_name || c.owner?.email || `User #${c.report?.owner_id}`) : (c.finder?.full_name || c.finder?.email || `User #${c.report?.owner_id}`)}</strong> (ID #{c.report?.owner_id})
                   </span>
                   <span>📍 <strong>Location:</strong> {c.report?.location || 'Unknown'}</span>
                   <span>📅 <strong>Submitted:</strong> {new Date(c.created_at).toLocaleDateString()}</span>
@@ -775,46 +798,139 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
 
                 {/* Rejected Claim Re-submission Action */}
                 {!isAdmin && c.status === 'rejected' && c.report && (
-                  <div
-                    style={{
-                      marginTop: '10px',
-                      padding: '12px 16px',
-                      borderRadius: '8px',
-                      background: 'rgba(59, 130, 246, 0.08)',
-                      border: '1px solid rgba(59, 130, 246, 0.25)',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '10px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
-                      <span style={{ fontSize: '1.1rem' }}>💡</span>
-                      <span style={{ fontSize: '0.84rem', color: '#E2E8F0', lineHeight: 1.4 }}>
-                        Claim was rejected by campus administration. If you think this is a mistake or have stronger ownership proof, you can try claiming again.
-                      </span>
-                    </div>
-                    {onOpenClaimReport && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-sm"
+                  c.report.type === 'lost' ? (
+                    // FLOW B: Lost report match rejected
+                    user?.id === c.claimant_id ? (
+                      // Student is Finder (Abebe)
+                      <div
                         style={{
-                          fontSize: '0.78rem',
-                          padding: '6px 14px',
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          whiteSpace: 'nowrap',
-                          boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
-                        }}
-                        onClick={() => {
-                          onClose();
-                          onOpenClaimReport(c.report);
+                          marginTop: '10px',
+                          padding: '14px 16px',
+                          borderRadius: '8px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
                         }}
                       >
-                        🔄 Try Claiming Again with Better Proof
-                      </button>
-                    )}
-                  </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '1.2rem' }}>❌</span>
+                          <div>
+                            <strong style={{ color: '#FCA5A5', fontSize: '0.86rem' }}>
+                              Found Notice Did Not Match Lost Item
+                            </strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+                              Campus administration reviewed your notice and determined the item you found does not match the owner's description.
+                              {c.rejection_reason && <span> Reason: <em>"{c.rejection_reason}"</em></span>}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          {onOpenFoundNotice && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-sm"
+                              style={{ fontSize: '0.78rem', padding: '6px 14px' }}
+                              onClick={() => {
+                                onClose();
+                                onOpenFoundNotice(c.report);
+                              }}
+                            >
+                              🔄 Re-submit Found Notice
+                            </button>
+                          )}
+                          {onRegisterFoundReport && (
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              style={{
+                                fontSize: '0.78rem',
+                                padding: '6px 14px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                borderColor: '#059669',
+                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                              }}
+                              onClick={() => {
+                                onClose();
+                                onRegisterFoundReport({
+                                  type: 'found',
+                                  title: c.report?.title ? `Found: ${c.report.title}` : 'Found Item',
+                                  categoryId: c.report?.category_id,
+                                  location: c.report?.location || '',
+                                  description: c.verification_record?.proof_details || '',
+                                });
+                              }}
+                            >
+                              📝 Register as New Found Item
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      // Student is Owner (Derartu)
+                      <div
+                        style={{
+                          marginTop: '10px',
+                          padding: '12px 14px',
+                          borderRadius: '8px',
+                          background: 'rgba(59, 130, 246, 0.08)',
+                          border: '1px solid rgba(59, 130, 246, 0.25)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
+                        <span style={{ fontSize: '0.82rem', color: '#CBD5E1', lineHeight: 1.4 }}>
+                          A finder notice was submitted by a student, but campus administration determined the item does not match your lost item description. Your lost report remains active on campus listings.
+                        </span>
+                      </div>
+                    )
+                  ) : (
+                    // FLOW A: Found report ownership claim rejected
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        border: '1px solid rgba(59, 130, 246, 0.25)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>💡</span>
+                        <span style={{ fontSize: '0.84rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+                          Claim was rejected by campus administration. If you think this is a mistake or have stronger ownership proof, you can try claiming again.
+                        </span>
+                      </div>
+                      {onOpenClaimReport && (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          style={{
+                            fontSize: '0.78rem',
+                            padding: '6px 14px',
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                          }}
+                          onClick={() => {
+                            onClose();
+                            onOpenClaimReport(c.report);
+                          }}
+                        >
+                          🔄 Try Claiming Again with Better Proof
+                        </button>
+                      )}
+                    </div>
+                  )
                 )}
 
                 {/* STUDENT ACTION: If status == 'awaiting_info', show response form */}
@@ -879,7 +995,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                         onClick={() => handleStatusChange(c.id, 'approved')}
                         disabled={actionLoading}
                       >
-                        ✅ Approve Claim
+                        {c.report?.type === 'lost' ? '✅ Approve Handover Match' : '✅ Approve Ownership Claim'}
                       </button>
                     )}
 
@@ -902,7 +1018,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           <input
                             type="text"
                             className="form-input-sm"
-                            placeholder="Rejection reason (e.g. Insufficient proof: please specify serial number)..."
+                            placeholder={c.report?.type === 'lost' ? "Rejection reason (e.g. Item markings do not match owner secret description)..." : "Rejection reason (e.g. Insufficient ownership proof)..."}
                             value={rejectionReasonText}
                             onChange={(e) => setRejectionReasonText(e.target.value)}
                           />
@@ -911,7 +1027,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                             onClick={() => handleStatusChange(c.id, 'rejected', rejectionReasonText)}
                             disabled={actionLoading || !rejectionReasonText.trim()}
                           >
-                            Confirm Reject
+                            {c.report?.type === 'lost' ? 'Confirm Reject Match' : 'Confirm Reject Claim'}
                           </button>
                           <button
                             className="btn btn-secondary btn-sm"
@@ -926,7 +1042,7 @@ export default function ClaimsManagerModal({ isOpen, onClose, onHandoverComplete
                           onClick={() => setRejectingClaimId(c.id)}
                           disabled={actionLoading}
                         >
-                          ❌ Reject Claim
+                          {c.report?.type === 'lost' ? '❌ Reject Match (Does Not Match Lost Item)' : '❌ Reject Ownership Claim'}
                         </button>
                       )
                     )}
