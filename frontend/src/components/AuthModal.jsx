@@ -22,13 +22,19 @@ export default function AuthModal({ isOpen, onClose }) {
     return emailRegex.test(trimmed);
   };
 
-  // Real-time phone number filter: strips out all alphabetical letters and symbols except leading '+'
+  // Real-time phone number filter: strips out letters/symbols, enforces 10 chars for 09... and 13 chars for +251...
   const handlePhoneChange = (val) => {
     let cleaned = val.replace(/[^\d+]/g, '');
     if (cleaned.startsWith('+')) {
       cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
     } else {
       cleaned = cleaned.replace(/\+/g, '');
+      if (cleaned.length > 10) {
+        cleaned = cleaned.slice(0, 10);
+      }
     }
     setPhoneNumber(cleaned);
   };
@@ -217,13 +223,13 @@ export default function AuthModal({ isOpen, onClose }) {
                 <input
                   id="auth-phone"
                   type="tel"
-                  placeholder="e.g. +251911234567 or 0911234567"
+                  placeholder="e.g. +251983072052 or 0983072052"
                   value={phoneNumber}
                   onChange={(e) => handlePhoneChange(e.target.value)}
-                  maxLength={16}
+                  maxLength={phoneNumber.startsWith('+') ? 13 : 10}
                 />
                 <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  🔒 Numbers only (letters are blocked). Phone is kept strictly confidential until handovers.
+                  🔒 Numbers only. Limits: 10 digits for 09... or 13 chars for +251...
                 </span>
               </div>
             </>

@@ -10,9 +10,14 @@ def validate_strict_phone(v: Optional[str]) -> Optional[str]:
     val = v.strip()
     if not val:
         return None
-    # Must only contain numbers and optional leading '+', min 7 digits, max 15 digits
-    if not re.match(r"^\+?[0-9]{7,15}$", val):
-        raise ValueError("Phone number must contain only numbers (7-15 digits) and an optional leading '+'.")
+    # If starting with '+', limit to 13 characters (e.g. +251983072052).
+    # If starting without '+' (e.g. 0983072052), limit to 10 characters.
+    if val.startswith("+"):
+        if not re.match(r"^\+[0-9]{7,12}$", val) or len(val) > 13:
+            raise ValueError("Phone number must contain only numbers and be at most 13 characters for international format (e.g. +251983072052).")
+    else:
+        if not re.match(r"^[0-9]{7,10}$", val) or len(val) > 10:
+            raise ValueError("Phone number must contain only numbers and be at most 10 digits for local format (e.g. 0983072052).")
     return val
 
 

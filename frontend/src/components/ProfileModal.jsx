@@ -52,8 +52,14 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
     let cleaned = val.replace(/[^\d+]/g, '');
     if (cleaned.startsWith('+')) {
       cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
     } else {
       cleaned = cleaned.replace(/\+/g, '');
+      if (cleaned.length > 10) {
+        cleaned = cleaned.slice(0, 10);
+      }
     }
     setPhoneNumber(cleaned);
   };
@@ -65,11 +71,18 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
     setSuccessMsg('');
 
     if (phoneNumber.trim()) {
-      const digits = phoneNumber.replace(/\+/g, '');
-      if (digits.length < 7 || digits.length > 15) {
-        setError('Phone number must contain between 7 and 15 digits.');
-        setSaving(false);
-        return;
+      if (phoneNumber.startsWith('+')) {
+        if (phoneNumber.length > 13 || phoneNumber.length < 8) {
+          setError('International phone number (+ format) must be between 8 and 13 characters (e.g. +251983072052).');
+          setSaving(false);
+          return;
+        }
+      } else {
+        if (phoneNumber.length > 10 || phoneNumber.length < 7) {
+          setError('Local phone number must be at most 10 digits (e.g. 0983072052).');
+          setSaving(false);
+          return;
+        }
       }
     }
 
@@ -148,13 +161,13 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
               <input
                 id="prof-phone"
                 type="tel"
-                placeholder="e.g. +251911234567 or 0911234567"
+                placeholder="e.g. +251983072052 or 0983072052"
                 value={phoneNumber}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                maxLength={16}
+                maxLength={phoneNumber.startsWith('+') ? 13 : 10}
               />
               <span className="field-hint" style={{ display: 'block', marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Numbers only (letters are blocked). Digits: 7–15.
+                Numbers only. Limits: 10 digits for 09... or 13 chars for +251...
               </span>
               <span className="proof-note" style={{ display: 'block', marginTop: '4px' }}>
                 🔒 <strong>Privacy Protection:</strong> Your phone number is masked from public listings and only disclosed to claimants/founders once an ownership claim is officially approved by administration.

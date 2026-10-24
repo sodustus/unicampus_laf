@@ -17,13 +17,19 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
   const isReporter = Boolean(user && report && user.id === report.owner_id);
 
-  // Real-time numbers-only filter for custodian phone
+  // Real-time numbers-only filter: enforces 10 chars for 01.../09... and 13 chars for +251...
   const handleCustodianPhoneChange = (val) => {
     let cleaned = val.replace(/[^\d+]/g, '');
     if (cleaned.startsWith('+')) {
       cleaned = '+' + cleaned.slice(1).replace(/\+/g, '');
+      if (cleaned.length > 13) {
+        cleaned = cleaned.slice(0, 13);
+      }
     } else {
       cleaned = cleaned.replace(/\+/g, '');
+      if (cleaned.length > 10) {
+        cleaned = cleaned.slice(0, 10);
+      }
     }
     setCustodianPhone(cleaned);
   };
@@ -207,10 +213,10 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   placeholder="e.g. +251111234567 or 0111234567"
                   value={custodianPhone}
                   onChange={(e) => handleCustodianPhoneChange(e.target.value)}
-                  maxLength={16}
+                  maxLength={custodianPhone.startsWith('+') ? 13 : 10}
                 />
                 <span className="field-hint" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Helpful so the owner/claimer can call the office desk directly instead of blindly going to an office.
+                  Helpful for direct calls. Limits: 10 digits for local (01.../09...) or 13 chars for (+251...).
                 </span>
               </div>
 

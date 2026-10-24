@@ -180,3 +180,36 @@ def test_registration_phone_and_email_strictness():
     assert res_profile_ok.status_code == 200
     assert res_profile_ok.json()["phone_number"] == "0911987654"
 
+    # 6. Local format with >10 characters -> 422
+    res_local_too_long = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "09830720521"},  # 11 digits
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_local_too_long.status_code == 422
+
+    # 7. International format with >13 characters -> 422
+    res_intl_too_long = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "+2519830720521"},  # 14 chars
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_intl_too_long.status_code == 422
+
+    # 8. Exactly 10 chars local and exactly 13 chars international -> 200
+    res_10 = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "0983072052"},  # 10 digits
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_10.status_code == 200
+    assert res_10.json()["phone_number"] == "0983072052"
+
+    res_13 = client.patch(
+        "/auth/profile/me",
+        json={"phone_number": "+251983072052"},  # 13 chars
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res_13.status_code == 200
+    assert res_13.json()["phone_number"] == "+251983072052"
+
