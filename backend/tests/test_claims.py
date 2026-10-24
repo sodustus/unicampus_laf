@@ -228,40 +228,48 @@ def test_reporter_cannot_be_claimer():
     assert found_res.status_code == 201
     found_id = found_res.json()["id"]
 
-    # Reporter tries to claim their own found report -> 400
-    claim_attempt = client.post(
-        f"/reports/{found_id}/claims",
-        json={"proof_details": "I am actually the owner claiming it back"},
-        headers={"Authorization": f"Bearer {reporter_token}"},
-    )
-    assert claim_attempt.status_code == 400
-    assert "cannot be both the reporter and claimer" in claim_attempt.json()["detail"].lower()
+    lost_id = None
+    try:
+        # Reporter tries to claim their own found report -> 400
+        claim_attempt = client.post(
+            f"/reports/{found_id}/claims",
+            json={"proof_details": "I am actually the owner claiming it back"},
+            headers={"Authorization": f"Bearer {reporter_token}"},
+        )
+        assert claim_attempt.status_code == 400
+        assert "cannot be both the reporter and claimer" in claim_attempt.json()["detail"].lower()
 
-    # 2. Reporter submits a LOST item report
-    lost_res = client.post(
-        "/reports",
-        json={
-            "type": "lost",
-            "title": "Lost Hydro Flask Blue",
-            "description": "Left in gym locker room",
-            "category_id": category_id,
-            "location": "Campus Recreation Center",
-            "item_date": datetime.now(timezone.utc).isoformat(),
-        },
-        headers={"Authorization": f"Bearer {reporter_token}"},
-    )
-    assert lost_res.status_code == 201
-    lost_id = lost_res.json()["id"]
+        # 2. Reporter submits a LOST item report
+        lost_res = client.post(
+            "/reports",
+            json={
+                "type": "lost",
+                "title": "Lost Hydro Flask Blue",
+                "description": "Left in gym locker room",
+                "category_id": category_id,
+                "location": "Campus Recreation Center",
+                "item_date": datetime.now(timezone.utc).isoformat(),
+            },
+            headers={"Authorization": f"Bearer {reporter_token}"},
+        )
+        assert lost_res.status_code == 201
+        lost_id = lost_res.json()["id"]
 
-    # Reporter tries to submit a found notice on their own lost item -> 400
-    found_notice_attempt = client.post(
-        f"/reports/{lost_id}/found-notice",
-        json={
-            "founder_proof": "I found my own water bottle",
-            "possession_status": "with_finder",
-        },
-        headers={"Authorization": f"Bearer {reporter_token}"},
-    )
-    assert found_notice_attempt.status_code == 400
-    assert "cannot be both the reporter and claimer" in found_notice_attempt.json()["detail"].lower()
+        # Reporter tries to submit a found notice on their own lost item -> 400
+        found_notice_attempt = client.post(
+            f"/reports/{lost_id}/found-notice",
+            json={
+                "founder_proof": "I found my own water bottle",
+                "possession_status": "with_finder",
+            },
+            headers={"Authorization": f"Bearer {reporter_token}"},
+        )
+        assert found_notice_attempt.status_code == 400
+        assert "cannot be both the reporter and claimer" in found_notice_attempt.json()["detail"].lower()
+    finally:
+        clean_db = SessionLocal()
+        ids_to_del = [i for i in [found_id, lost_id] if i is not None]
+        clean_db.query(Report).filter(Report.id.in_(ids_to_del)).delete(synchronize_session=False)
+        clean_db.commit()
+        clean_db.close()
 
