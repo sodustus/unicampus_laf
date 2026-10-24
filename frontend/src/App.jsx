@@ -278,6 +278,7 @@ export default function App() {
               onOpenReport={(repId) => setSelectedReportId(repId)}
               onRecoverReport={handleRecoverReport}
               onDeleteReport={handleDeleteReport}
+              onOpenReportModal={() => setIsReportModalOpen(true)}
               onSelectClaimReport={(claim) => {
                 if (claim.report_id) setSelectedReportId(claim.report_id);
               }}
@@ -286,23 +287,24 @@ export default function App() {
 
           {activePage === 'claims' && (
             <ClaimsCenterPage
+              onOpenReport={(repId) => setSelectedReportId(repId)}
+              onViewProfile={handleViewMemberProfile}
               onOpenClaimReport={(rep) => setClaimReport(rep)}
               onOpenFoundNotice={(rep) => setFoundNoticeReport(rep)}
               onRegisterFoundReport={(initialData) => {
                 setReportModalInitialData(initialData);
                 setIsReportModalOpen(true);
               }}
-              onViewProfile={handleViewMemberProfile}
               onReportsUpdated={loadReports}
             />
           )}
 
           {activePage.startsWith('admin-') && isAdmin && (
             <AdminHubPage
-              initialTab={activePage.replace('admin-', '')}
+              activeSubTab={activePage.replace('admin-', '')}
+              onNavigateSubTab={(tab) => setActivePage('admin-' + tab)}
               onOpenReport={(repId) => setSelectedReportId(repId)}
               onRestoreReport={handleRestoreReport}
-              onOpenClaimsReview={() => setActivePage('admin-claims')}
               onSelectClaimReport={(claim) => {
                 if (claim.report_id) setSelectedReportId(claim.report_id);
               }}

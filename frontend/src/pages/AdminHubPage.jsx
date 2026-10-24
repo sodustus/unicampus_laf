@@ -8,15 +8,20 @@ import {
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { IconShield, IconAnalytics, IconUsers, IconAudit, IconAlert, IconCheck } from '../components/Icons';
+import ClaimsCenterPage from './ClaimsCenterPage';
 
 export default function AdminHubPage({
   activeSubTab = 'analytics',
+  initialTab,
   onNavigateSubTab,
   onOpenReport,
   _onRestoreReport,
   onOpenClaimsDesk,
 }) {
   const { token } = useAuth();
+  const currentTab = ['analytics', 'users', 'claims', 'audit'].includes(activeSubTab)
+    ? activeSubTab
+    : (['analytics', 'users', 'claims', 'audit'].includes(initialTab) ? initialTab : 'analytics');
 
   // Overview data
   const [dashboardData, setDashboardData] = useState(null);
@@ -82,10 +87,10 @@ export default function AdminHubPage({
   useEffect(() => {
     setError('');
     setModSuccess('');
-    if (activeSubTab === 'analytics') loadDashboard();
-    if (activeSubTab === 'users') loadUsers();
-    if (activeSubTab === 'audit') loadAudit();
-  }, [activeSubTab, loadDashboard, loadUsers, loadAudit]);
+    if (currentTab === 'analytics') loadDashboard();
+    if (currentTab === 'users') loadUsers();
+    if (currentTab === 'audit') loadAudit();
+  }, [currentTab, loadDashboard, loadUsers, loadAudit]);
 
   const handleToggleActive = async (userId) => {
     try {
@@ -139,31 +144,35 @@ export default function AdminHubPage({
       </div>
 
       {/* Admin Navigation Tabs */}
-      <div className="admin-tab-bar glass-panel" style={{ marginTop: '16px' }}>
+      <div className="admin-tab-bar" style={{ marginTop: '16px' }}>
         <button
-          className={`admin-tab-btn ${activeSubTab === 'analytics' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab('analytics')}
+          type="button"
+          className={`admin-tab-btn ${currentTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => onNavigateSubTab && onNavigateSubTab('analytics')}
         >
           <IconAnalytics size={16} />
           <span>System Analytics</span>
         </button>
         <button
-          className={`admin-tab-btn ${activeSubTab === 'users' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab('users')}
+          type="button"
+          className={`admin-tab-btn ${currentTab === 'users' ? 'active' : ''}`}
+          onClick={() => onNavigateSubTab && onNavigateSubTab('users')}
         >
           <IconUsers size={16} />
           <span>User Directory</span>
         </button>
         <button
-          className="admin-tab-btn"
-          onClick={onOpenClaimsDesk}
+          type="button"
+          className={`admin-tab-btn ${currentTab === 'claims' ? 'active' : ''}`}
+          onClick={() => onNavigateSubTab && onNavigateSubTab('claims')}
         >
           <IconShield size={16} />
-          <span>Claims Verification Desk</span>
+          <span>Claims Verification</span>
         </button>
         <button
-          className={`admin-tab-btn ${activeSubTab === 'audit' ? 'active' : ''}`}
-          onClick={() => onNavigateSubTab('audit')}
+          type="button"
+          className={`admin-tab-btn ${currentTab === 'audit' ? 'active' : ''}`}
+          onClick={() => onNavigateSubTab && onNavigateSubTab('audit')}
         >
           <IconAudit size={16} />
           <span>Compliance Audit</span>
@@ -178,7 +187,7 @@ export default function AdminHubPage({
       )}
 
       {/* Subtab View 1: Analytics */}
-      {activeSubTab === 'analytics' && (
+      {currentTab === 'analytics' && (
         <div style={{ marginTop: '20px' }}>
           {loadingDashboard ? (
             <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -329,7 +338,7 @@ export default function AdminHubPage({
       )}
 
       {/* Subtab View 2: User Directory */}
-      {activeSubTab === 'users' && (
+      {currentTab === 'users' && (
         <div className="glass-panel" style={{ padding: '24px', marginTop: '20px' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '4px' }}>
             Campus User Directory
@@ -396,8 +405,15 @@ export default function AdminHubPage({
         </div>
       )}
 
-      {/* Subtab View 3: Audit Trail */}
-      {activeSubTab === 'audit' && (
+      {/* Subtab View 3: Claims Verification Desk */}
+      {currentTab === 'claims' && (
+        <div style={{ marginTop: '20px' }}>
+          <ClaimsCenterPage embedded={true} onOpenReport={onOpenReport} />
+        </div>
+      )}
+
+      {/* Subtab View 4: Audit Trail */}
+      {currentTab === 'audit' && (
         <div className="glass-panel" style={{ padding: '24px', marginTop: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
             <div>

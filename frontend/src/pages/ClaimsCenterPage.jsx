@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { IconAlert } from '../components/Icons';
 
 export default function ClaimsCenterPage({
+  embedded = false,
   onOpenReport,
   _onViewProfile,
 }) {
@@ -144,19 +145,21 @@ export default function ClaimsCenterPage({
 
   return (
     <div className="claims-center-page">
-      {/* Page Header */}
-      <div className="glass-panel claims-header-card">
-        <div>
-          <h2 className="claims-heading">
-            {isAdmin ? 'Claims Verification & Oversight Desk' : 'Claims & Handover Center'}
-          </h2>
-          <p className="claims-subheading">
-            {isAdmin
-              ? 'Double-blind ownership verification, priority queue ordering, and dispute management.'
-              : 'Track ownership claims, verification queue status, and coordinate safe campus handovers.'}
-          </p>
+      {/* Page Header (Omitted when embedded inside AdminHub) */}
+      {!embedded && (
+        <div className="glass-panel claims-header-card">
+          <div>
+            <h2 className="claims-heading">
+              {isAdmin ? 'Claims Verification & Oversight Desk' : 'Claims & Handover Center'}
+            </h2>
+            <p className="claims-subheading">
+              {isAdmin
+                ? 'Double-blind ownership verification, priority queue ordering, and dispute management.'
+                : 'Track ownership claims, verification queue status, and coordinate safe campus handovers.'}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Filter Tabs for Admin */}
       {isAdmin && (

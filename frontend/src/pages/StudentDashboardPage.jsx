@@ -74,6 +74,10 @@ export default function StudentDashboardPage({
     action_required_claims_count: 0,
   };
 
+  const activeReports = data?.active_reports || [];
+  const recoveredReports = data?.recovered_reports || [];
+  const filedClaims = data?.my_claims || data?.filed_claims || [];
+
   return (
     <div className="dashboard-page-container">
       {/* Student Banner */}
@@ -168,13 +172,13 @@ export default function StudentDashboardPage({
           {/* Active Reports Tab */}
           {activeTab === 'active' && (
             <div className="dashboard-list">
-              {data.active_reports.length === 0 ? (
+              {activeReports.length === 0 ? (
                 <div className="glass-panel empty-reports-box">
                   <h4>No active reports found</h4>
                   <p>You currently have no open lost or found reports on campus.</p>
                 </div>
               ) : (
-                data.active_reports.map((rep) => (
+                activeReports.map((rep) => (
                   <div key={rep.id} className="dash-item-card glass-panel">
                     <div className="dash-item-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -219,13 +223,13 @@ export default function StudentDashboardPage({
           {/* Recovered History Tab */}
           {activeTab === 'recovered' && (
             <div className="dashboard-list">
-              {data.recovered_reports.length === 0 ? (
+              {recoveredReports.length === 0 ? (
                 <div className="glass-panel empty-reports-box">
                   <h4>No recovered reports yet</h4>
                   <p>Items you successfully recover or mark resolved will be archived here.</p>
                 </div>
               ) : (
-                data.recovered_reports.map((rep) => (
+                recoveredReports.map((rep) => (
                   <div key={rep.id} className="dash-item-card glass-panel" style={{ borderLeft: '4px solid #10B981' }}>
                     <div className="dash-item-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -252,123 +256,129 @@ export default function StudentDashboardPage({
           {/* Claims Tab */}
           {activeTab === 'claims' && (
             <div className="dashboard-list">
-              {data.filed_claims.length === 0 ? (
+              {filedClaims.length === 0 ? (
                 <div className="glass-panel empty-reports-box">
                   <h4>No claims filed</h4>
                   <p>When you spot a found item that belongs to you and claim it, status updates will show here.</p>
                 </div>
               ) : (
-                data.filed_claims.map((claim) => (
-                  <div key={claim.id} className="dash-item-card glass-panel">
-                    <div className="dash-item-header">
-                      <div>
-                        <h4>Claim #{claim.id} &mdash; Report #{claim.report_id}</h4>
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
-                          <span
-                            className={`badge ${
-                              claim.status === 'approved'
-                                ? 'badge-success'
-                                : claim.status === 'rejected'
-                                ? 'badge-danger'
-                                : claim.status === 'more_info_needed'
-                                ? 'badge-warning'
-                                : 'badge-info'
-                            }`}
-                          >
-                            {claim.status.replace(/_/g, ' ').toUpperCase()}
-                          </span>
-                          {claim.queue_position && (
-                            <span className="badge badge-info">
-                              Queue: #{claim.queue_position}
+                filedClaims.map((claim) => {
+                  const needsInfo = claim.status === 'awaiting_info' || claim.status === 'more_info_needed';
+                  const isApproved = claim.status === 'approved';
+                  const needsReceipt = isApproved && !claim.owner_confirmed_receipt && !claim.receipt_confirmed;
+
+                  return (
+                    <div key={claim.id} className="dash-item-card glass-panel">
+                      <div className="dash-item-header">
+                        <div>
+                          <h4>Claim #{claim.id} &mdash; Report #{claim.report_id}</h4>
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                            <span
+                              className={`badge ${
+                                isApproved
+                                  ? 'badge-success'
+                                  : claim.status === 'rejected'
+                                  ? 'badge-danger'
+                                  : needsInfo
+                                  ? 'badge-warning'
+                                  : 'badge-info'
+                              }`}
+                            >
+                              {claim.status.replace(/_/g, ' ').toUpperCase()}
                             </span>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => onOpenReport(claim.report_id)}
-                      >
-                        Inspect Report
-                      </button>
-                    </div>
-
-                    <div style={{ margin: '10px 0', fontSize: '0.88rem' }}>
-                      <strong>Your Submitted Proof:</strong> {claim.ownership_proof}
-                    </div>
-
-                    {claim.admin_notes && (
-                      <div
-                        style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          borderLeft: '3px solid var(--accent)',
-                          padding: '8px 12px',
-                          margin: '8px 0',
-                          fontSize: '0.85rem',
-                        }}
-                      >
-                        <strong>Administrator Note:</strong> {claim.admin_notes}
-                      </div>
-                    )}
-
-                    {/* Needs info prompt */}
-                    {claim.status === 'more_info_needed' && (
-                      <div style={{ margin: '12px 0', padding: '12px', background: 'rgba(245,158,11,0.08)', borderRadius: '8px' }}>
-                        <p style={{ fontSize: '0.85rem', color: '#FCD34D', marginBottom: '8px' }}>
-                          The administration requires additional ownership details before approving this claim.
-                        </p>
-                        {activeRespondId === claim.id ? (
-                          <div>
-                            <textarea
-                              rows="3"
-                              className="form-input"
-                              placeholder="Provide additional details or serial numbers..."
-                              value={additionalText}
-                              onChange={(e) => setAdditionalText(e.target.value)}
-                            />
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                              <button
-                                className="btn btn-primary btn-sm"
-                                disabled={responding}
-                                onClick={() => handleRespond(claim.id)}
-                              >
-                                {responding ? 'Submitting...' : 'Submit Response'}
-                              </button>
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => setActiveRespondId(null)}
-                              >
-                                Cancel
-                              </button>
-                            </div>
+                            {claim.queue_position && (
+                              <span className="badge badge-info">
+                                Queue: #{claim.queue_position}
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <button
-                            className="btn btn-warning btn-sm"
-                            onClick={() => setActiveRespondId(claim.id)}
-                          >
-                            Respond to Administrator
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Approved Handover confirmation */}
-                    {claim.status === 'approved' && !claim.receipt_confirmed && (
-                      <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(16,185,129,0.08)', borderRadius: '8px' }}>
-                        <p style={{ fontSize: '0.85rem', color: '#6EE7B7', marginBottom: '8px' }}>
-                          Claim verified! When you meet the finder and physically collect your item, confirm below.
-                        </p>
+                        </div>
                         <button
-                          className="btn btn-primary btn-sm"
-                          disabled={confirmingReceiptId === claim.id}
-                          onClick={() => handleConfirmReceipt(claim.id)}
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => onOpenReport(claim.report_id)}
                         >
-                          {confirmingReceiptId === claim.id ? 'Confirming...' : 'Confirm Item Handover Receipt'}
+                          Inspect Report
                         </button>
                       </div>
-                    )}
-                  </div>
-                ))
+
+                      <div style={{ margin: '10px 0', fontSize: '0.88rem' }}>
+                        <strong>Your Submitted Proof:</strong> {claim.ownership_proof}
+                      </div>
+
+                      {claim.admin_notes && (
+                        <div
+                          style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            borderLeft: '3px solid var(--primary)',
+                            padding: '8px 12px',
+                            margin: '8px 0',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          <strong>Administrator Note:</strong> {claim.admin_notes}
+                        </div>
+                      )}
+
+                      {/* Needs info prompt */}
+                      {needsInfo && (
+                        <div style={{ margin: '12px 0', padding: '12px', background: 'rgba(245,158,11,0.08)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.25)' }}>
+                          <p style={{ fontSize: '0.85rem', color: '#FCD34D', marginBottom: '8px' }}>
+                            The administration requires additional ownership details before approving this claim.
+                          </p>
+                          {activeRespondId === claim.id ? (
+                            <div>
+                              <textarea
+                                rows="3"
+                                className="form-input"
+                                placeholder="Provide additional details or serial numbers..."
+                                value={additionalText}
+                                onChange={(e) => setAdditionalText(e.target.value)}
+                              />
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  disabled={responding}
+                                  onClick={() => handleRespond(claim.id)}
+                                >
+                                  {responding ? 'Submitting...' : 'Submit Response'}
+                                </button>
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => setActiveRespondId(null)}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              className="btn btn-warning btn-sm"
+                              onClick={() => setActiveRespondId(claim.id)}
+                            >
+                              Respond to Administrator
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Approved Handover confirmation */}
+                      {needsReceipt && (
+                        <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(16,185,129,0.08)', borderRadius: '8px', border: '1px solid rgba(16,185,129,0.25)' }}>
+                          <p style={{ fontSize: '0.85rem', color: '#6EE7B7', marginBottom: '8px' }}>
+                            Claim verified! When you meet the finder and physically collect your item, confirm below.
+                          </p>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            disabled={confirmingReceiptId === claim.id}
+                            onClick={() => handleConfirmReceipt(claim.id)}
+                          >
+                            {confirmingReceiptId === claim.id ? 'Confirming...' : 'Confirm Item Handover Receipt'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           )}

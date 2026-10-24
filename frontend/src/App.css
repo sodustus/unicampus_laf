@@ -988,7 +988,7 @@ textarea.form-input {
 
 .btn-sm {
   padding: 6px 12px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .owner-quick-actions {
@@ -997,23 +997,25 @@ textarea.form-input {
 }
 
 .btn-recover {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.28);
 }
 
 .btn-recover:hover {
-  background: rgba(16, 185, 129, 0.25);
+  background: var(--accent-emerald);
+  color: #FFFFFF;
 }
 
 .btn-delete {
-  background: rgba(239, 68, 68, 0.15);
-  color: #F87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--accent-rose);
+  border: 1px solid rgba(239, 68, 68, 0.28);
 }
 
 .btn-delete:hover {
-  background: rgba(239, 68, 68, 0.25);
+  background: var(--accent-rose);
+  color: #FFFFFF;
 }
 
 /* Detail Modal */
@@ -1109,7 +1111,8 @@ textarea.form-input {
 
 .empty-title {
   font-size: 1.125rem;
-  color: #FFF;
+  color: var(--text-main);
+  font-weight: 700;
 }
 
 .empty-subtitle {
@@ -1223,8 +1226,8 @@ textarea.form-input {
 }
 
 .claim-card {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
   border-radius: var(--radius-md);
   padding: 18px;
   display: flex;
@@ -1247,7 +1250,7 @@ textarea.form-input {
 .claim-card-title {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #FFF;
+  color: var(--text-main);
   margin-bottom: 4px;
 }
 
@@ -1468,35 +1471,42 @@ textarea.form-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 10px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
   overflow-x: auto;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .dashboard-tab {
-  padding: 6px 14px;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.84rem;
   font-weight: 500;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
 .dashboard-tab:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFF;
+  color: var(--text-main);
+  background: var(--btn-secondary-bg);
+  border-color: var(--border-subtle);
 }
 
 .dashboard-tab.active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #FFF;
+  color: #FFFFFF;
   font-weight: 600;
+  box-shadow: 0 2px 10px var(--primary-glow);
 }
 
 .dashboard-content-body {
@@ -1513,18 +1523,19 @@ textarea.form-input {
 }
 
 .dash-item-card {
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
   border-radius: var(--radius-sm);
-  padding: 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: border-color 0.2s ease;
+  gap: 10px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .dash-item-card:hover {
   border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
 }
 
 .dash-item-card.recovered-border {
@@ -1541,7 +1552,7 @@ textarea.form-input {
 .dash-item-header h4 {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #FFF;
+  color: var(--text-main);
 }
 
 .dash-item-desc {
@@ -2153,6 +2164,50 @@ textarea.form-input {
   gap: 20px;
 }
 
+/* Unified Page Banner / Header Cards */
+.dashboard-header-card,
+.admin-header-card,
+.claims-header-card,
+.profile-header-card {
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.dashboard-header-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dashboard-main-title,
+.admin-main-title,
+.claims-heading,
+.profile-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+
+.dashboard-main-subtitle,
+.admin-main-subtitle,
+.claims-subheading,
+.profile-subheading {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
 .footer-bar {
   padding: 16px 28px;
   border-top: 1px solid var(--border-subtle);
@@ -2440,34 +2495,48 @@ textarea.form-input {
   gap: 18px;
 }
 
-.claims-filter-pills {
+.claims-filter-pills,
+.claims-filter-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
-.claims-pill {
-  padding: 6px 14px;
-  border-radius: 9999px;
-  font-size: 0.8rem;
+.claims-pill,
+.claims-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
   font-weight: 500;
-  border: 1px solid var(--border-subtle);
-  background: var(--btn-secondary-bg);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
-.claims-pill:hover {
-  background: rgba(59, 130, 246, 0.1);
+.claims-pill:hover,
+.claims-tab-btn:hover {
   color: var(--text-main);
+  background: var(--btn-secondary-bg);
+  border-color: var(--border-subtle);
 }
 
-.claims-pill.active {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: var(--primary);
+.claims-pill.active,
+.claims-tab-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
   font-weight: 600;
+  box-shadow: 0 2px 10px var(--primary-glow);
 }
 
 /* Admin Console Hub Table */
@@ -2591,6 +2660,16 @@ textarea.form-input {
   .page-body {
     padding: 16px;
     gap: 16px;
+  }
+
+  .dashboard-header-card,
+  .admin-header-card,
+  .claims-header-card,
+  .profile-header-card {
+    padding: 18px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 }
 
