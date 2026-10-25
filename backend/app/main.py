@@ -10,8 +10,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Campus Lost & Found Management System API (Internal v8.0 / Demo v2.0)",
-    version="8.0.0",
+    description="Campus Lost & Found Management System API (Internal v8.1 / Demo v2.1)",
+    version="8.1.0",
 )
 
 # CORS Middleware setup
@@ -40,8 +40,8 @@ app.include_router(admin.router)
 def root():
     return {
         "message": "Welcome to Campus Lost & Found Management System API",
-        "internal_version": "v8.0",
-        "display_version": "Demo v2.0",
+        "internal_version": settings.INTERNAL_VERSION,
+        "display_version": settings.DISPLAY_VERSION,
         "docs": "/docs",
         "health": "/health",
     }

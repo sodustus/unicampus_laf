@@ -101,7 +101,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
             <h1 className="guest-hero-heading" style={{ margin: 0 }}>UniCampus LAF</h1>
             <span className="badge badge-info" style={{ fontSize: '0.74rem', padding: '3px 9px', fontWeight: 700 }}>
-              Demo v2.0
+              Demo v2.1
             </span>
           </div>
 
@@ -312,7 +312,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
 
       {/* Hero Page Footer */}
       <footer className="guest-hero-footer">
-        <p>Demo v2.0 &bull; built by Abdurezak Anwar, 2026</p>
+        <p>Demo v2.1 &bull; built by Abdurezak Anwar, 2026</p>
       </footer>
     </div>
   );

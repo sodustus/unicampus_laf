@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.main import app
 from app.db.session import SessionLocal
 from app.models.category import Category
@@ -70,6 +70,24 @@ def test_create_lost_and_found_reports():
     )
     assert res_found.status_code == 201
     assert res_found.json()["type"] == "found"
+
+    # 3. Disallow Future Item Date
+    future_date = (datetime.now(timezone.utc) + timedelta(days=2)).isoformat()
+    future_payload = {
+        "type": "lost",
+        "title": "Future Item",
+        "description": "Item claimed to be lost in the future.",
+        "category_id": category_id,
+        "location": "Main Library",
+        "item_date": future_date,
+    }
+    res_future = client.post(
+        "/reports",
+        json=future_payload,
+        headers={"Authorization": f"Bearer {student_token}"},
+    )
+    assert res_future.status_code == 400
+    assert "future" in res_future.json()["detail"].lower()
 
 
 def test_report_detail_and_privacy_boundary():

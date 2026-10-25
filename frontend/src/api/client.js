@@ -405,3 +405,15 @@ export async function fetchUserProfile(userId, token) {
   if (!res.ok) throw new Error(data.detail || 'Failed to load user profile');
   return data;
 }
+
+export async function fetchAdminUserActivity(userId, token) {
+  const res = await fetch(`${BASE_URL}/admin/users/${userId}/activity`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json',
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Failed to load user activity');
+  return data;
+}

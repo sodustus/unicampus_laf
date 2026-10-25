@@ -162,7 +162,5 @@ run_app.bat
 run_app.ps1
 uploads/
 
-project_architecture_and_study_guide.md
-UniCampus _ Lost & Found System v7.1.html
-UniCampus _ Lost & Found System v7.1_files/
-*_files/
+*.lnk
+scratch/

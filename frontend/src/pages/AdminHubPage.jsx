@@ -3,26 +3,29 @@ import {
   fetchAdminDashboard,
   fetchAdminUsers,
   toggleUserActive,
-  moderateReport,
   fetchAuditLogs,
+  permanentDeleteReport,
 } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { IconAlert, IconCheck } from '../components/Icons';
+import { IconAlert } from '../components/Icons';
 import ClaimsCenterPage from './ClaimsCenterPage';
+import ActionDialogModal from '../components/ActionDialogModal';
+import AdminUserDetailModal from '../components/AdminUserDetailModal';
 
 export default function AdminHubPage({
   activeSubTab = 'analytics',
   initialTab,
-  _onNavigateSubTab,
   onOpenReport,
   onRestoreReport,
-  _onOpenClaimsDesk,
   onViewProfile,
 }) {
   const { token } = useAuth();
   const currentTab = ['analytics', 'users', 'claims', 'audit', 'deleted'].includes(activeSubTab)
     ? activeSubTab
     : (['analytics', 'users', 'claims', 'audit', 'deleted'].includes(initialTab) ? initialTab : 'analytics');
+
+  const [dialogConfig, setDialogConfig] = useState(null);
+  const [selectedUserActivityId, setSelectedUserActivityId] = useState(null);
 
   // Overview data
   const [dashboardData, setDashboardData] = useState(null);
@@ -36,13 +39,6 @@ export default function AdminHubPage({
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const [auditActionFilter, setAuditActionFilter] = useState('');
-
-  // Moderation state
-  const [moderateReportId, setModerateReportId] = useState('');
-  const [moderateStatus, setModerateStatus] = useState('closed');
-  const [moderationReason, setModerationReason] = useState('');
-  const [moderating, setModerating] = useState(false);
-  const [modSuccess, setModSuccess] = useState('');
 
   const [error, setError] = useState('');
 
@@ -87,7 +83,6 @@ export default function AdminHubPage({
 
   useEffect(() => {
     setError('');
-    setModSuccess('');
     if (currentTab === 'analytics') loadDashboard();
     if (currentTab === 'users') loadUsers();
     if (currentTab === 'audit') loadAudit();
@@ -102,23 +97,6 @@ export default function AdminHubPage({
     }
   };
 
-  const handleModerate = async (e) => {
-    e.preventDefault();
-    if (!moderateReportId || !moderationReason.trim()) return;
-    setModerating(true);
-    setModSuccess('');
-    try {
-      await moderateReport(parseInt(moderateReportId), moderateStatus, moderationReason.trim(), token);
-      setModSuccess(`Report #${moderateReportId} successfully moderated to '${moderateStatus}'.`);
-      setModerateReportId('');
-      setModerationReason('');
-      loadDashboard();
-    } catch (err) {
-      alert(err.message || 'Failed to moderate report');
-    } finally {
-      setModerating(false);
-    }
-  };
 
   const stats = dashboardData?.stats || {
     total_reports: 0,
@@ -141,14 +119,6 @@ export default function AdminHubPage({
           <p className="admin-main-subtitle">
             Enterprise management hub for campus reports, compliance auditing, user roles, and system oversight.
           </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="badge badge-info" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {currentTab === 'analytics' && 'System Analytics'}
-            {currentTab === 'users' && 'User Directory'}
-            {currentTab === 'claims' && 'Claims Verification'}
-            {currentTab === 'audit' && 'Compliance Audit'}
-          </span>
         </div>
       </div>
 
@@ -199,63 +169,6 @@ export default function AdminHubPage({
                 </div>
               </div>
 
-              {/* Moderation Box */}
-              <div className="glass-panel" style={{ padding: '24px', marginTop: '20px' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '6px' }}>
-                  Quick Report Moderation
-                </h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                  Close, flag, or resolve inappropriate or duplicate campus listings with an immutable audit entry.
-                </p>
-
-                {modSuccess && (
-                  <div className="alert-success" style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconCheck size={16} />
-                    <span>{modSuccess}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleModerate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr auto', gap: '12px', alignItems: 'flex-end' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Report ID</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      placeholder="e.g. 280"
-                      value={moderateReportId}
-                      onChange={(e) => setModerateReportId(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Target Status</label>
-                    <select
-                      className="form-input"
-                      value={moderateStatus}
-                      onChange={(e) => setModerateStatus(e.target.value)}
-                    >
-                      <option value="closed">Closed</option>
-                      <option value="active">Active (Restore)</option>
-                      <option value="recovered">Recovered</option>
-                    </select>
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label>Mandatory Audit Reason</label>
-                    <input
-                      id="moderationReasonInput"
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g. Duplicate listing of #14 / Policy violation"
-                      value={moderationReason}
-                      onChange={(e) => setModerationReason(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="btn btn-primary" disabled={moderating}>
-                    {moderating ? 'Applying...' : 'Apply Action'}
-                  </button>
-                </form>
-              </div>
 
               {/* Recent Reports Table */}
               <div className="glass-panel" style={{ padding: '24px', marginTop: '20px' }}>
@@ -308,32 +221,14 @@ export default function AdminHubPage({
                             </td>
                             <td>{new Date(rep.item_date).toLocaleDateString()}</td>
                             <td>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button
-                                  type="button"
-                                  className="btn btn-secondary btn-sm"
-                                  onClick={() => onOpenReport(rep.id)}
-                                  title="Inspect report details"
-                                >
-                                  Inspect
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn btn-primary btn-sm"
-                                  onClick={() => {
-                                    setModerateReportId(String(rep.id));
-                                    setModerateStatus(rep.status === 'active' ? 'closed' : 'active');
-                                    const el = document.getElementById('moderationReasonInput');
-                                    if (el) {
-                                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                      el.focus();
-                                    }
-                                  }}
-                                  title="Select this report for administrative moderation"
-                                >
-                                  Moderate
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => onOpenReport(rep.id)}
+                                title="Inspect report details"
+                              >
+                                Inspect
+                              </button>
                             </td>
                           </tr>
                         ))
@@ -381,7 +276,33 @@ export default function AdminHubPage({
                   {users.map((u) => (
                     <tr key={u.id}>
                       <td>#{u.id}</td>
-                      <td style={{ fontWeight: 700 }}>{u.full_name || u.email?.split('@')[0] || 'Campus Member'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="user-profile-link-btn"
+                          onClick={() => setSelectedUserActivityId(u.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            margin: 0,
+                            color: '#60A5FA',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            textDecoration: 'none',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                          title="Click to inspect user activity, reports, and claims"
+                        >
+                          {u.full_name || u.email?.split('@')[0] || 'Campus Member'}
+                        </button>
+                      </td>
                       <td>{u.email}</td>
                       <td>{u.department || 'Undeclared'}</td>
                       <td>
@@ -397,14 +318,24 @@ export default function AdminHubPage({
                         </span>
                       </td>
                       <td>
-                        {u.role !== 'admin' && (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <button
-                            className={`btn btn-sm ${u.is_active ? 'btn-delete' : 'btn-primary'}`}
-                            onClick={() => handleToggleActive(u.id)}
+                            type="button"
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => setSelectedUserActivityId(u.id)}
+                            title="Inspect user activity and profile"
                           >
-                            {u.is_active ? 'Deactivate' : 'Activate'}
+                            Activity
                           </button>
-                        )}
+                          {u.role !== 'admin' && (
+                            <button
+                              className={`btn btn-sm ${u.is_active ? 'btn-delete' : 'btn-primary'}`}
+                              onClick={() => handleToggleActive(u.id)}
+                            >
+                              {u.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -566,6 +497,30 @@ export default function AdminHubPage({
                           >
                             Restore Report
                           </button>
+                          <button
+                            type="button"
+                            className="btn btn-delete btn-sm"
+                            onClick={() => {
+                              setDialogConfig({
+                                title: 'Permanently Purge Listing',
+                                message: `Are you sure you want to permanently delete Report #${r.id} ("${r.title}") from the campus database? This action cannot be undone and will purge all associated records.`,
+                                confirmLabel: 'Permanently Delete',
+                                confirmVariant: 'danger',
+                                onConfirm: async () => {
+                                  setDialogConfig(null);
+                                  try {
+                                    await permanentDeleteReport(r.id, token);
+                                    loadDashboard();
+                                  } catch (err) {
+                                    alert(err.message || 'Failed to permanently delete report');
+                                  }
+                                },
+                              });
+                            }}
+                            title="Permanently remove report from database"
+                          >
+                            Permanently Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -576,6 +531,20 @@ export default function AdminHubPage({
           )}
         </div>
       )}
+
+      {selectedUserActivityId && (
+        <AdminUserDetailModal
+          userId={selectedUserActivityId}
+          onClose={() => setSelectedUserActivityId(null)}
+          onOpenReport={onOpenReport}
+        />
+      )}
+
+      <ActionDialogModal
+        isOpen={Boolean(dialogConfig)}
+        {...dialogConfig}
+        onClose={() => setDialogConfig(null)}
+      />
     </div>
   );
 }

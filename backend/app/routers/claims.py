@@ -623,10 +623,10 @@ def flag_handover_failed(
 def repost_report_after_handover_failure(
     claim_id: int,
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
 ):
     """
-    Admin-only: Repost/reactivate report for new claims after a failed handover or rejected claim.
+    Admin or Report Owner: Repost/reactivate report for new claims after a failed handover or rejected claim.
     """
     claim = db.query(Claim).filter(Claim.id == claim_id).first()
     if not claim:
@@ -635,6 +635,15 @@ def repost_report_after_handover_failure(
     report = claim.report
     if not report:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Associated report not found.")
+
+    is_admin = current_user.role == UserRole.ADMIN.value
+    is_owner = report.owner_id == current_user.id
+
+    if not (is_admin or is_owner):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to reactivate this report.",
+        )
 
     report.status = ReportStatus.ACTIVE.value
     if report.type == ReportType.LOST.value:
@@ -645,13 +654,14 @@ def repost_report_after_handover_failure(
 
     report.updated_at = datetime.now(timezone.utc)
 
+    actor_label = "Admin" if is_admin else "Report Owner"
     log_audit(
         db=db,
         action="REPORT_REPOSTED",
         target_type="report",
         target_id=report.id,
-        actor_id=admin_user.id,
-        details=f"Report #{report.id} ({report.title}) reposted for new claims after Claim #{claim.id} failed.",
+        actor_id=current_user.id,
+        details=f"Report #{report.id} ({report.title}) reposted for new claims after Claim #{claim.id} failed by {actor_label} ({current_user.email}).",
     )
     db.commit()
     db.refresh(claim)

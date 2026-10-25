@@ -160,20 +160,22 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
               Where is the item right now? <span className="req-star">*</span>
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
               <label
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 12px',
+                  gap: '10px',
+                  padding: '10px 14px',
                   borderRadius: '6px',
                   border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                   background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
-                  fontSize: '0.84rem',
+                  fontSize: '0.88rem',
                   fontWeight: 500,
                   transition: 'all 0.2s ease',
+                  width: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 <input
@@ -190,15 +192,17 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 12px',
+                  gap: '10px',
+                  padding: '10px 14px',
                   borderRadius: '6px',
                   border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                   background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
                   cursor: 'pointer',
-                  fontSize: '0.84rem',
+                  fontSize: '0.88rem',
                   fontWeight: 500,
                   transition: 'all 0.2s ease',
+                  width: '100%',
+                  boxSizing: 'border-box',
                 }}
               >
                 <input
@@ -247,29 +251,39 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               </div>
 
               {/* Optional Checkbox for Owner to contact finder */}
-              <div style={{ marginTop: '10px' }}>
+              <div style={{ marginTop: '8px' }}>
                 <label
                   style={{
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     gap: '8px',
                     cursor: 'pointer',
-                    fontSize: '0.84rem',
-                    color: '#E2E8F0',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    padding: '8px 10px',
-                    borderRadius: '6px',
+                    fontSize: '0.78rem',
+                    color: '#CBD5E1',
+                    background: 'rgba(255, 255, 255, 0.02)',
+                    padding: '5px 9px',
+                    borderRadius: '5px',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
+                    lineHeight: 1.35,
                   }}
                 >
                   <input
                     type="checkbox"
                     checked={allowOwnerDirectContact}
                     onChange={(e) => setAllowOwnerDirectContact(e.target.checked)}
-                    style={{ marginTop: '3px' }}
+                    style={{
+                      width: '14px',
+                      height: '14px',
+                      minWidth: '14px',
+                      minHeight: '14px',
+                      margin: 0,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      accentColor: '#38BDF8',
+                    }}
                   />
                   <span>
-                    <strong>Allow owner to contact me via phone:</strong> Check this if you are comfortable with the owner reaching out to your phone number if they have questions about where you deposited it.
+                    <strong style={{ color: '#F1F5F9' }}>Allow owner phone contact:</strong> Permit the owner to call if they have questions about where you deposited it.
                   </span>
                 </label>
               </div>

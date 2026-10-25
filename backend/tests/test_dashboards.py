@@ -87,3 +87,20 @@ def test_user_and_admin_dashboards():
     )
     assert res_mod.status_code == 200
     assert res_mod.json()["status"] == "closed"
+
+    # 7. Admin queries user activity (reports + claims inspection popup)
+    res_act = client.get(f"/admin/users/{student_id}/activity", headers={"Authorization": f"Bearer {admin_token}"})
+    assert res_act.status_code == 200
+    act_data = res_act.json()
+    assert "user" in act_data
+    assert act_data["user"]["id"] == student_id
+    assert "reports" in act_data
+    assert isinstance(act_data["reports"], list)
+    assert any(r["id"] == report_id for r in act_data["reports"])
+    assert "claims" in act_data
+    assert isinstance(act_data["claims"], list)
+
+    # 8. Student unauthorized from querying other user activity
+    res_unauth_act = client.get(f"/admin/users/{student_id}/activity", headers={"Authorization": f"Bearer {student_token}"})
+    assert res_unauth_act.status_code == 403
+

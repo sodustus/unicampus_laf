@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
-import { IconClose, IconSearch, IconTag, IconMapPin, IconClock, IconShield } from './Icons';
+import { IconClose, IconSearch, IconTag, IconMapPin, IconClock, IconShield, IconAlert } from './Icons';
 
 export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onRestore, onClaim, onViewProfile, onFoundNotice }) {
   const { user, token, isAdmin } = useAuth();
@@ -305,7 +305,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     )}
 
                     <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#6EE7B7' }}>
-                      Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.
+                      {report.claim_status === 'completed' || report.possession_status === 'returned'
+                        ? 'Handover completed and item returned to verified owner. Official recovery certificate recorded.'
+                        : 'Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.'}
                     </p>
                   </div>
                 </div>
@@ -365,6 +367,30 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               )}
             </div>
 
+            {/* Previous Claim Rejected Notice */}
+            {report.type === 'found' && report.status === 'active' && !isOwner && !report.user_has_claimed && report.user_claim_status === 'rejected' && (
+              <div
+                style={{
+                  margin: '14px 0 6px 0',
+                  padding: '10px 14px',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.28)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '0.84rem',
+                  color: '#FCA5A5',
+                  lineHeight: 1.4,
+                }}
+              >
+                <IconAlert size={16} style={{ flexShrink: 0, color: '#F87171' }} />
+                <span>
+                  Previous claim rejected. You can try claiming again if you think this is a mistake.
+                </span>
+              </div>
+            )}
+
             <div className="modal-actions" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 {report.deleted_at ? (
@@ -397,7 +423,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={onClose}>
                   Close
                 </button>
@@ -414,6 +440,16 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                         }}
                       >
                         Confirm Receipt & Mark Recovered
+                      </button>
+                    ) : report.claim_status === 'completed' ? (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          onRecover(report);
+                          onClose();
+                        }}
+                      >
+                        Recovery Audit Record
                       </button>
                     ) : (
                       <button
@@ -469,17 +505,29 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 )}
 
                 {report.type === 'lost' && report.status === 'active' && !isOwner && !report.user_has_claimed && report.founder_id && (
-                  <span
-                    className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: '0.85rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {report.claim_status === 'approved' ? 'Handover Approved' : 'Verification Under Review'}
-                  </span>
+                  report.claim_status === 'completed' ? (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        onRecover(report);
+                        onClose();
+                      }}
+                    >
+                      Recovery Audit Record
+                    </button>
+                  ) : (
+                    <span
+                      className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '0.85rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {report.claim_status === 'approved' ? 'Handover Approved' : 'Verification Under Review'}
+                    </span>
+                  )
                 )}
 
                 {report.status === 'recovered' && (
@@ -496,22 +544,15 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
                 {/* Found Item Claim Action */}
                 {report.type === 'found' && report.status === 'active' && !isOwner && !report.user_has_claimed && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    {report.user_claim_status === 'rejected' && (
-                      <span style={{ fontSize: '0.8rem', color: '#93C5FD' }}>
-                        Previous claim rejected. You can try claiming again if you think this is a mistake.
-                      </span>
-                    )}
-                    <button
-                      className="btn btn-primary"
-                      onClick={() => {
-                        onClaim(report);
-                        onClose();
-                      }}
-                    >
-                      {report.user_claim_status === 'rejected' ? 'Try Claiming Again' : 'Claim This Item'}
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      onClaim(report);
+                      onClose();
+                    }}
+                  >
+                    {report.user_claim_status === 'rejected' ? 'Try Claiming Again' : 'Claim This Item'}
+                  </button>
                 )}
 
                 {report.type === 'found' && report.status === 'active' && !isOwner && report.user_has_claimed && (

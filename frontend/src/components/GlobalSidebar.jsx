@@ -55,7 +55,7 @@ export default function GlobalSidebar({
           <div className="sidebar-brand-meta">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="sidebar-title">UniCampus LAF</span>
-              <span className="badge badge-info" style={{ fontSize: '0.62rem', padding: '1px 6px', fontWeight: 700 }}>v2.0</span>
+              <span className="badge badge-info" style={{ fontSize: '0.62rem', padding: '1px 6px', fontWeight: 700 }}>v2.1</span>
             </div>
             <div className="sidebar-subtitle">Lost & Found System</div>
           </div>
