@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List, Optional
+from typing import List
 from datetime import datetime, timezone
 
 from app.db.session import get_db
 from app.core.dependencies import require_admin
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.models.report import Report, ReportStatus
 from app.models.claim import Claim
 from app.schemas.dashboard import AdminUserItem

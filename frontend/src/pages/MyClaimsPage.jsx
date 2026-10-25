@@ -6,7 +6,6 @@ import {
   IconAlert,
   IconClock,
   IconMapPin,
-  IconShield,
   IconCheck,
 } from '../components/Icons';
 

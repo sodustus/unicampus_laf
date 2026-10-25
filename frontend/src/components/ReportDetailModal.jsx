@@ -305,7 +305,9 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     )}
 
                     <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#6EE7B7' }}>
-                      Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.
+                      {report.claim_status === 'completed' || report.possession_status === 'returned'
+                        ? 'Handover completed and item returned to verified owner. Official recovery certificate recorded.'
+                        : 'Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.'}
                     </p>
                   </div>
                 </div>
@@ -415,6 +417,16 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       >
                         Confirm Receipt & Mark Recovered
                       </button>
+                    ) : report.claim_status === 'completed' ? (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          onRecover(report);
+                          onClose();
+                        }}
+                      >
+                        Recovery Audit Record
+                      </button>
                     ) : (
                       <button
                         className="btn btn-secondary"
@@ -469,17 +481,29 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 )}
 
                 {report.type === 'lost' && report.status === 'active' && !isOwner && !report.user_has_claimed && report.founder_id && (
-                  <span
-                    className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: '0.85rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {report.claim_status === 'approved' ? 'Handover Approved' : 'Verification Under Review'}
-                  </span>
+                  report.claim_status === 'completed' ? (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        onRecover(report);
+                        onClose();
+                      }}
+                    >
+                      Recovery Audit Record
+                    </button>
+                  ) : (
+                    <span
+                      className={`badge ${report.claim_status === 'approved' ? 'badge-success' : 'badge-warning'}`}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '0.85rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      {report.claim_status === 'approved' ? 'Handover Approved' : 'Verification Under Review'}
+                    </span>
+                  )
                 )}
 
                 {report.status === 'recovered' && (

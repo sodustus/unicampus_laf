@@ -130,7 +130,7 @@ export default function ClaimsCenterPage({
     }
   };
 
-  const handleRepostAfterFailure = (reportId) => {
+  const handleRepostAfterFailure = (claimId) => {
     setDialogConfig({
       title: 'Reactivate Campus Listing',
       message: 'Reactivate this report on the active campus feed to evaluate the next claimant in queue?',
@@ -140,7 +140,7 @@ export default function ClaimsCenterPage({
         setDialogConfig(null);
         setActionLoading(true);
         try {
-          await repostReportAfterFailedHandover(reportId, token);
+          await repostReportAfterFailedHandover(claimId, token);
           await loadClaims();
         } catch (err) {
           alert(err.message || 'Failed to repost report');
@@ -715,7 +715,7 @@ export default function ClaimsCenterPage({
                     <button
                       type="button"
                       className="btn btn-warning btn-sm"
-                      onClick={() => handleRepostAfterFailure(c.report_id)}
+                      onClick={() => handleRepostAfterFailure(c.id)}
                       disabled={actionLoading}
                     >
                       Reactivate Report & Evaluate Next Claimant in Queue

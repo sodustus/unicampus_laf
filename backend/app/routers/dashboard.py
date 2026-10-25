@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func
-from typing import List
 
 from app.db.session import get_db
 from app.core.dependencies import get_current_user, require_admin
