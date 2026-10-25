@@ -216,13 +216,13 @@ export default function MyClaimsPage({
                         <span
                           className="badge"
                           style={{
-                            background: c.queue_position === 1 ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(100, 116, 139, 0.35)',
-                            color: '#FFFFFF',
+                            background: c.queue_position === 1 ? 'var(--accent-gold-bg)' : 'var(--bg-elevated)',
+                            color: c.queue_position === 1 ? 'var(--accent-gold)' : 'var(--text-main)',
                             fontSize: '0.72rem',
                             fontWeight: 700,
                             padding: '2px 8px',
-                            borderRadius: '9999px',
-                            border: c.queue_position === 1 ? '1px solid #FBBF24' : '1px solid rgba(148, 163, 184, 0.3)',
+                            borderRadius: 'var(--radius)',
+                            border: c.queue_position === 1 ? '1px solid var(--accent-gold)' : '1px solid var(--border-subtle)',
                           }}
                         >
                           {c.queue_position === 1 ? 'Priority #1 in Queue' : `Queue Position #${c.queue_position}`}
@@ -258,20 +258,20 @@ export default function MyClaimsPage({
                 </div>
 
                 {/* Submitted Proof Section */}
-                <div style={{ marginTop: '14px', background: 'rgba(0, 0, 0, 0.25)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#38BDF8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <div style={{ marginTop: '14px', background: 'var(--bg-elevated)', padding: '12px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--border-subtle)' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     {isLostItemMatch ? 'Finder Custody Observation Proof:' : 'Your Submitted Ownership Proof:'}
                   </span>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap' }}>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
                     {c.verification_record?.proof_details || '(No details recorded)'}
                   </p>
 
                   {c.verification_record?.additional_info && (
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                      <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#FCD34D' }}>
+                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--accent-gold)' }}>
                         {isLostItemMatch ? 'Finder Custody & Location:' : 'Additional Proof Provided:'}
                       </span>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#CBD5E1' }}>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                         {c.verification_record.additional_info
                           .replace(/with_finder/gi, 'In Possession of Finder')
                           .replace(/submitted_to_authority/gi, 'Deposited with Campus Office')
@@ -283,12 +283,12 @@ export default function MyClaimsPage({
 
                 {/* ACTION REQUIRED: Admin Requested More Information */}
                 {c.status === 'awaiting_info' && (
-                  <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FCD34D', fontWeight: 700, fontSize: '0.9rem' }}>
+                  <div style={{ marginTop: '14px', padding: '14px', background: 'var(--accent-gold-bg)', border: '1px solid var(--accent-gold)', borderRadius: 'var(--radius)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)', fontWeight: 700, fontSize: '0.9rem' }}>
                       <IconAlert size={18} />
                       <span>Administrator Requested Additional Information</span>
                     </div>
-                    <p style={{ margin: '6px 0 10px 0', fontSize: '0.84rem', color: '#F1F5F9' }}>
+                    <p style={{ margin: '6px 0 10px 0', fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                       Please provide clarifying details, serial numbers, purchase receipts, or distinguishing marks to verify ownership.
                     </p>
 
@@ -337,13 +337,13 @@ export default function MyClaimsPage({
 
                 {/* APPROVED STATUS: Quick Handover Link */}
                 {c.status === 'approved' && (
-                  <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ marginTop: '14px', padding: '14px', background: 'var(--accent-found-bg)', border: '1px solid var(--accent-found)', borderRadius: 'var(--radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6EE7B7', fontWeight: 700, fontSize: '0.9rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-found)', fontWeight: 700, fontSize: '0.9rem' }}>
                         <IconCheck size={18} />
                         <span>Ownership Claim Verified & Approved!</span>
                       </div>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#CBD5E1' }}>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                         Official handover coordination slip generated with unmasked contact info.
                       </p>
                     </div>
@@ -362,20 +362,20 @@ export default function MyClaimsPage({
 
                 {/* REJECTED STATUS: Rejection Reason & Recovery Pipeline */}
                 {c.status === 'rejected' && (
-                  <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F87171', fontWeight: 700, fontSize: '0.9rem' }}>
+                  <div style={{ marginTop: '14px', padding: '14px', background: 'var(--accent-lost-bg)', border: '1px solid var(--accent-lost)', borderRadius: 'var(--radius)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-lost)', fontWeight: 700, fontSize: '0.9rem' }}>
                       <IconAlert size={18} />
                       <span>{isLostItemMatch ? 'Found Notice Rejected (Does Not Match Lost Item)' : 'Claim Rejected by Campus Administration'}</span>
                     </div>
 
                     {c.rejection_reason && (
-                      <div style={{ marginTop: '6px', fontSize: '0.84rem', color: '#FCA5A5', background: 'rgba(0, 0, 0, 0.25)', padding: '8px 12px', borderRadius: '6px' }}>
+                      <div style={{ marginTop: '6px', fontSize: '0.84rem', color: 'var(--accent-lost)', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', padding: '8px 12px', borderRadius: 'var(--radius)' }}>
                         <strong>Administrator Note:</strong> {c.rejection_reason}
                       </div>
                     )}
 
                     <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                      <span style={{ fontSize: '0.82rem', color: '#CBD5E1' }}>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                         {isLostItemMatch
                           ? 'If you have this item in physical custody, register it as a new found item so its true owner can search for it.'
                           : 'If you have stronger proof or believe this was an error, you can try claiming again.'}

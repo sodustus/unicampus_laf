@@ -9,12 +9,14 @@ import {
   IconClock,
   IconCheck,
   IconRefresh,
+  IconPlus,
 } from '../components/Icons';
 
 export default function MyReportsPage({
   onOpenReport,
   onRecoverReport,
   onDeleteReport,
+  onOpenReportModal,
 }) {
   const { token, user } = useAuth();
   const [reports, setReports] = useState([]);

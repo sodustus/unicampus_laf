@@ -75,17 +75,17 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 style={{
                   marginBottom: '16px',
                   padding: '14px 18px',
-                  borderRadius: '8px',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
-                  color: '#FCA5A5',
+                  borderRadius: 'var(--radius)',
+                  background: 'var(--accent-lost-bg)',
+                  border: '1px solid var(--accent-lost)',
+                  color: 'var(--accent-lost)',
                   fontSize: '0.9rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
                 }}
               >
-                <IconAlert size={20} style={{ flexShrink: 0, color: '#F87171' }} />
+                <IconAlert size={20} style={{ flexShrink: 0, color: 'var(--accent-lost)' }} />
                 <div>
                   <strong>Item Delisted / Concluded:</strong> This campus listing has been delisted (e.g. claimed and recovered by another party, or closed by administration).
                   {report.deletion_reason && <span> &bull; Reason: {report.deletion_reason}</span>}
@@ -157,10 +157,10 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       style={{
                         padding: '2px 8px',
                         fontSize: '0.8rem',
-                        color: '#93C5FD',
-                        background: 'rgba(59, 130, 246, 0.15)',
-                        border: '1px solid rgba(59, 130, 246, 0.3)',
-                        borderRadius: '4px',
+                        color: 'var(--text-main)',
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius)',
                         cursor: 'pointer',
                       }}
                       onClick={() => onViewProfile(report.owner_id)}
@@ -186,27 +186,15 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#93C5FD' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
                     PHYSICAL POSSESSION / CUSTODY
                   </span>
-                  <span
-                    className="badge"
-                    style={{
-                      background:
-                        report.possession_status === 'submitted_to_authority'
-                          ? 'rgba(168, 85, 247, 0.25)'
-                          : 'rgba(59, 130, 246, 0.25)',
-                      color:
-                        report.possession_status === 'submitted_to_authority'
-                          ? '#C084FC'
-                          : '#93C5FD',
-                    }}
-                  >
+                  <span className={`badge ${report.possession_status === 'submitted_to_authority' ? 'badge-info' : 'badge-warning'}`}>
                     {getPossessionLabel(report.possession_status)}
                   </span>
                 </div>
                 {report.possession_status === 'submitted_to_authority' && report.custody_location && (
-                  <p style={{ margin: '8px 0 0 0', fontSize: '0.88rem', color: '#E2E8F0' }}>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.88rem', color: 'var(--text-main)' }}>
                     <strong>Office Custody Location:</strong> {report.custody_location}
                   </p>
                 )}
@@ -223,29 +211,23 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               report.claim_status === 'approved' || report.claim_status === 'completed' ? (
                 <div
                   style={{
-                    background: 'rgba(16, 185, 129, 0.08)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    borderRadius: '8px',
+                    background: 'var(--accent-found-bg)',
+                    border: '1px solid var(--accent-found)',
+                    borderRadius: 'var(--radius)',
                     padding: '12px 16px',
                     margin: '14px 0',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#34D399' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-found)' }}>
                       OFFICIAL HANDOVER COORDINATION SLIP (ADMIN APPROVED)
                     </span>
-                    <span
-                      className="badge"
-                      style={{
-                        background: 'rgba(16, 185, 129, 0.25)',
-                        color: '#6EE7B7',
-                      }}
-                    >
+                    <span className="badge badge-success">
                       {getPossessionLabel(report.possession_status)}
                     </span>
                   </div>
 
-                  <div style={{ marginTop: '8px', fontSize: '0.88rem', color: '#E2E8F0' }}>
+                  <div style={{ marginTop: '8px', fontSize: '0.88rem', color: 'var(--text-main)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span>
                         <strong>Verified Finder:</strong>{' '}
@@ -258,10 +240,10 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                           style={{
                             padding: '2px 8px',
                             fontSize: '0.78rem',
-                            color: '#34D399',
-                            background: 'rgba(16, 185, 129, 0.15)',
-                            border: '1px solid rgba(16, 185, 129, 0.3)',
-                            borderRadius: '4px',
+                            color: 'var(--accent-found)',
+                            background: 'var(--accent-found-bg)',
+                            border: '1px solid var(--accent-found)',
+                            borderRadius: 'var(--radius)',
                             cursor: 'pointer',
                           }}
                           onClick={() => onViewProfile(report.founder_id)}
@@ -273,7 +255,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
 
                     {report.possession_status === 'submitted_to_authority' && report.custody_location && (
                       <div style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <p style={{ margin: 0, color: '#E2E8F0' }}>
+                        <p style={{ margin: 0, color: 'var(--text-main)' }}>
                           <strong>Office Custody Location:</strong> {report.custody_location}
                         </p>
                         {report.custody_location.match(/(\+?[0-9]{7,15})/) && (
@@ -293,18 +275,18 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                       <div
                         style={{
                           marginTop: '8px',
-                          background: 'rgba(0, 0, 0, 0.2)',
+                          background: 'var(--bg-elevated)',
                           padding: '8px 12px',
-                          borderRadius: '6px',
+                          borderRadius: 'var(--radius)',
                           fontStyle: 'italic',
-                          color: '#CBD5E1',
+                          color: 'var(--text-muted)',
                         }}
                       >
                         <strong>Finder Note:</strong> "{report.found_notes}"
                       </div>
                     )}
 
-                    <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#6EE7B7' }}>
+                    <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: 'var(--accent-found)' }}>
                       {report.claim_status === 'completed' || report.possession_status === 'returned'
                         ? 'Handover completed and item returned to verified owner. Official recovery certificate recorded.'
                         : 'Double-blind verification approved by campus administration. Contact details are unlocked to coordinate physical handover. The owner confirms receipt below to finalize recovery.'}
@@ -314,22 +296,22 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               ) : (
                 <div
                   style={{
-                    background: 'rgba(234, 179, 8, 0.08)',
-                    border: '1px solid rgba(234, 179, 8, 0.35)',
-                    borderRadius: '8px',
+                    background: 'var(--accent-gold-bg)',
+                    border: '1px solid var(--accent-gold)',
+                    borderRadius: 'var(--radius)',
                     padding: '12px 16px',
                     margin: '14px 0',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FBBF24' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
                       DOUBLE-BLIND VERIFICATION IN PROGRESS (ADMIN REVIEW)
                     </span>
                     <span className="badge badge-warning">
                       Pending Admin Review
                     </span>
                   </div>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: '#E2E8F0' }}>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     A student reported finding this item and submitted distinguishing physical proof. To protect against theft, campus administrators are currently comparing both explanations. Handover contact details will unlock once an administrator approves the match.
                   </p>
                 </div>
@@ -375,16 +357,18 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                   padding: '10px 14px',
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.28)',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                   fontSize: '0.84rem',
-                  color: '#FCA5A5',
+                  color: 'var(--accent-lost)',
+                  background: 'var(--accent-lost-bg)',
+                  border: '1px solid var(--accent-lost)',
                   lineHeight: 1.4,
                 }}
               >
-                <IconAlert size={16} style={{ flexShrink: 0, color: '#F87171' }} />
+                <IconAlert size={16} style={{ flexShrink: 0, color: 'var(--accent-lost)' }} />
                 <span>
                   Previous claim rejected. You can try claiming again if you think this is a mistake.
                 </span>
@@ -398,7 +382,6 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     <button
                       type="button"
                       className="btn btn-primary btn-sm"
-                      style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
                       onClick={() => {
                         if (onRestore) onRestore(report.id);
                         onClose();
@@ -433,7 +416,6 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     report.claim_status === 'approved' ? (
                       <button
                         className="btn btn-primary"
-                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
                         onClick={() => {
                           onRecover(report);
                           onClose();
@@ -478,7 +460,6 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 {report.type === 'lost' && report.status === 'active' && !isOwner && !report.founder_id && !report.user_has_claimed && (
                   <button
                     className="btn btn-primary"
-                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderColor: '#059669' }}
                     onClick={() => {
                       if (onFoundNotice) onFoundNotice(report);
                       onClose();

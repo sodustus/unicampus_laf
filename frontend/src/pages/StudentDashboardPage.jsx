@@ -114,8 +114,8 @@ export default function StudentDashboardPage({
 
       {/* Action Required Banner */}
       {stats.action_required_claims_count > 0 && (
-        <div style={{ marginTop: '16px', padding: '14px 18px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FCD34D', fontWeight: 700 }}>
+        <div style={{ marginTop: '16px', padding: '14px 18px', background: 'var(--accent-gold-bg)', border: '1px solid var(--accent-gold)', borderRadius: 'var(--radius)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)', fontWeight: 700 }}>
             <IconAlert size={20} />
             <span>Action Required: You have {stats.action_required_claims_count} claim(s) awaiting your additional information!</span>
           </div>
@@ -143,7 +143,7 @@ export default function StudentDashboardPage({
         <div className={`kpi-card ${activeTab === 'recovered' ? 'kpi-selected' : ''}`} onClick={() => setActiveTab('recovered')}>
           <div className="kpi-info">
             <span className="kpi-label">Recovered History</span>
-            <span className="kpi-val" style={{ color: '#34d399' }}>{stats.recovered_reports_count}</span>
+            <span className="kpi-val" style={{ color: 'var(--accent-found)' }}>{stats.recovered_reports_count}</span>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export default function StudentDashboardPage({
         <div className={`kpi-card ${activeTab === 'claims' ? 'kpi-selected' : ''}`} onClick={() => setActiveTab('claims')}>
           <div className="kpi-info">
             <span className="kpi-label">Requires Response</span>
-            <span className="kpi-val" style={{ color: stats.action_required_claims_count > 0 ? '#F59E0B' : '#10B981' }}>
+            <span className="kpi-val" style={{ color: stats.action_required_claims_count > 0 ? 'var(--accent-gold)' : 'var(--accent-found)' }}>
               {stats.action_required_claims_count}
             </span>
           </div>
@@ -261,7 +261,7 @@ export default function StudentDashboardPage({
                 </div>
               ) : (
                 recoveredReports.map((rep) => (
-                  <div key={rep.id} className="dash-item-card glass-panel" style={{ borderLeft: '4px solid #10B981' }}>
+                  <div key={rep.id} className="dash-item-card glass-panel" style={{ borderLeft: '3px solid var(--accent-found)' }}>
                     <div className="dash-item-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span className="badge badge-success">RECOVERED</span>
@@ -353,8 +353,8 @@ export default function StudentDashboardPage({
 
                       {/* Needs info prompt */}
                       {needsInfo && (
-                        <div style={{ margin: '12px 0', padding: '12px', background: 'rgba(245,158,11,0.08)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.25)' }}>
-                          <p style={{ fontSize: '0.85rem', color: '#FCD34D', marginBottom: '8px' }}>
+                        <div style={{ margin: '12px 0', padding: '12px', background: 'var(--accent-gold-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--accent-gold)' }}>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--accent-gold)', marginBottom: '8px', fontWeight: 600 }}>
                             The administration requires additional ownership details before approving this claim.
                           </p>
                           {activeRespondId === claim.id ? (
@@ -395,8 +395,8 @@ export default function StudentDashboardPage({
 
                       {/* Approved Handover confirmation */}
                       {needsReceipt && (
-                        <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(16,185,129,0.08)', borderRadius: '8px', border: '1px solid rgba(16,185,129,0.25)' }}>
-                          <p style={{ fontSize: '0.85rem', color: '#6EE7B7', marginBottom: '8px' }}>
+                        <div style={{ marginTop: '12px', padding: '12px', background: 'var(--accent-found-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--accent-found)' }}>
+                          <p style={{ fontSize: '0.85rem', color: 'var(--accent-found)', marginBottom: '8px', fontWeight: 600 }}>
                             Claim verified! When you meet the finder and physically collect your item, confirm below.
                           </p>
                           <button

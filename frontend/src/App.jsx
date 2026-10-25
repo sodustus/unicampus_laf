@@ -29,9 +29,9 @@ import RecoveryDetailModal from './components/RecoveryDetailModal';
 import ProfileModal from './components/ProfileModal';
 import ActionDialogModal from './components/ActionDialogModal';
 
-// Architecture Version: v8.1 | Public Display: Demo v2.1
-export const APP_INTERNAL_VERSION = 'v8.1';
-export const APP_DISPLAY_VERSION = 'Demo v2.1';
+// Architecture Version: v9 | Public Display: v3.0
+export const APP_INTERNAL_VERSION = 'v9';
+export const APP_DISPLAY_VERSION = 'v3.0';
 import './App.css';
 
 export default function App() {
@@ -371,13 +371,13 @@ export default function App() {
           )}
 
           {activePage === 'profile' && <ProfilePage />}
-        </main>
 
-        <footer className="footer-bar">
-          <p>
-            UniCampus Lost & Found System Demo v2.1 &bull; Abdurezak Anwar, 2026
-          </p>
-        </footer>
+          <footer className="footer-bar">
+            <p>
+              UniCampus Lost & Found System v3.0 &bull; Abdurezak Anwar, 2026
+            </p>
+          </footer>
+        </main>
       </div>
 
       {/* Retained Action Modals (Transient Focus Overlays) */}

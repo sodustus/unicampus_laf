@@ -82,15 +82,15 @@ export default function ProfilePage() {
         {/* Left Column: Summary Card */}
         <div className="glass-panel profile-summary-card" style={{ padding: '24px', textAlign: 'center' }}>
           <div className="profile-large-avatar" style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
-            color: '#fff',
+            width: '64px',
+            height: '64px',
+            borderRadius: 'var(--radius)',
+            background: 'var(--text-main)',
+            color: 'var(--bg-base)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.8rem',
+            fontSize: '1.6rem',
             fontWeight: 800,
             margin: '0 auto 16px auto',
           }}>
@@ -113,7 +113,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <span style={{ color: 'var(--text-muted)' }}>Status:</span>{' '}
-              <strong style={{ color: '#34d399' }}>Active & Verified</strong>
+              <strong style={{ color: 'var(--accent-found)' }}>Active & Verified</strong>
             </div>
           </div>
         </div>

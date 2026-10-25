@@ -68,11 +68,11 @@ class ErrorBoundary extends Component {
               type="button"
               onClick={() => window.location.reload()}
               style={{
-                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-                color: '#fff',
-                border: 'none',
+                background: 'var(--btn-primary-bg)',
+                color: 'var(--btn-primary-text)',
+                border: '1px solid var(--btn-primary-border)',
                 padding: '10px 24px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius)',
                 fontWeight: 700,
                 cursor: 'pointer',
               }}

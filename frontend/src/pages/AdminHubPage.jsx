@@ -15,9 +15,11 @@ import AdminUserDetailModal from '../components/AdminUserDetailModal';
 export default function AdminHubPage({
   activeSubTab = 'analytics',
   initialTab,
+  onNavigateSubTab,
   onOpenReport,
   onRestoreReport,
   onViewProfile,
+  onSelectClaimReport,
 }) {
   const { token } = useAuth();
   const currentTab = ['analytics', 'users', 'claims', 'audit', 'deleted'].includes(activeSubTab)
@@ -150,14 +152,14 @@ export default function AdminHubPage({
                 <div className="kpi-card">
                   <div className="kpi-info">
                     <span className="kpi-label">Recovery Rate</span>
-                    <span className="kpi-val" style={{ color: '#34d399' }}>{stats.recovery_rate_percent}%</span>
+                    <span className="kpi-val" style={{ color: 'var(--accent-found)' }}>{stats.recovery_rate_percent}%</span>
                   </div>
                 </div>
 
                 <div className="kpi-card">
                   <div className="kpi-info">
                     <span className="kpi-label">Pending Claim Reviews</span>
-                    <span className="kpi-val" style={{ color: '#F59E0B' }}>{stats.pending_claims}</span>
+                    <span className="kpi-val" style={{ color: 'var(--accent-gold)' }}>{stats.pending_claims}</span>
                   </div>
                 </div>
 
@@ -191,7 +193,7 @@ export default function AdminHubPage({
                     <tbody>
                       {(!dashboardData?.recent_reports || dashboardData.recent_reports.length === 0) ? (
                         <tr>
-                          <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#94A3B8' }}>
+                          <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                             No recent campus listings found.
                           </td>
                         </tr>
@@ -206,7 +208,7 @@ export default function AdminHubPage({
                             </td>
                             <td>
                               <span
-                                style={{ fontWeight: 600, color: '#93C5FD', cursor: 'pointer' }}
+                                style={{ fontWeight: 600, color: 'var(--text-main)', textDecoration: 'underline', cursor: 'pointer' }}
                                 onClick={() => onOpenReport(rep.id)}
                                 title="Click to inspect report details"
                               >
@@ -286,7 +288,7 @@ export default function AdminHubPage({
                             border: 'none',
                             padding: 0,
                             margin: 0,
-                            color: '#60A5FA',
+                            color: 'var(--text-main)',
                             fontWeight: 700,
                             cursor: 'pointer',
                             textAlign: 'left',
@@ -462,7 +464,7 @@ export default function AdminHubPage({
                       <td><strong>#{r.id}</strong></td>
                       <td>
                         <span
-                          style={{ fontWeight: 600, cursor: 'pointer', color: '#93C5FD' }}
+                          style={{ fontWeight: 600, cursor: 'pointer', color: 'var(--text-main)', textDecoration: 'underline' }}
                           onClick={() => onOpenReport(r.id)}
                           title="Click to inspect report details"
                         >
@@ -476,7 +478,7 @@ export default function AdminHubPage({
                       </td>
                       <td>{r.location}</td>
                       <td>
-                        <span style={{ color: '#FCA5A5', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--accent-lost)', fontSize: '0.85rem' }}>
                           {r.deletion_reason || 'Administrative removal'}
                         </span>
                       </td>

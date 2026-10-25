@@ -145,9 +145,9 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
         )}
 
         {!hasActiveClaim && wasRejected && (
-          <div style={{ marginBottom: '1rem', padding: '12px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <IconShield size={16} style={{ color: '#60A5FA', marginTop: '2px', flexShrink: 0 }} />
-            <span style={{ fontSize: '0.85rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+          <div style={{ marginBottom: '1rem', padding: '12px 14px', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <IconShield size={16} style={{ color: 'var(--text-main)', marginTop: '2px', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.4 }}>
               <strong>Previous Notice Was Rejected:</strong> If you think this was a mistake or you have clearer proof of the found item, you may submit a new found notice. Please provide distinguishing details to help administrators verify.
             </span>
           </div>
@@ -157,7 +157,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.4rem', color: 'var(--text-main)' }}>
               Where is the item right now? <span className="req-star">*</span>
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
@@ -167,13 +167,13 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   alignItems: 'center',
                   gap: '10px',
                   padding: '10px 14px',
-                  borderRadius: '6px',
-                  border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
+                  borderRadius: 'var(--radius)',
+                  border: possessionStatus === 'with_finder' ? '2px solid var(--text-main)' : '1px solid var(--border-subtle)',
+                  background: possessionStatus === 'with_finder' ? 'var(--bg-card-hover)' : 'var(--bg-elevated)',
                   cursor: 'pointer',
                   fontSize: '0.88rem',
                   fontWeight: 500,
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.15s ease',
                   width: '100%',
                   boxSizing: 'border-box',
                 }}
@@ -185,7 +185,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   checked={possessionStatus === 'with_finder'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
                 />
-                <span style={{ color: '#F1F5F9' }}>In My Custody</span>
+                <span style={{ color: 'var(--text-main)' }}>In My Custody</span>
               </label>
 
               <label
@@ -194,13 +194,13 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   alignItems: 'center',
                   gap: '10px',
                   padding: '10px 14px',
-                  borderRadius: '6px',
-                  border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(15, 23, 42, 0.65)',
+                  borderRadius: 'var(--radius)',
+                  border: possessionStatus === 'submitted_to_authority' ? '2px solid var(--text-main)' : '1px solid var(--border-subtle)',
+                  background: possessionStatus === 'submitted_to_authority' ? 'var(--bg-card-hover)' : 'var(--bg-elevated)',
                   cursor: 'pointer',
                   fontSize: '0.88rem',
                   fontWeight: 500,
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.15s ease',
                   width: '100%',
                   boxSizing: 'border-box',
                 }}
@@ -212,14 +212,14 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                   checked={possessionStatus === 'submitted_to_authority'}
                   onChange={(e) => setPossessionStatus(e.target.value)}
                 />
-                <span style={{ color: '#F1F5F9' }}>Deposited at Office</span>
+                <span style={{ color: 'var(--text-main)' }}>Deposited at Office</span>
               </label>
             </div>
           </div>
 
           {possessionStatus === 'submitted_to_authority' && (
             <div className="form-group" style={{ marginTop: '0.5rem' }}>
-              <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+              <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: 'var(--text-main)' }}>
                 Custody Office / Location Details <span className="req-star">*</span>
               </label>
               <input
@@ -234,7 +234,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
               {/* Optional Custodian Phone Number */}
               <div style={{ marginTop: '10px' }}>
-                <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
+                <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
                   Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
                 </label>
                 <input
@@ -259,11 +259,11 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                     gap: '8px',
                     cursor: 'pointer',
                     fontSize: '0.78rem',
-                    color: '#CBD5E1',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    color: 'var(--text-muted)',
+                    background: 'var(--bg-elevated)',
                     padding: '5px 9px',
-                    borderRadius: '5px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid var(--border-subtle)',
                     lineHeight: 1.35,
                   }}
                 >
@@ -279,11 +279,11 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
                       margin: 0,
                       cursor: 'pointer',
                       flexShrink: 0,
-                      accentColor: '#38BDF8',
+                      accentColor: 'var(--text-main)',
                     }}
                   />
                   <span>
-                    <strong style={{ color: '#F1F5F9' }}>Allow owner phone contact:</strong> Permit the owner to call if they have questions about where you deposited it.
+                    <strong style={{ color: 'var(--text-main)' }}>Allow owner phone contact:</strong> Permit the owner to call if they have questions about where you deposited it.
                   </span>
                 </label>
               </div>
@@ -292,7 +292,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
 
           {/* Issue #7: Double-Blind Distinguishing Proof */}
           <div className="form-group" style={{ marginTop: '0.85rem' }}>
-            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: '#F1F5F9' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: 'var(--text-main)' }}>
               Distinguishing Physical Proof / Hidden Marks Observed <span className="req-star">*</span>
             </label>
             <textarea
@@ -303,13 +303,13 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
               onChange={(e) => setFounderProof(e.target.value)}
               required
             />
-            <span className="field-hint" style={{ color: '#38BDF8', fontWeight: 500 }}>
+            <span className="field-hint" style={{ color: 'var(--accent-gold)', fontWeight: 500 }}>
               Anti-Theft Verification: Campus administrators will compare your description against the owner's confidential proof before authorizing handover.
             </span>
           </div>
 
           <div className="form-group" style={{ marginTop: '0.75rem' }}>
-            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+            <label style={{ fontWeight: 600, display: 'block', marginBottom: '0.3rem', color: 'var(--text-main)' }}>
               Meetup / Handover Availability Note (Optional)
             </label>
             <textarea
@@ -322,7 +322,7 @@ export default function FoundNoticeModal({ report, isOpen, onClose, onSuccess })
             <span className="field-hint">Helpful instructions for when the handover is approved.</span>
           </div>
 
-          <div style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: '#E0F2FE' }}>
+          <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)', padding: '0.85rem', margin: '0.75rem 0', fontSize: '0.82rem', color: 'var(--text-main)' }}>
             <strong>Double-Blind Security Gate:</strong> Submitting this notice files a verification claim. Neither you nor the owner can see each other's secret proof. An administrator will review and verify that both descriptions match. <strong>Contact phone numbers remain locked until the administrator approves the claim.</strong>
           </div>
 

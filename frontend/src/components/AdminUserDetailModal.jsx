@@ -10,7 +10,6 @@ import {
   IconClock,
   IconPhone,
   IconAlert,
-  IconCheck,
 } from './Icons';
 
 export default function AdminUserDetailModal({
@@ -95,7 +94,7 @@ export default function AdminUserDetailModal({
         {/* Modal Header */}
         <div className="modal-header" style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div className="modal-title-wrap">
-            <div className="modal-icon-badge" style={{ background: 'linear-gradient(135deg, #3B82F6, #10B981)', color: '#FFFFFF' }}>
+            <div className="modal-icon-badge" style={{ background: 'var(--text-main)', color: 'var(--bg-dark)' }}>
               <IconUser size={18} />
             </div>
             <div>
@@ -128,9 +127,9 @@ export default function AdminUserDetailModal({
             {/* User Profile Card */}
             <div
               style={{
-                background: 'rgba(15, 23, 42, 0.65)',
-                border: '1px solid rgba(59, 130, 246, 0.25)',
-                borderRadius: '10px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius)',
                 padding: '16px 18px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -142,17 +141,16 @@ export default function AdminUserDetailModal({
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div
                   style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #3B82F6, #10B981)',
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: 'var(--radius)',
+                    background: 'var(--text-main)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.5rem',
+                    fontSize: '1.4rem',
                     fontWeight: 700,
-                    color: '#FFFFFF',
-                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)',
+                    color: 'var(--bg-dark)',
                     flexShrink: 0,
                   }}
                 >
@@ -160,7 +158,7 @@ export default function AdminUserDetailModal({
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: '1.1rem', color: '#F1F5F9' }}>
+                    <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>
                       {user.full_name || 'Campus Member'}
                     </strong>
                     <span className={`badge ${user.role === 'admin' ? 'badge-danger' : 'badge-info'}`}>
@@ -182,21 +180,21 @@ export default function AdminUserDetailModal({
               {/* Verified Phone Contact Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
+                  background: 'var(--bg-elevated)',
                   padding: '10px 14px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
                 }}
               >
-                <IconPhone size={15} className="badge-info" />
+                <IconPhone size={15} />
                 <div>
                   <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Registered Phone
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: user.phone_number ? '#6EE7B7' : '#94A3B8' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: user.phone_number ? 'var(--accent-found)' : 'var(--text-muted)' }}>
                     {user.phone_number || 'No phone registered'}
                   </div>
                 </div>
@@ -300,7 +298,8 @@ export default function AdminUserDetailModal({
                             style={{
                               margin: '6px 0 2px 0',
                               fontSize: '0.98rem',
-                              color: '#93C5FD',
+                              color: 'var(--text-main)',
+                              textDecoration: 'underline',
                               cursor: 'pointer',
                               fontWeight: 700,
                             }}
@@ -320,7 +319,7 @@ export default function AdminUserDetailModal({
                               <span>{r.item_date ? new Date(r.item_date).toLocaleDateString() : 'Date N/A'}</span>
                             </span>
                             {r.possession_status && r.possession_status !== 'lost_unknown' && (
-                              <span style={{ color: '#38BDF8' }}>
+                              <span style={{ color: 'var(--accent-found)' }}>
                                 Custody: {r.possession_status === 'with_finder' ? 'In Possession of Finder' : 'Deposited at Office'}
                               </span>
                             )}
@@ -399,10 +398,11 @@ export default function AdminUserDetailModal({
                             <span
                               className="badge"
                               style={{
-                                background: c.is_claimant ? 'rgba(56, 189, 248, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                                color: c.is_claimant ? '#38BDF8' : '#34D399',
-                                border: c.is_claimant ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
+                                background: c.is_claimant ? 'var(--accent-found-bg)' : 'var(--bg-elevated)',
+                                color: c.is_claimant ? 'var(--accent-found)' : 'var(--text-main)',
+                                border: c.is_claimant ? '1px solid var(--accent-found)' : '1px solid var(--border-subtle)',
                                 fontSize: '0.72rem',
+                                borderRadius: 'var(--radius)',
                               }}
                             >
                               {c.is_claimant ? 'User is Claimant / Finder' : 'Claim on User\'s Listing'}
@@ -414,7 +414,8 @@ export default function AdminUserDetailModal({
                             style={{
                               margin: '6px 0 2px 0',
                               fontSize: '0.98rem',
-                              color: '#93C5FD',
+                              color: 'var(--text-main)',
+                              textDecoration: 'underline',
                               cursor: 'pointer',
                               fontWeight: 700,
                             }}
@@ -434,7 +435,7 @@ export default function AdminUserDetailModal({
                               <span>{c.report_location}</span>
                             </span>
                             {c.proof_details && (
-                              <span style={{ color: '#CBD5E1' }}>
+                              <span style={{ color: 'var(--text-muted)' }}>
                                 Proof preview: "{c.proof_details.slice(0, 45)}{c.proof_details.length > 45 ? '...' : ''}"
                               </span>
                             )}
