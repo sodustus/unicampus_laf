@@ -173,8 +173,9 @@ export async function submitClaim(reportId, proofDetails, token) {
   return data;
 }
 
-export async function fetchMyClaims(token) {
-  const res = await fetch(`${BASE_URL}/claims/mine`, {
+export async function fetchMyClaims(token, scope = 'filed') {
+  const url = scope ? `${BASE_URL}/claims/mine?scope=${scope}` : `${BASE_URL}/claims/mine`;
+  const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/json',

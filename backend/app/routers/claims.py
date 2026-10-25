@@ -189,13 +189,14 @@ def submit_claim(
 
 @router.get("/claims/mine", response_model=List[ClaimResponse])
 def get_my_claims(
+    scope: str = Query("filed", description="'filed' for claims submitted by user, or 'all' for all claims involving user"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """
-    FR-CLAIM-09: Claimant views status and history of claims they submitted or received on their reports.
+    FR-CLAIM-09: Claimant views status and history of claims they submitted (or all involving handovers).
     """
-    claims = (
+    query = (
         db.query(Claim)
         .options(
             joinedload(Claim.report),
@@ -205,14 +206,18 @@ def get_my_claims(
             joinedload(Claim.recovery_record),
         )
         .join(Report, Claim.report_id == Report.id)
-        .filter(
+    )
+    if scope == "all":
+        query = query.filter(
             (Claim.claimant_id == current_user.id)
             | (Report.owner_id == current_user.id)
             | (Report.founder_id == current_user.id)
         )
-        .order_by(Claim.created_at.desc())
-        .all()
-    )
+    else:
+        # Default 'filed': only claims initiated by user (claiming a found item or lost item handshake)
+        query = query.filter(Claim.claimant_id == current_user.id)
+
+    claims = query.order_by(Claim.created_at.desc()).all()
     return attach_queue_positions(db, claims)
 
 

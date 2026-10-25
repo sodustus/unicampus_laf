@@ -206,11 +206,22 @@ def get_report_detail(
         .filter(Report.id == report_id)
         .first()
     )
-    if not report or (report.deleted_at is not None and not (current_user and current_user.role == UserRole.ADMIN.value)):
+    if not report:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Report not found or has been deleted.",
+            detail="Report not found.",
         )
+
+    # If the report is soft-deleted, allow viewing only for admins, report owners, or claimants on the report
+    if report.deleted_at is not None:
+        is_admin = current_user and current_user.role == UserRole.ADMIN.value
+        is_owner = current_user and current_user.id == report.owner_id
+        is_claimant = current_user and any(c.claimant_id == current_user.id for c in report.claims)
+        if not (is_admin or is_owner or is_claimant):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Report not found or has been deleted.",
+            )
 
     can_view_proof = current_user and (
         current_user.id == report.owner_id or current_user.role == UserRole.ADMIN.value

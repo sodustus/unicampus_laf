@@ -963,8 +963,9 @@ textarea.form-input {
   font-size: 0.875rem;
   color: var(--text-muted);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
   line-height: 1.5;
 }
@@ -2230,87 +2231,167 @@ textarea.form-input {
   flex-shrink: 0;
 }
 
-/* Guest Landing Page */
+/* Guest Landing Page (Two-Column Hero & Auth Grid) */
 .guest-page-wrapper {
   min-height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 48px 20px;
+  padding: 40px 24px 20px 24px;
   position: relative;
   overflow-x: hidden;
-  background: var(--bg-dark);
+  background: radial-gradient(ellipse at 50% 15%, #18153b 0%, #0a0b16 100%);
 }
 
-.guest-top-controls {
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  z-index: 50;
-}
-
-.guest-hero-container {
-  max-width: 600px;
+.guest-main-grid {
+  max-width: 1140px;
   width: 100%;
+  margin: auto 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .guest-main-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    margin: 20px 0;
+  }
+}
+
+/* Left Hero Presentation Column */
+.guest-hero-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 24px;
+  align-items: flex-start;
+  text-align: left;
+  max-width: 520px;
+  width: 100%;
 }
 
 .guest-hero-crest {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25));
   border: 1px solid rgba(59, 130, 246, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary);
-  margin-bottom: 16px;
-  box-shadow: 0 10px 30px var(--primary-glow);
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.25);
 }
 
 .guest-hero-heading {
   font-family: var(--font-heading);
-  font-size: 2.4rem;
+  font-size: 2.8rem;
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.03em;
   margin-bottom: 6px;
+  line-height: 1.1;
 }
 
 .guest-hero-subheading {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--primary);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .guest-hero-description {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
-  line-height: 1.5;
-  max-width: 480px;
+  line-height: 1.6;
+  margin-bottom: 24px;
 }
 
-.guest-card-container {
-  max-width: 520px;
+.guest-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
   width: 100%;
 }
 
+.guest-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.guest-feature-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #93C5FD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.guest-feature-text h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #F1F5F9;
+  margin: 0 0 2px 0;
+}
+
+.guest-feature-text p {
+  font-size: 0.82rem;
+  color: #94A3B8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Right Column: Full Login & 1-Click Cards */
+.guest-card-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .guest-auth-card {
-  padding: 32px 28px;
+  padding: 24px 26px;
   border-radius: var(--radius-md);
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--bg-card-border);
   box-shadow: var(--shadow-card);
+}
+
+.guest-quick-card {
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  background: rgba(18, 16, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.guest-hero-footer {
+  width: 100%;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.guest-hero-footer p {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
 }
 
 .guest-tab-switch {

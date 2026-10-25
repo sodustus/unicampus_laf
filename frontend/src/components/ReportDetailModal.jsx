@@ -59,22 +59,37 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
             Loading item details...
           </div>
         ) : error ? (
-          <div className="alert-error">{error}</div>
+          <div style={{ padding: '24px', textAlign: 'center' }}>
+            <div className="alert-error" style={{ marginBottom: '14px' }}>{error}</div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+              This listing could not be loaded or may have been permanently removed.
+            </p>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose} style={{ marginTop: '14px' }}>
+              Close
+            </button>
+          </div>
         ) : report ? (
           <>
             {report.deleted_at && (
               <div
                 style={{
                   marginBottom: '16px',
-                  padding: '12px 16px',
+                  padding: '14px 18px',
                   borderRadius: '8px',
-                  background: 'rgba(239, 68, 68, 0.15)',
+                  background: 'rgba(239, 68, 68, 0.12)',
                   border: '1px solid rgba(239, 68, 68, 0.35)',
                   color: '#FCA5A5',
                   fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
                 }}
               >
-                <strong>Soft-Deleted Report</strong> &bull; Reason: {report.deletion_reason || 'No deletion reason specified'}
+                <IconAlert size={20} style={{ flexShrink: 0, color: '#F87171' }} />
+                <div>
+                  <strong>Item Delisted / Concluded:</strong> This campus listing has been delisted (e.g. claimed and recovered by another party, or closed by administration).
+                  {report.deletion_reason && <span> &bull; Reason: {report.deletion_reason}</span>}
+                </div>
               </div>
             )}
             <div className="modal-header">
@@ -87,17 +102,21 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                     <span className={`badge ${report.type === 'lost' ? 'badge-danger' : 'badge-success'}`}>
                       {report.type === 'lost' ? 'LOST ITEM' : 'FOUND ITEM'}
                     </span>
-                    <span
-                      className={`badge ${
-                        report.status === 'active'
-                          ? 'badge-info'
-                          : report.status === 'recovered'
-                          ? 'badge-success'
-                          : 'badge-warning'
-                      }`}
-                    >
-                      {report.status.toUpperCase()}
-                    </span>
+                    {report.deleted_at ? (
+                      <span className="badge badge-danger">DELISTED</span>
+                    ) : (
+                      <span
+                        className={`badge ${
+                          report.status === 'active'
+                            ? 'badge-info'
+                            : report.status === 'recovered'
+                            ? 'badge-success'
+                            : 'badge-warning'
+                        }`}
+                      >
+                        {report.status.toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <h3 style={{ marginTop: '6px' }}>{report.title}</h3>
                 </div>

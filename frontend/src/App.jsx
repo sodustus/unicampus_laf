@@ -28,6 +28,10 @@ import FoundNoticeModal from './components/FoundNoticeModal';
 import RecoveryDetailModal from './components/RecoveryDetailModal';
 import ProfileModal from './components/ProfileModal';
 import ActionDialogModal from './components/ActionDialogModal';
+
+// Architecture Version: v8.0 | Public Display: Demo v2.0
+export const APP_INTERNAL_VERSION = 'v8.0';
+export const APP_DISPLAY_VERSION = 'Demo v2.0';
 import './App.css';
 
 export default function App() {
@@ -111,7 +115,7 @@ export default function App() {
         const claims = await fetchAllClaims('pending', token);
         setClaimsCount(claims ? claims.length : 0);
       } else {
-        const claims = await fetchMyClaims(token);
+        const claims = await fetchMyClaims(token, 'filed');
         const active = (claims || []).filter(
           (c) => c.status === 'pending' || c.status === 'approved'
         );
@@ -371,7 +375,7 @@ export default function App() {
 
         <footer className="footer-bar">
           <p>
-            UniCampus Lost & Found System &bull; Expansion 4 Modern Architecture &bull; Abdurezak Anwar, 2026
+            UniCampus Lost & Found System Demo v2.0 &bull; Abdurezak Anwar, 2026
           </p>
         </footer>
       </div>

@@ -43,7 +43,7 @@ export default function HandoversPage({
       if (isAdmin) {
         data = await fetchAllClaims('', token);
       } else {
-        data = await fetchMyClaims(token);
+        data = await fetchMyClaims(token, 'all');
       }
       // Handovers include approved, completed, and handover_failed claims
       const relevant = data.filter((c) =>

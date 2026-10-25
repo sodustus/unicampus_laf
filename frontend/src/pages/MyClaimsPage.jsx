@@ -32,8 +32,10 @@ export default function MyClaimsPage({
     setLoading(true);
     setError('');
     try {
-      const data = await fetchMyClaims(token);
-      setClaims(data || []);
+      const data = await fetchMyClaims(token, 'filed');
+      // Strictly enforce: only claims where user is claimant (found item claimed or lost item claimed to have found)
+      const userClaims = (data || []).filter((c) => !user || c.claimant_id === user.id);
+      setClaims(userClaims);
     } catch (err) {
       setError(err.message || 'Failed to load your claims');
     } finally {

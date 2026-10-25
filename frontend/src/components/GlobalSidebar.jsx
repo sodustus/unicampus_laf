@@ -41,8 +41,8 @@ export default function GlobalSidebar({
   const userInitial = user?.full_name
     ? user.full_name[0].toUpperCase()
     : user?.email
-    ? user.email[0].toUpperCase()
-    : 'U';
+      ? user.email[0].toUpperCase()
+      : 'U';
 
   return (
     <aside className={`global-sidebar ${isOpen ? 'sidebar-open' : ''}`}>
@@ -53,7 +53,10 @@ export default function GlobalSidebar({
             <IconLogo size={26} />
           </div>
           <div className="sidebar-brand-meta">
-            <div className="sidebar-title">UniCampus LAF</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span className="sidebar-title">UniCampus LAF</span>
+              <span className="badge badge-info" style={{ fontSize: '0.62rem', padding: '1px 6px', fontWeight: 700 }}>v2.0</span>
+            </div>
             <div className="sidebar-subtitle">Lost & Found System</div>
           </div>
         </div>
@@ -95,7 +98,7 @@ export default function GlobalSidebar({
               <button
                 type="button"
                 className={`nav-link-btn ${activePage === 'feed' ? 'active' : ''}`}
-                  onClick={() => handleNavClick('feed')}
+                onClick={() => handleNavClick('feed')}
               >
                 <IconSearch size={17} />
                 <span>Browse Listings</span>

@@ -164,32 +164,6 @@ export default function StudentDashboardPage({
         </div>
       </div>
 
-      {/* Quick Navigation Action Hub */}
-      {onNavigate && (
-        <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => onNavigate('my-reports')}
-          >
-            Go to My Reports
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => onNavigate('my-claims')}
-          >
-            Go to My Claims Tracker
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            onClick={() => onNavigate('handovers')}
-          >
-            Go to Handovers & Slips
-          </button>
-        </div>
-      )}
 
       {/* Tab Switcher */}
       <div className="dashboard-tab-bar" style={{ marginTop: '20px' }}>

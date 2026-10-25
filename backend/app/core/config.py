@@ -3,7 +3,9 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Campus Lost & Found System"
+    PROJECT_NAME: str = "Campus Lost & Found System Demo v2.0"
+    INTERNAL_VERSION: str = "v8.0"
+    DISPLAY_VERSION: str = "Demo v2.0"
     API_V1_STR: str = "/api"
     DATABASE_URL: str = "postgresql+psycopg://postgres:MySecurePass2026!@localhost:5432/unicampus_laf"
     BACKEND_PORT: int = 8000

@@ -54,15 +54,11 @@ def get_user_dashboard(
         .all()
     )
 
-    # Claims filed by or involving user (claimant, reporter, or founder)
+    # Claims filed by user (claiming a found item or reporting having found a lost item)
     my_claims = (
         db.query(Claim)
         .join(Report, Claim.report_id == Report.id)
-        .filter(
-            (Claim.claimant_id == current_user.id)
-            | (Report.owner_id == current_user.id)
-            | (Report.founder_id == current_user.id)
-        )
+        .filter(Claim.claimant_id == current_user.id)
         .order_by(Claim.created_at.desc())
         .all()
     )
