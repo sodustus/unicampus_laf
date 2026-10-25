@@ -603,7 +603,7 @@
   color: var(--text-muted);
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea,
 .form-group select,
 .form-input,
@@ -621,14 +621,29 @@
   box-sizing: border-box;
 }
 
-.form-group input::placeholder,
+.form-group input[type="checkbox"],
+.form-group input[type="radio"],
+input[type="checkbox"],
+input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.form-group input:not([type="checkbox"]):not([type="radio"])::placeholder,
 .form-group textarea::placeholder,
 .form-input::placeholder,
 .form-textarea::placeholder {
   color: rgba(255, 255, 255, 0.35);
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group textarea:focus,
 .form-group select:focus,
 .form-input:focus,
@@ -2977,4 +2992,17 @@ textarea.form-input {
 
 .action-dialog-btn {
   min-width: 90px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 0.85s linear infinite;
 }

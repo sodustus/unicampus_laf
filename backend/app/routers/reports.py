@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import or_
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from app.db.session import get_db
 from app.models.report import Report, ReportType, ReportStatus, PossessionStatus
@@ -144,6 +144,19 @@ def create_report(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Category with ID {report_in.category_id} does not exist.",
+        )
+
+    # Prevent future date reporting
+    now_utc = datetime.now(timezone.utc)
+    item_date_aware = (
+        report_in.item_date
+        if report_in.item_date.tzinfo is not None
+        else report_in.item_date.replace(tzinfo=timezone.utc)
+    )
+    if item_date_aware > now_utc + timedelta(hours=14):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The item date cannot be in the future. Please select today or an earlier date.",
         )
 
     initial_possession = report_in.possession_status
@@ -298,6 +311,19 @@ def update_report(
         )
 
     update_data = report_in.model_dump(exclude_unset=True)
+    if "item_date" in update_data and update_data["item_date"] is not None:
+        item_date_val = update_data["item_date"]
+        item_date_aware = (
+            item_date_val
+            if item_date_val.tzinfo is not None
+            else item_date_val.replace(tzinfo=timezone.utc)
+        )
+        if item_date_aware > datetime.now(timezone.utc) + timedelta(hours=14):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="The item date cannot be in the future. Please select today or an earlier date.",
+            )
+
     for field, val in update_data.items():
         setattr(report, field, val)
 
@@ -475,7 +501,16 @@ def submit_found_notice(
     db.refresh(new_claim)
 
     # Attach double-blind proof in VerificationRecord
-    custody_info = f"Custody: {report.possession_status}" + (f" ({report.custody_location})" if report.custody_location else "")
+    possession_labels = {
+        PossessionStatus.WITH_FINDER.value: "In Possession of Finder",
+        PossessionStatus.SUBMITTED_TO_AUTHORITY.value: "Deposited with Campus Office",
+        PossessionStatus.RETURNED.value: "Returned to Owner",
+    }
+    custody_display = possession_labels.get(
+        report.possession_status,
+        report.possession_status.replace("_", " ").title() if report.possession_status else "Unspecified",
+    )
+    custody_info = f"Custody: {custody_display}" + (f" ({report.custody_location})" if report.custody_location else "")
     verification = VerificationRecord(
         claim_id=new_claim.id,
         proof_details=notice_in.founder_proof.strip(),

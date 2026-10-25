@@ -11,11 +11,20 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [location, setLocation] = useState('');
-  const [itemDate, setItemDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const getTodayDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [itemDate, setItemDate] = useState(getTodayDateString);
   const [identifyingDetails, setIdentifyingDetails] = useState('');
   const [possessionStatus, setPossessionStatus] = useState('with_finder');
   const [custodyLocation, setCustodyLocation] = useState('');
   const [custodianPhone, setCustodianPhone] = useState('');
+  const [allowOwnerDirectContact, setAllowOwnerDirectContact] = useState(false);
 
   const handleCustodianPhoneChange = (val) => {
     let sanitized = val.replace(/[^0-9+]/g, '');
@@ -111,13 +120,19 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
       return;
     }
 
+    const maxDate = getTodayDateString();
+    if (itemDate > maxDate) {
+      setError(`The ${type === 'lost' ? 'date lost' : 'date found'} cannot be in the future (today is ${maxDate}). Please select today or an earlier date.`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       let finalCustodyLocation = null;
       if (type === 'found' && possessionStatus === 'submitted_to_authority') {
-        finalCustodyLocation = custodianPhone.trim()
-          ? `${custodyLocation.trim()} (Office Tel: ${custodianPhone.trim()})`
-          : custodyLocation.trim();
+        const phonePart = custodianPhone.trim() ? ` (Office Tel: ${custodianPhone.trim()})` : '';
+        const contactPart = allowOwnerDirectContact ? ' [Finder reachable via registered phone]' : '';
+        finalCustodyLocation = `${custodyLocation.trim()}${phonePart}${contactPart}`;
       }
 
       const payload = {
@@ -139,9 +154,11 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
       setTitle('');
       setDescription('');
       setLocation('');
+      setItemDate(getTodayDateString());
       setIdentifyingDetails('');
       setCustodyLocation('');
       setCustodianPhone('');
+      setAllowOwnerDirectContact(false);
       setPossessionStatus('with_finder');
     } catch (err) {
       setError(err.message || 'Failed to submit report');
@@ -232,6 +249,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               <input
                 id="report-date"
                 type="date"
+                max={getTodayDateString()}
                 value={itemDate}
                 onChange={(e) => setItemDate(e.target.value)}
                 required
@@ -393,19 +411,21 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               <p style={{ margin: '4px 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Clarify who currently holds the item so claimants know where handover will take place.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
                 <label
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
+                    gap: '10px',
+                    padding: '10px 14px',
                     borderRadius: '6px',
                     background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
                     border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                     cursor: 'pointer',
-                    fontSize: '0.84rem',
+                    fontSize: '0.88rem',
                     fontWeight: 500,
+                    width: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <input
@@ -422,14 +442,16 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
+                    gap: '10px',
+                    padding: '10px 14px',
                     borderRadius: '6px',
                     background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
                     border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
                     cursor: 'pointer',
-                    fontSize: '0.84rem',
+                    fontSize: '0.88rem',
                     fontWeight: 500,
+                    width: '100%',
+                    boxSizing: 'border-box',
                   }}
                 >
                   <input
@@ -474,6 +496,44 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     <span className="field-hint" style={{ display: 'block', marginTop: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       Helpful for direct calls. Limits: 10 digits for local (01.../09...) or 13 chars for (+251...).
                     </span>
+                  </div>
+
+                  {/* Optional Checkbox for Owner to contact finder */}
+                  <div style={{ marginTop: '8px' }}>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.78rem',
+                        color: '#CBD5E1',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        padding: '5px 9px',
+                        borderRadius: '5px',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={allowOwnerDirectContact}
+                        onChange={(e) => setAllowOwnerDirectContact(e.target.checked)}
+                        style={{
+                          width: '14px',
+                          height: '14px',
+                          minWidth: '14px',
+                          minHeight: '14px',
+                          margin: 0,
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          accentColor: '#38BDF8',
+                        }}
+                      />
+                      <span>
+                        <strong style={{ color: '#F1F5F9' }}>Allow owner phone contact:</strong> Permit the owner to call your registered phone if they have questions about where you deposited it.
+                      </span>
+                    </label>
                   </div>
                 </div>
               )}

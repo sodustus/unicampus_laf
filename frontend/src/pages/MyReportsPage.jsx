@@ -2,20 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { fetchUserDashboard } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import {
-  IconPlus,
   IconReports,
   IconAlert,
   IconLock,
   IconMapPin,
   IconClock,
   IconCheck,
+  IconRefresh,
 } from '../components/Icons';
 
 export default function MyReportsPage({
   onOpenReport,
   onRecoverReport,
   onDeleteReport,
-  onOpenReportModal,
 }) {
   const { token, user } = useAuth();
   const [reports, setReports] = useState([]);
@@ -76,11 +75,14 @@ export default function MyReportsPage({
 
         <button
           type="button"
-          className="btn btn-primary"
-          onClick={onOpenReportModal}
+          className="btn btn-secondary btn-sm"
+          onClick={loadReports}
+          disabled={loading}
+          title="Refresh your listings"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          <IconPlus size={16} />
-          <span>Post New Report</span>
+          <IconRefresh size={14} className={loading ? 'spin' : ''} />
+          <span>Refresh</span>
         </button>
       </div>
 

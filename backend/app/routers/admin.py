@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 
 from app.db.session import get_db
@@ -157,3 +157,98 @@ def permanent_delete_report(
 
     db.commit()
     return {"message": f"Report #{report_id} permanently removed."}
+
+
+@router.get("/users/{user_id}/activity")
+def get_user_activity(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin),
+):
+    """
+    Admin User Activity Inspection:
+    Returns target user profile, all reports posted by this user, and all claims involving this user.
+    """
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    # 1. Reports posted by this user
+    reports = (
+        db.query(Report)
+        .options(joinedload(Report.category))
+        .filter(Report.owner_id == target_user.id)
+        .order_by(Report.created_at.desc())
+        .all()
+    )
+
+    reports_data = [
+        {
+            "id": r.id,
+            "type": r.type,
+            "title": r.title,
+            "description": r.description,
+            "category": r.category.name if r.category else "General",
+            "location": r.location,
+            "item_date": r.item_date.isoformat() if r.item_date else None,
+            "status": r.status,
+            "possession_status": r.possession_status,
+            "custody_location": r.custody_location,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "deleted_at": r.deleted_at.isoformat() if r.deleted_at else None,
+        }
+        for r in reports
+    ]
+
+    # 2. Claims involving this user
+    claims = (
+        db.query(Claim)
+        .options(
+            joinedload(Claim.report),
+            joinedload(Claim.claimant),
+            joinedload(Claim.verification_record),
+        )
+        .join(Report, Claim.report_id == Report.id)
+        .filter(
+            (Claim.claimant_id == target_user.id)
+            | (Report.owner_id == target_user.id)
+        )
+        .order_by(Claim.created_at.desc())
+        .all()
+    )
+
+    claims_data = [
+        {
+            "id": c.id,
+            "report_id": c.report_id,
+            "report_title": c.report.title if c.report else f"Report #{c.report_id}",
+            "report_type": c.report.type if c.report else "unknown",
+            "report_location": c.report.location if c.report else "Unknown",
+            "is_claimant": c.claimant_id == target_user.id,
+            "role_in_claim": "Claimant / Finder" if c.claimant_id == target_user.id else "Item Reporter",
+            "claimant_name": c.claimant.full_name or c.claimant.email if c.claimant else "Unknown",
+            "status": c.status,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "proof_details": c.verification_record.proof_details if c.verification_record else None,
+            "additional_info": c.verification_record.additional_info if c.verification_record else None,
+            "rejection_reason": c.rejection_reason,
+        }
+        for c in claims
+    ]
+
+    return {
+        "user": {
+            "id": target_user.id,
+            "email": target_user.email,
+            "full_name": target_user.full_name,
+            "department": target_user.department,
+            "phone_number": target_user.phone_number,
+            "role": target_user.role,
+            "is_active": target_user.is_active,
+            "created_at": target_user.created_at.isoformat() if target_user.created_at else None,
+            "reports_count": len(reports_data),
+            "claims_count": len([c for c in claims_data if c["is_claimant"]]),
+        },
+        "reports": reports_data,
+        "claims": claims_data,
+    }

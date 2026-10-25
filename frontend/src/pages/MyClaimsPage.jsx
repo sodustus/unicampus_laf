@@ -7,6 +7,7 @@ import {
   IconClock,
   IconMapPin,
   IconCheck,
+  IconRefresh,
 } from '../components/Icons';
 
 export default function MyClaimsPage({
@@ -117,6 +118,18 @@ export default function MyClaimsPage({
             </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={loadClaims}
+          disabled={loading}
+          title="Refresh claims"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <IconRefresh size={14} className={loading ? 'spin' : ''} />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {/* Filter Tabs */}
@@ -256,10 +269,13 @@ export default function MyClaimsPage({
                   {c.verification_record?.additional_info && (
                     <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
                       <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#FCD34D' }}>
-                        Additional Proof Provided:
+                        {isLostItemMatch ? 'Finder Custody & Location:' : 'Additional Proof Provided:'}
                       </span>
                       <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#CBD5E1' }}>
-                        {c.verification_record.additional_info}
+                        {c.verification_record.additional_info
+                          .replace(/with_finder/gi, 'In Possession of Finder')
+                          .replace(/submitted_to_authority/gi, 'Deposited with Campus Office')
+                          .replace(/returned/gi, 'Returned to Owner')}
                       </p>
                     </div>
                   )}

@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { IconAlert } from '../components/Icons';
 import ClaimsCenterPage from './ClaimsCenterPage';
 import ActionDialogModal from '../components/ActionDialogModal';
+import AdminUserDetailModal from '../components/AdminUserDetailModal';
 
 export default function AdminHubPage({
   activeSubTab = 'analytics',
@@ -24,6 +25,7 @@ export default function AdminHubPage({
     : (['analytics', 'users', 'claims', 'audit', 'deleted'].includes(initialTab) ? initialTab : 'analytics');
 
   const [dialogConfig, setDialogConfig] = useState(null);
+  const [selectedUserActivityId, setSelectedUserActivityId] = useState(null);
 
   // Overview data
   const [dashboardData, setDashboardData] = useState(null);
@@ -274,7 +276,33 @@ export default function AdminHubPage({
                   {users.map((u) => (
                     <tr key={u.id}>
                       <td>#{u.id}</td>
-                      <td style={{ fontWeight: 700 }}>{u.full_name || u.email?.split('@')[0] || 'Campus Member'}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="user-profile-link-btn"
+                          onClick={() => setSelectedUserActivityId(u.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            margin: 0,
+                            color: '#60A5FA',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            textDecoration: 'none',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                          title="Click to inspect user activity, reports, and claims"
+                        >
+                          {u.full_name || u.email?.split('@')[0] || 'Campus Member'}
+                        </button>
+                      </td>
                       <td>{u.email}</td>
                       <td>{u.department || 'Undeclared'}</td>
                       <td>
@@ -290,14 +318,24 @@ export default function AdminHubPage({
                         </span>
                       </td>
                       <td>
-                        {u.role !== 'admin' && (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <button
-                            className={`btn btn-sm ${u.is_active ? 'btn-delete' : 'btn-primary'}`}
-                            onClick={() => handleToggleActive(u.id)}
+                            type="button"
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => setSelectedUserActivityId(u.id)}
+                            title="Inspect user activity and profile"
                           >
-                            {u.is_active ? 'Deactivate' : 'Activate'}
+                            Activity
                           </button>
-                        )}
+                          {u.role !== 'admin' && (
+                            <button
+                              className={`btn btn-sm ${u.is_active ? 'btn-delete' : 'btn-primary'}`}
+                              onClick={() => handleToggleActive(u.id)}
+                            >
+                              {u.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -492,6 +530,14 @@ export default function AdminHubPage({
             </div>
           )}
         </div>
+      )}
+
+      {selectedUserActivityId && (
+        <AdminUserDetailModal
+          userId={selectedUserActivityId}
+          onClose={() => setSelectedUserActivityId(null)}
+          onOpenReport={onOpenReport}
+        />
       )}
 
       <ActionDialogModal

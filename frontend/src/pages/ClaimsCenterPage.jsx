@@ -172,6 +172,151 @@ export default function ClaimsCenterPage({
     }
   };
 
+  const renderVerificationNote = (note, isLostItemMatch) => {
+    if (!note) return null;
+
+    const lowerNote = note.toLowerCase();
+    const isCustodyInfo =
+      lowerNote.includes('custody:') ||
+      note.includes('with_finder') ||
+      note.includes('submitted_to_authority') ||
+      lowerNote.includes('in possession of finder') ||
+      lowerNote.includes('deposited with campus');
+
+    if (isCustodyInfo) {
+      let custodyLabel = 'In Possession of Finder';
+      let isAuthority = false;
+
+      if (
+        lowerNote.includes('submitted_to_authority') ||
+        lowerNote.includes('deposited') ||
+        lowerNote.includes('authority') ||
+        lowerNote.includes('office')
+      ) {
+        custodyLabel = 'Deposited with Campus Office';
+        isAuthority = true;
+      } else if (lowerNote.includes('returned')) {
+        custodyLabel = 'Handed Over & Returned';
+      } else {
+        custodyLabel = 'In Possession of Finder';
+      }
+
+      // Extract optional location inside parentheses (e.g. "(room1)")
+      const locationMatch = note.match(/\((.*?)\)/);
+      const locationText = locationMatch ? locationMatch[1].trim() : null;
+
+      return (
+        <div
+          style={{
+            marginTop: '12px',
+            padding: '12px 14px',
+            background: 'rgba(15, 23, 42, 0.75)',
+            borderRadius: '8px',
+            border: isAuthority ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(56, 189, 248, 0.3)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <IconMapPin size={14} className={isAuthority ? 'badge-success' : 'badge-info'} />
+            <span
+              style={{
+                fontSize: '0.73rem',
+                color: isAuthority ? '#6EE7B7' : '#93C5FD',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {isLostItemMatch ? 'Finder Physical Custody & Location' : 'Physical Custody Information'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                background: isAuthority ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+                color: isAuthority ? '#34D399' : '#38BDF8',
+                border: isAuthority ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(56, 189, 248, 0.35)',
+              }}
+            >
+              <span
+                style={{
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '50%',
+                  background: isAuthority ? '#34D399' : '#38BDF8',
+                }}
+              />
+              {custodyLabel}
+            </span>
+
+            {locationText && (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#E2E8F0' }}>
+                <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
+                <span style={{ color: 'var(--text-muted)' }}>Location Details:</span>
+                <span
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    fontWeight: 600,
+                    color: '#F8FAFC',
+                  }}
+                >
+                  {locationText}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const formattedNote = note
+      .replace(/with_finder/gi, 'In Possession of Finder')
+      .replace(/submitted_to_authority/gi, 'Deposited with Campus Office')
+      .replace(/returned/gi, 'Returned to Owner');
+
+    return (
+      <div
+        style={{
+          marginTop: '12px',
+          padding: '12px 14px',
+          background: 'rgba(245, 158, 11, 0.08)',
+          borderRadius: '8px',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+          <span
+            style={{
+              fontSize: '0.74rem',
+              color: '#FCD34D',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {isLostItemMatch ? 'Finder Custody & Clarification Note:' : 'Additional Claimant Clarification Note:'}
+          </span>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', lineHeight: 1.5 }}>
+          {formattedNote}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="claims-center-page">
       {/* Header Card (Hidden when embedded inside AdminHub) */}
@@ -315,7 +460,7 @@ export default function ClaimsCenterPage({
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div>
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
@@ -327,93 +472,87 @@ export default function ClaimsCenterPage({
                 </div>
 
                 {/* DOUBLE-BLIND VERIFICATION COMPARISON BOX (Administrator Desk) */}
-                <div
-                  style={{
-                    margin: '16px 0',
-                    padding: '16px',
-                    borderRadius: '10px',
-                    background: 'rgba(11, 15, 25, 0.85)',
-                    border: '1px solid rgba(59, 130, 246, 0.25)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                    <div style={{ color: '#38BDF8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <IconShield size={18} />
-                      <strong style={{ fontSize: '0.92rem', letterSpacing: '0.02em' }}>
-                        Double-Blind Verification Comparison
-                      </strong>
-                    </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      (Compare both sides before making an approval or rejection decision)
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-                    {/* Side A: Report Secret Proof */}
-                    <div
-                      style={{
-                        background: 'rgba(0, 0, 0, 0.4)',
-                        padding: '12px 14px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(239, 68, 68, 0.35)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                        <IconLock size={14} className="badge-danger" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          {isLostItemMatch ? 'Owner Secret Proof (Lost Report)' : 'Report Secret Identifying Details'}
-                        </span>
+                {c.status !== 'submitted' && (
+                  <div
+                    style={{
+                      margin: '16px 0',
+                      padding: '16px',
+                      borderRadius: '10px',
+                      background: 'rgba(11, 15, 25, 0.85)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ color: '#38BDF8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <IconShield size={18} />
+                        <strong style={{ fontSize: '0.92rem', letterSpacing: '0.02em' }}>
+                          Double-Blind Verification Comparison
+                        </strong>
                       </div>
-                      <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-                        {c.report?.identifying_details || '(No secret identifying details entered on report)'}
-                      </p>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        (Compare both sides before making an approval or rejection decision)
+                      </span>
                     </div>
 
-                    {/* Side B: Claimant / Finder Submitted Proof */}
-                    <div
-                      style={{
-                        background: 'rgba(0, 0, 0, 0.4)',
-                        padding: '12px 14px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(16, 185, 129, 0.35)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                        <IconCheck size={14} className="badge-success" />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#34D399', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          {isLostItemMatch ? 'Finder Blind Custody Proof' : 'Claimant Submitted Ownership Proof'}
-                        </span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                      {/* Side A: Report Secret Proof */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          padding: '12px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(239, 68, 68, 0.35)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <IconLock size={14} className="badge-danger" />
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {isLostItemMatch ? 'Owner Secret Proof (Lost Report)' : 'Report Secret Identifying Details'}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                          {c.report?.identifying_details || '(No secret identifying details entered on report)'}
+                        </p>
                       </div>
-                      <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-                        {c.verification_record?.proof_details || '(No proof details provided)'}
-                      </p>
+
+                      {/* Side B: Claimant / Finder Submitted Proof */}
+                      <div
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          padding: '12px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(16, 185, 129, 0.35)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <IconCheck size={14} className="badge-success" />
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#34D399', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            {isLostItemMatch ? 'Finder Blind Custody Proof' : 'Claimant Submitted Ownership Proof'}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                          {c.verification_record?.proof_details || '(No proof details provided)'}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Additional Proof Clarification Notes & Physical Custody */}
+                    {c.verification_record?.additional_info &&
+                      renderVerificationNote(c.verification_record.additional_info, isLostItemMatch)}
+
+                    {/* Rejection Note if Rejected */}
+                    {c.status === 'rejected' && c.rejection_reason && (
+                      <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.12)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#F87171', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Recorded Rejection Reason:
+                        </span>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#FCA5A5' }}>
+                          {c.rejection_reason}
+                        </p>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Additional Proof Clarification Notes */}
-                  {c.verification_record?.additional_info && (
-                    <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(245, 158, 11, 0.08)', borderRadius: '6px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#FCD34D', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Additional Claimant Clarification Note:
-                      </span>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#F1F5F9' }}>
-                        {c.verification_record.additional_info}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Rejection Note if Rejected */}
-                  {c.status === 'rejected' && c.rejection_reason && (
-                    <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.12)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#F87171', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Recorded Rejection Reason:
-                      </span>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#FCA5A5' }}>
-                        {c.rejection_reason}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {/* ADMIN DIRECT CONTACT & PROFILE VERIFICATION BOX */}
                 <div
