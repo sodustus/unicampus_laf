@@ -7,6 +7,7 @@ export default function SearchFilters({
   onFilterChange,
   categories,
   onOpenReportModal,
+  itemsCount,
 }) {
   const { isAdmin } = useAuth();
   return (
@@ -44,28 +45,39 @@ export default function SearchFilters({
         </button>
       </div>
 
-      {/* Filter Row: Type Pills, Category Dropdown, Status, Sort */}
+      {/* Filter Row: Type Pills, Count, Category Dropdown, Status, Sort */}
       <div className="filters-row">
-        {/* Type Toggle Pills */}
-        <div className="filter-group type-pills">
-          <button
-            className={`pill-btn ${!filters.type ? 'active' : ''}`}
-            onClick={() => onFilterChange('type', '')}
-          >
-            All Reports
-          </button>
-          <button
-            className={`pill-btn ${filters.type === 'lost' ? 'active lost' : ''}`}
-            onClick={() => onFilterChange('type', 'lost')}
-          >
-            Lost
-          </button>
-          <button
-            className={`pill-btn ${filters.type === 'found' ? 'active found' : ''}`}
-            onClick={() => onFilterChange('type', 'found')}
-          >
-            Found
-          </button>
+        <div className="filters-type-bar">
+          {/* Type Toggle Pills */}
+          <div className="filter-group type-pills">
+            <button
+              type="button"
+              className={`pill-btn ${!filters.type ? 'active' : ''}`}
+              onClick={() => onFilterChange('type', '')}
+            >
+              All Reports
+            </button>
+            <button
+              type="button"
+              className={`pill-btn ${filters.type === 'lost' ? 'active lost' : ''}`}
+              onClick={() => onFilterChange('type', 'lost')}
+            >
+              Lost
+            </button>
+            <button
+              type="button"
+              className={`pill-btn ${filters.type === 'found' ? 'active found' : ''}`}
+              onClick={() => onFilterChange('type', 'found')}
+            >
+              Found
+            </button>
+          </div>
+
+          {itemsCount !== undefined && (
+            <span className="filters-items-count">
+              ({itemsCount} {itemsCount === 1 ? 'item' : 'items'} found)
+            </span>
+          )}
         </div>
 
         {/* Dropdowns */}

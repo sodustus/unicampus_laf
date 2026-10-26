@@ -10,7 +10,7 @@ import {
 } from './api/client';
 import { useAuth } from './context/AuthContext';
 import GlobalSidebar from './components/GlobalSidebar';
-import TopBar from './components/TopBar';
+import { IconMenu } from './components/Icons';
 import GuestLandingPage from './pages/GuestLandingPage';
 import CampusFeedPage from './pages/CampusFeedPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
@@ -42,7 +42,7 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Health probe state
-  const [healthData, setHealthData] = useState(null);
+  const [_healthData, setHealthData] = useState(null);
 
   // Reports, Categories & Filters state
   const [categories, setCategories] = useState([]);
@@ -252,8 +252,6 @@ export default function App() {
     });
   };
 
-  const isBackendOnline = healthData?.success && healthData?.data?.status === 'online';
-
   // 1. Unauthenticated Visitor Experience: Clean Hero Banner + In-Page Authentication
   if (!isAuthenticated) {
     return (
@@ -294,11 +292,20 @@ export default function App() {
 
       {/* Main Viewport Container */}
       <div className="main-viewport">
-        <TopBar
-          activePage={activePage}
-          isBackendOnline={isBackendOnline}
-          onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        />
+        {/* Mobile Header Bar (Screen <= 1024px) */}
+        <div className="mobile-header-bar">
+          <button
+            type="button"
+            className="mobile-menu-trigger"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            aria-label="Open navigation menu"
+            title="Open Menu"
+          >
+            <IconMenu size={20} />
+            <span>Menu</span>
+          </button>
+          <span className="mobile-brand-title">UniCampus LAF</span>
+        </div>
 
         <main className="page-body">
           {activePage === 'feed' && (

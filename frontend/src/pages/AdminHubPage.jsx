@@ -15,11 +15,11 @@ import AdminUserDetailModal from '../components/AdminUserDetailModal';
 export default function AdminHubPage({
   activeSubTab = 'analytics',
   initialTab,
-  onNavigateSubTab,
+  _onNavigateSubTab,
   onOpenReport,
   onRestoreReport,
   onViewProfile,
-  onSelectClaimReport,
+  _onSelectClaimReport,
 }) {
   const { token } = useAuth();
   const currentTab = ['analytics', 'users', 'claims', 'audit', 'deleted'].includes(activeSubTab)
@@ -119,9 +119,20 @@ export default function AdminHubPage({
         <div>
           <h2 className="admin-main-title">Campus Administration Console</h2>
           <p className="admin-main-subtitle">
-            Enterprise management hub for campus reports, compliance auditing, user roles, and system oversight.
+            Management hub for campus reports, compliance auditing, user roles, and system oversight.
           </p>
         </div>
+      </div>
+
+      {/* Active Section Title */}
+      <div className="admin-active-view-bar">
+        <h3 className="admin-active-view-title">
+          {currentTab === 'analytics' && 'System Overview & Analytics'}
+          {currentTab === 'users' && 'Campus User Directory'}
+          {currentTab === 'claims' && 'Claims Review & Verification Desk'}
+          {currentTab === 'audit' && 'Compliance Audit Trail'}
+          {currentTab === 'deleted' && 'Soft-Deleted & Duplicate Listings'}
+        </h3>
       </div>
 
       {error && (

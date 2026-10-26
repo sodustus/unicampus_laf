@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   IconLogo,
   IconSearch,
-  IconPlus,
   IconDashboard,
   IconReports,
   IconClaims,
@@ -16,25 +16,22 @@ import {
   IconTrash,
   IconLogout,
   IconClose,
+  IconSun,
+  IconMoon,
 } from './Icons';
 
 export default function GlobalSidebar({
   activePage,
   onNavigate,
-  onOpenReportModal,
   claimsCount = 0,
   isOpen = false,
   onClose,
 }) {
   const { user, isAdmin, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const handleNavClick = (page) => {
     onNavigate(page);
-    if (onClose) onClose();
-  };
-
-  const handleCreateClick = () => {
-    onOpenReportModal();
     if (onClose) onClose();
   };
 
@@ -53,13 +50,20 @@ export default function GlobalSidebar({
             <IconLogo size={26} />
           </div>
           <div className="sidebar-brand-meta">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="sidebar-title">UniCampus LAF</span>
-              <span className="badge badge-info" style={{ fontSize: '0.62rem', padding: '1px 6px', fontWeight: 700 }}>v3.0</span>
-            </div>
+            <span className="sidebar-title">UniCampus LAF</span>
             <div className="sidebar-subtitle">Lost & Found System</div>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="sidebar-theme-toggle"
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light Swiss theme' : 'Switch to Dark Swiss theme'}
+          aria-label="Toggle theme mode"
+        >
+          {isDark ? <IconSun size={17} /> : <IconMoon size={17} />}
+        </button>
 
         {onClose && (
           <button
@@ -74,25 +78,10 @@ export default function GlobalSidebar({
         )}
       </div>
 
-      {/* Primary Action Button */}
-      <div className="sidebar-action-wrap">
-        <button
-          type="button"
-          className="btn-sidebar-create"
-          onClick={handleCreateClick}
-          title="Create a new lost or found report"
-        >
-          <IconPlus size={16} />
-          <span>Post a Report</span>
-        </button>
-      </div>
-
       {/* Navigation Sections */}
       <nav className="sidebar-nav-container">
-        {/* Campus Group */}
+        {/* Student Activity Group */}
         <div className="nav-group">
-
-          <div className="nav-group-title">Campus</div>
           <ul className="nav-items-list">
             <li>
               <button
@@ -101,16 +90,9 @@ export default function GlobalSidebar({
                 onClick={() => handleNavClick('feed')}
               >
                 <IconSearch size={17} />
-                <span>Browse Listings</span>
+                <span>Campus Listings</span>
               </button>
             </li>
-          </ul>
-        </div>
-
-        {/* Student Activity Group */}
-        <div className="nav-group">
-          <div className="nav-group-title">My Activity</div>
-          <ul className="nav-items-list">
             <li>
               <button
                 type="button"

@@ -331,9 +331,9 @@
 }
 
 .badge-role-admin {
-  background: rgba(139, 92, 246, 0.2);
-  color: #C4B5FD;
-  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: rgba(59, 130, 246, 0.18);
+  color: #93C5FD;
+  border: 1px solid rgba(59, 130, 246, 0.38);
 }
 
 .badge-role-user {
@@ -776,6 +776,7 @@ select option {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius);
+  margin-bottom: 20px;
 }
 
 .search-top-bar {
@@ -834,12 +835,26 @@ select option {
 
 .filters-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
+}
+
+.filters-type-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filters-items-count {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
 
 .type-pills {
@@ -962,14 +977,6 @@ select option {
   box-shadow: var(--shadow-card-hover);
 }
 
-.card-lost {
-  border-left: 3px solid var(--accent-lost);
-}
-
-.card-found {
-  border-left: 3px solid var(--accent-found);
-}
-
 .card-top-row {
   display: flex;
   align-items: center;
@@ -984,12 +991,22 @@ select option {
   letter-spacing: -0.01em;
 }
 
+.item-category-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
 .item-category {
-  display: inline-block;
   font-size: 0.75rem;
   color: var(--text-dim);
-  margin-bottom: 8px;
   font-weight: 600;
+}
+
+.item-category-icon {
+  flex-shrink: 0;
+  color: var(--text-dim);
 }
 
 .item-description {
@@ -1005,11 +1022,20 @@ select option {
 
 .card-meta {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   font-size: 0.75rem;
   color: var(--text-dim);
   padding-top: 10px;
   border-top: 1px solid var(--border-subtle);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .card-footer {
@@ -1130,29 +1156,59 @@ select option {
 }
 
 /* Empty state */
-.empty-reports-box {
-  padding: 60px 20px;
+.empty-reports-box,
+.feed-empty-box,
+.claims-empty-box {
+  padding: 56px 28px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  margin-top: 16px;
 }
 
 .empty-icon {
   font-size: 3rem;
 }
 
-.empty-title {
-  font-size: 1.125rem;
+.empty-title,
+.feed-empty-box .empty-title {
+  font-size: 1.15rem;
   color: var(--text-main);
   font-weight: 700;
+  margin: 0;
 }
 
-.empty-subtitle {
-  font-size: 0.875rem;
+.empty-subtitle,
+.feed-empty-box .empty-subtitle {
+  font-size: 0.88rem;
   color: var(--text-muted);
-  max-width: 400px;
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.empty-reports-box .btn,
+.feed-empty-box .btn {
+  margin-top: 8px;
+}
+
+.feed-loading-box {
+  padding: 56px 28px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.feed-loading-box p {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 /* ==========================================================================
@@ -1744,7 +1800,8 @@ select option {
 .sidebar-brand-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .sidebar-brand-crest {
@@ -1763,6 +1820,7 @@ select option {
 .sidebar-brand-meta {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .sidebar-title {
@@ -1771,11 +1829,37 @@ select option {
   font-size: 1.05rem;
   color: var(--text-main);
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .sidebar-subtitle {
   font-size: 0.72rem;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sidebar-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.sidebar-theme-toggle:hover {
+  color: var(--text-main);
+  background: var(--btn-secondary-bg);
+  border-color: var(--text-main);
+  transform: translateY(-1px);
 }
 
 .sidebar-close-btn {
@@ -1821,7 +1905,7 @@ select option {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 0;
+  padding: 16px 0 8px 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1846,7 +1930,7 @@ select option {
 }
 
 .admin-title {
-  color: var(--accent-purple) !important;
+  color: var(--text-dim) !important;
 }
 
 .nav-items-list,
@@ -1926,7 +2010,7 @@ select option {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+  background: linear-gradient(135deg, var(--primary), #1D4ED8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1962,11 +2046,11 @@ select option {
 }
 
 .role-admin {
-  color: #8B5CF6;
+  color: var(--primary);
 }
 
 .role-student {
-  color: #3B82F6;
+  color: var(--primary);
 }
 
 .sidebar-logout-btn {
@@ -2046,24 +2130,25 @@ select option {
 
 /* In-App Dual Swiss Theme Toggle */
 .theme-toggle-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
-  padding: 6px 12px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   cursor: pointer;
   border-radius: var(--radius);
-  transition: all 0.15s ease;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .theme-toggle-btn:hover {
   border-color: var(--text-main);
+  background: var(--btn-secondary-bg);
+  transform: translateY(-1px);
 }
 
 .topbar-status-badge {
@@ -2099,7 +2184,7 @@ select option {
 /* Independent Page Body Scroller */
 .page-body {
   flex: 1;
-  height: calc(100vh - 64px);
+  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 24px 28px;
@@ -2107,6 +2192,64 @@ select option {
   flex-direction: column;
   gap: 20px;
   background: var(--bg-dark);
+}
+
+/* Mobile Header Bar (Only visible on mobile / tablet <= 1024px) */
+.mobile-header-bar {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .mobile-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    padding: 0 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+    z-index: 40;
+  }
+
+  .mobile-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .mobile-brand-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .page-body {
+    height: calc(100vh - 52px);
+  }
+}
+
+/* Admin Hub Active Section Title */
+.admin-active-view-bar {
+  margin-top: 20px;
+  margin-bottom: 2px;
+}
+
+.admin-active-view-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
 }
 
 /* Unified Page Banner / Header Cards */
@@ -2191,10 +2334,11 @@ select option {
 
 .guest-top-actions {
   width: 100%;
-  max-width: 1140px;
+  max-width: 1160px;
   display: flex;
   justify-content: flex-end;
   margin-bottom: 12px;
+  transform: translateX(10px);
 }
 
 .guest-main-grid {
@@ -2208,6 +2352,11 @@ select option {
 }
 
 @media (max-width: 960px) {
+  .guest-top-actions {
+    transform: none;
+    max-width: 100%;
+  }
+
   .guest-main-grid {
     grid-template-columns: 1fr;
     gap: 36px;
@@ -2772,16 +2921,16 @@ select option {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   backdrop-filter: blur(8px);
 }
 
 .feed-header-left {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -2789,21 +2938,9 @@ select option {
 .feed-section-heading {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #F8FAFC;
+  color: var(--text-main);
   margin: 0;
   letter-spacing: -0.01em;
-}
-
-.feed-items-count {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #94A3B8;
-}
-
-.feed-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* Member Tag Button on Report Card (Item 3b & 6) */

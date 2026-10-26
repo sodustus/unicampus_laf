@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { IconMapPin, IconClock, IconTag, IconCheck } from './Icons';
+import { IconMapPin, IconCalendar, IconTag, IconCheck } from './Icons';
 
 export default function ReportCard({ report, onSelect, onRecover, onDelete, onViewProfile }) {
   const { user, isAdmin } = useAuth();
@@ -88,7 +88,7 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
           <span>{report.location}</span>
         </span>
         <span className="meta-item" title="Date">
-          <IconClock size={13} />
+          <IconCalendar size={13} />
           <span>{formattedDate}</span>
         </span>
         {onViewProfile && report.owner_id && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchReportDetail } from '../api/client';
-import { IconClose, IconSearch, IconTag, IconMapPin, IconClock, IconShield, IconAlert } from './Icons';
+import { IconClose, IconSearch, IconTag, IconMapPin, IconCalendar, IconShield, IconAlert } from './Icons';
 
 export default function ReportDetailModal({ reportId, onClose, onRecover, onDelete, onRestore, onClaim, onViewProfile, onFoundNotice }) {
   const { user, token, isAdmin } = useAuth();
@@ -142,7 +142,7 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
               <div className="detail-meta-item">
                 <span className="detail-meta-label">{report.type === 'lost' ? 'Date Lost' : 'Date Found'}</span>
                 <span className="detail-meta-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <IconClock size={14} /> {formattedDate}
+                  <IconCalendar size={14} /> {formattedDate}
                 </span>
               </div>
               <div className="detail-meta-item">
@@ -355,8 +355,6 @@ export default function ReportDetailModal({ reportId, onClose, onRecover, onDele
                 style={{
                   margin: '14px 0 6px 0',
                   padding: '10px 14px',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.28)',
                   borderRadius: 'var(--radius)',
                   display: 'flex',
                   alignItems: 'center',
