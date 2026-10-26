@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   IconLogo,
   IconAlert,
   IconShield,
   IconClock,
   IconCheck,
+  IconSun,
+  IconMoon,
 } from '../components/Icons';
 
 export default function GuestLandingPage({ onLoginSuccess }) {
-  const { login, register, quickLogin } = useAuth();
+  const { login, register } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,21 +80,20 @@ export default function GuestLandingPage({ onLoginSuccess }) {
     }
   };
 
-  const handleQuickLogin = async (role) => {
-    setError('');
-    setSubmitting(true);
-    try {
-      await quickLogin(role);
-      if (onLoginSuccess) onLoginSuccess();
-    } catch (err) {
-      setError(err.message || 'Quick login failed.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="guest-page-wrapper">
+      <div className="guest-top-actions">
+        <button
+          type="button"
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light Swiss' : 'Switch to Dark Swiss'}
+          aria-label="Toggle theme mode"
+        >
+          {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+        </button>
+      </div>
+
       <div className="guest-main-grid">
         {/* Left Column: Logo, Title, Description, and Feature Points */}
         <div className="guest-hero-container">
@@ -98,12 +101,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
             <IconLogo size={36} />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <h1 className="guest-hero-heading" style={{ margin: 0 }}>UniCampus LAF</h1>
-            <span className="badge badge-info" style={{ fontSize: '0.74rem', padding: '3px 9px', fontWeight: 700 }}>
-              Demo v2.1
-            </span>
-          </div>
+          <h1 className="guest-hero-heading" style={{ margin: '0 0 4px 0' }}>UniCampus LAF</h1>
 
           <p className="guest-hero-subheading">Campus Lost & Found Management System</p>
 
@@ -241,78 +239,12 @@ export default function GuestLandingPage({ onLoginSuccess }) {
               </button>
             </form>
           </div>
-
-          {/* Card 2: 1-Click Multi-User Logins */}
-          <div className="guest-quick-card glass-panel">
-            <div className="guest-quick-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>1-Click Multi-User Logins</span>
-            </div>
-            <p style={{ fontSize: '0.78rem', color: '#94A3B8', margin: '4px 0 12px 0' }}>
-              Instant sign-in with pre-seeded campus roles and test personas:
-            </p>
-            <div className="guest-quick-grid">
-              <button
-                type="button"
-                className="btn-quick-login"
-                onClick={() => handleQuickLogin('abebe')}
-                disabled={submitting}
-                title="Abebe Bikila (Computer Science & IT) - abebebikila@campus.edu"
-              >
-                Abebe Bikila
-              </button>
-              <button
-                type="button"
-                className="btn-quick-login"
-                onClick={() => handleQuickLogin('fatuma')}
-                disabled={submitting}
-                title="Fatuma Roba (Electrical Engineering) - fatumaroba@campus.edu"
-              >
-                Fatuma Roba
-              </button>
-              <button
-                type="button"
-                className="btn-quick-login"
-                onClick={() => handleQuickLogin('derartu')}
-                disabled={submitting}
-                title="Derartu Tulu (Mechanical Engineering) - derartutulu@campus.edu"
-              >
-                Derartu Tulu
-              </button>
-              <button
-                type="button"
-                className="btn-quick-login"
-                onClick={() => handleQuickLogin('kenenisa')}
-                disabled={submitting}
-                title="Kenenisa Bekele (Civil Engineering) - kenenisabekele@campus.edu"
-              >
-                Kenenisa Bekele
-              </button>
-              <button
-                type="button"
-                className="btn-quick-login"
-                onClick={() => handleQuickLogin('haile')}
-                disabled={submitting}
-                title="Haile Gebrselassie (Business Administration) - hailegebrselassie@campus.edu"
-              >
-                Haile Gebrselassie
-              </button>
-              <button
-                type="button"
-                className="btn-quick-login btn-quick-admin"
-                onClick={() => handleQuickLogin('admin')}
-                disabled={submitting}
-                title="Campus Administrator - admin@campus.edu"
-              >
-                Admin Console
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Hero Page Footer */}
       <footer className="guest-hero-footer">
-        <p>Demo v2.1 &bull; built by Abdurezak Anwar, 2026</p>
+        <p>v3.0 &bull; built by Abdurezak Anwar, 2026</p>
       </footer>
     </div>
   );

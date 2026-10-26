@@ -137,6 +137,17 @@ export function IconAlert({ size = 18, className = '' }) {
   );
 }
 
+export function IconCalendar({ size = 18, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
 export function IconClock({ size = 18, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -222,11 +233,11 @@ export function IconReports({ size = 18, className = '' }) {
 export function IconHandover({ size = 18, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-      <line x1="6" y1="1" x2="6" y2="4" />
-      <line x1="10" y1="1" x2="10" y2="4" />
-      <line x1="14" y1="1" x2="14" y2="4" />
+      <path d="M7 2h7l4 4v4" />
+      <path d="M14 2v4h4" />
+      <path d="M7 7h3" />
+      <path d="M7 11h4" />
+      <path d="M2 16h6l3 2h5a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2H9l-4-3H2v-3z" />
     </svg>
   );
 }
@@ -268,4 +279,5 @@ export function IconRefresh({ size = 16, className = '' }) {
     </svg>
   );
 }
+
 

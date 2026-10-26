@@ -95,9 +95,9 @@ export default function ClaimModal({ report, isOpen, onClose, onClaimSubmitted }
         )}
 
         {!hasActiveClaim && wasRejected && (
-          <div style={{ margin: '12px 0', padding: '12px 14px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <IconShield size={16} style={{ color: '#60A5FA', marginTop: '2px', flexShrink: 0 }} />
-            <span style={{ fontSize: '0.85rem', color: '#E2E8F0', lineHeight: 1.4 }}>
+          <div style={{ margin: '12px 0', padding: '12px 14px', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <IconShield size={16} style={{ color: 'var(--text-main)', marginTop: '2px', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: 1.4 }}>
               <strong>Previous Claim Was Rejected:</strong> If you think this was a mistake or you have stronger proof of ownership, you can submit a new claim. Please provide specific, distinguishing details (serial number, scratches, contents) to help administrators verify your ownership.
             </span>
           </div>

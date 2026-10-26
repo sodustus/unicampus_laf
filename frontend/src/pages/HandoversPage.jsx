@@ -309,12 +309,12 @@ export default function HandoversPage({
                 </div>
 
                 {/* Custody Location Banner */}
-                <div style={{ margin: '14px 0', background: 'rgba(0, 0, 0, 0.3)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ margin: '14px 0', background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 'var(--radius)', border: '1px solid var(--border-subtle)' }}>
                   <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                     Physical Item Custody Location:
                   </span>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                    <p style={{ margin: 0, fontWeight: 700, color: '#F1F5F9', fontSize: '0.92rem' }}>
+                    <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-main)', fontSize: '0.92rem' }}>
                       {c.report?.possession_status === 'submitted_to_authority'
                         ? `Deposited at Campus Office: ${c.report?.custody_location || 'Campus Administration Security Desk'}`
                         : 'Held Directly by Finder (Coordinate Safe Campus Pickup)'}
@@ -336,12 +336,12 @@ export default function HandoversPage({
                 {/* Unmasked Contact Cards (Finder & Owner) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', margin: '14px 0' }}>
                   {/* Finder Details */}
-                  <div style={{ background: 'rgba(59, 130, 246, 0.06)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                    <span style={{ fontSize: '0.74rem', color: '#93C5FD', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '14px', borderRadius: 'var(--radius)', border: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--text-main)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Founder / Custodian Details
                     </span>
                     <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#F1F5F9' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
                         {c.finder?.full_name || 'Founder'}
                       </div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '2px' }}>
@@ -351,7 +351,7 @@ export default function HandoversPage({
                       <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         {c.finder?.phone_number ? (
                           <>
-                            <span style={{ color: '#6EE7B7', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <span style={{ color: 'var(--accent-found)', fontWeight: 700, fontSize: '0.85rem' }}>
                               {c.finder.phone_number}
                             </span>
                             <a
@@ -385,12 +385,12 @@ export default function HandoversPage({
                   </div>
 
                   {/* Owner / Claimant Details */}
-                  <div style={{ background: 'rgba(16, 185, 129, 0.06)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                    <span style={{ fontSize: '0.74rem', color: '#6EE7B7', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ background: 'var(--bg-card)', padding: '14px', borderRadius: 'var(--radius)', border: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--accent-found)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Verified True Owner Details
                     </span>
                     <div style={{ marginTop: '8px' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#F1F5F9' }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)' }}>
                         {(c.owner || c.claimant)?.full_name || 'Owner'}
                       </div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '2px' }}>
@@ -400,7 +400,7 @@ export default function HandoversPage({
                       <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         {(c.owner || c.claimant)?.phone_number ? (
                           <>
-                            <span style={{ color: '#6EE7B7', fontWeight: 700, fontSize: '0.85rem' }}>
+                            <span style={{ color: 'var(--accent-found)', fontWeight: 700, fontSize: '0.85rem' }}>
                               {(c.owner || c.claimant).phone_number}
                             </span>
                             <a
@@ -436,15 +436,15 @@ export default function HandoversPage({
 
                 {/* Two-Step Handover Receipt & Completion Actions */}
                 {c.status === 'approved' && (
-                  <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ marginTop: '14px', padding: '14px', background: 'var(--accent-found-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--accent-found)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
                       {c.owner_confirmed_receipt ? (
-                        <span style={{ color: '#6EE7B7', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--accent-found)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
                           <IconCheck size={16} />
                           <span>Physical Item Receipt Confirmed by Owner! Awaiting Administrator final verification.</span>
                         </span>
                       ) : (
-                        <span style={{ color: '#FCD34D', fontWeight: 600, fontSize: '0.86rem' }}>
+                        <span style={{ color: 'var(--accent-gold)', fontWeight: 600, fontSize: '0.86rem' }}>
                           Pending Physical Pickup: Owner must meet, inspect item, and confirm receipt.
                         </span>
                       )}
@@ -453,7 +453,7 @@ export default function HandoversPage({
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                       {/* Finder guidance */}
                       {isFinder && !isOwner && !isAdmin && (
-                        <span style={{ fontSize: '0.78rem', color: '#93C5FD', padding: '4px 8px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', padding: '4px 8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)' }}>
                           Item in your physical custody &bull; Awaiting owner pickup
                         </span>
                       )}
@@ -491,12 +491,12 @@ export default function HandoversPage({
 
                 {/* Handover Mismatch Flagging Section */}
                 {c.status === 'approved' && (
-                  <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(0, 0, 0, 0.2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ marginTop: '12px', padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                         In-person physical inspection status:
-                        {c.finder_handover_failed && <strong style={{ color: '#F87171' }}> Finder flagged mismatch. </strong>}
-                        {c.claimant_handover_failed && <strong style={{ color: '#F87171' }}> Claimant flagged mismatch. </strong>}
+                        {c.finder_handover_failed && <strong style={{ color: 'var(--accent-lost)' }}> Finder flagged mismatch. </strong>}
+                        {c.claimant_handover_failed && <strong style={{ color: 'var(--accent-lost)' }}> Claimant flagged mismatch. </strong>}
                         {!c.finder_handover_failed && !c.claimant_handover_failed && <span> Awaiting meetup.</span>}
                       </span>
 
@@ -550,16 +550,16 @@ export default function HandoversPage({
 
                 {/* Handover Failed Status Banner */}
                 {c.status === 'handover_failed' && (
-                  <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F87171', fontWeight: 700 }}>
+                  <div style={{ marginTop: '14px', padding: '14px', background: 'var(--accent-lost-bg)', border: '1px solid var(--accent-lost)', borderRadius: 'var(--radius)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-lost)', fontWeight: 700 }}>
                       <IconAlert size={18} />
                       <span>Handover Aborted: Physical Item Mismatch</span>
                     </div>
-                    <p style={{ margin: '6px 0 8px 0', fontSize: '0.84rem', color: '#CBD5E1' }}>
+                    <p style={{ margin: '6px 0 8px 0', fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                       Both parties confirmed upon physical meetup that this item did not belong to the claimant.
                     </p>
                     {c.handover_failure_notes && (
-                      <div style={{ fontSize: '0.82rem', color: '#FCA5A5', background: 'rgba(0, 0, 0, 0.3)', padding: '6px 10px', borderRadius: '4px' }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--accent-lost)', background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', padding: '6px 10px', borderRadius: 'var(--radius)' }}>
                         <strong>Mismatch Notes:</strong> {c.handover_failure_notes}
                       </div>
                     )}

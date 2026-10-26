@@ -17,28 +17,21 @@ export default function CampusFeedPage({
 }) {
   return (
     <div className="campus-feed-page">
+      {/* Header Row */}
+      <div className="feed-header-row">
+        <div className="feed-header-left">
+          <h3 className="feed-section-heading">Campus Listings</h3>
+        </div>
+      </div>
+
       {/* Search & Filter Toolbar */}
       <SearchFilters
         filters={filters}
         onFilterChange={onFilterChange}
         categories={categories}
         onOpenReportModal={onOpenReportModal}
+        itemsCount={reports.length}
       />
-
-      {/* Header Row */}
-      <div className="feed-header-row">
-        <div className="feed-header-left">
-          <h3 className="feed-section-heading">Campus Listings</h3>
-          <span className="feed-items-count">
-            ({reports.length} {reports.length === 1 ? 'item' : 'items'} found)
-          </span>
-        </div>
-        <div className="feed-header-right">
-          <span className="badge badge-info">
-            {filters.type ? `${filters.type.toUpperCase()} ITEMS` : 'ALL REPORTS'}
-          </span>
-        </div>
-      </div>
 
       {/* Grid Content */}
       {loadingReports ? (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { IconMapPin, IconClock, IconTag, IconCheck } from './Icons';
+import { IconMapPin, IconCalendar, IconTag, IconCheck } from './Icons';
 
 export default function ReportCard({ report, onSelect, onRecover, onDelete, onViewProfile }) {
   const { user, isAdmin } = useAuth();
@@ -17,20 +17,20 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
     if (!report.possession_status || report.possession_status === 'lost_unknown') return null;
     if (report.possession_status === 'returned') {
       return (
-        <span className="badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#6EE7B7' }}>
+        <span className="badge badge-success">
           Returned
         </span>
       );
     }
     if (report.possession_status === 'submitted_to_authority') {
       return (
-        <span className="badge" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#C084FC' }}>
+        <span className="badge badge-info">
           At Campus Office
         </span>
       );
     }
     return (
-      <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#93C5FD' }}>
+      <span className="badge badge-warning">
         With Finder
       </span>
     );
@@ -75,7 +75,7 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
           <span className="item-category">{report.category?.name || 'General Item'}</span>
         </div>
         {report.status === 'deleted' && report.deletion_reason && (
-          <p style={{ margin: '4px 0', fontSize: '0.78rem', color: '#F87171' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.78rem', color: 'var(--accent-lost)' }}>
             <em>Reason: {report.deletion_reason}</em>
           </p>
         )}
@@ -88,7 +88,7 @@ export default function ReportCard({ report, onSelect, onRecover, onDelete, onVi
           <span>{report.location}</span>
         </span>
         <span className="meta-item" title="Date">
-          <IconClock size={13} />
+          <IconCalendar size={13} />
           <span>{formattedDate}</span>
         </span>
         {onViewProfile && report.owner_id && (

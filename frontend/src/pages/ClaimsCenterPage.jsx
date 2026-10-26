@@ -223,7 +223,7 @@ export default function ClaimsCenterPage({
             <span
               style={{
                 fontSize: '0.73rem',
-                color: isAuthority ? '#6EE7B7' : '#93C5FD',
+                color: isAuthority ? 'var(--accent-found)' : 'var(--text-main)',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
@@ -240,12 +240,12 @@ export default function ClaimsCenterPage({
                 alignItems: 'center',
                 gap: '6px',
                 padding: '4px 10px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius)',
                 fontSize: '0.82rem',
                 fontWeight: 700,
-                background: isAuthority ? 'rgba(16, 185, 129, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-                color: isAuthority ? '#34D399' : '#38BDF8',
-                border: isAuthority ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(56, 189, 248, 0.35)',
+                background: isAuthority ? 'var(--accent-found-bg)' : 'var(--bg-elevated)',
+                color: isAuthority ? 'var(--accent-found)' : 'var(--text-main)',
+                border: isAuthority ? '1px solid var(--accent-found)' : '1px solid var(--border-subtle)',
               }}
             >
               <span
@@ -253,24 +253,24 @@ export default function ClaimsCenterPage({
                   width: '7px',
                   height: '7px',
                   borderRadius: '50%',
-                  background: isAuthority ? '#34D399' : '#38BDF8',
+                  background: isAuthority ? 'var(--accent-found)' : 'var(--text-main)',
                 }}
               />
               {custodyLabel}
             </span>
 
             {locationText && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: '#E2E8F0' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-main)' }}>
                 <span style={{ color: 'var(--text-muted)' }}>&bull;</span>
                 <span style={{ color: 'var(--text-muted)' }}>Location Details:</span>
                 <span
                   style={{
-                    background: 'rgba(255, 255, 255, 0.06)',
+                    background: 'var(--bg-elevated)',
                     padding: '2px 8px',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 'var(--radius)',
+                    border: '1px solid var(--border-subtle)',
                     fontWeight: 600,
-                    color: '#F8FAFC',
+                    color: 'var(--text-main)',
                   }}
                 >
                   {locationText}
@@ -292,16 +292,16 @@ export default function ClaimsCenterPage({
         style={{
           marginTop: '12px',
           padding: '12px 14px',
-          background: 'rgba(245, 158, 11, 0.08)',
-          borderRadius: '8px',
-          border: '1px solid rgba(245, 158, 11, 0.25)',
+          background: 'var(--accent-gold-bg)',
+          borderRadius: 'var(--radius)',
+          border: '1px solid var(--accent-gold)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
           <span
             style={{
               fontSize: '0.74rem',
-              color: '#FCD34D',
+              color: 'var(--accent-gold)',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
@@ -310,7 +310,7 @@ export default function ClaimsCenterPage({
             {isLostItemMatch ? 'Finder Custody & Clarification Note:' : 'Additional Claimant Clarification Note:'}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', lineHeight: 1.5 }}>
+        <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-main)', lineHeight: 1.5 }}>
           {formattedNote}
         </p>
       </div>
@@ -413,10 +413,10 @@ export default function ClaimsCenterPage({
                         style={{
                           fontSize: '0.72rem',
                           padding: '2px 8px',
-                          borderRadius: '6px',
-                          background: isLostItemMatch ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                          color: isLostItemMatch ? '#6EE7B7' : '#93C5FD',
-                          border: isLostItemMatch ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: 'var(--radius)',
+                          background: isLostItemMatch ? 'var(--accent-found-bg)' : 'var(--bg-elevated)',
+                          color: isLostItemMatch ? 'var(--accent-found)' : 'var(--text-main)',
+                          border: isLostItemMatch ? '1px solid var(--accent-found)' : '1px solid var(--border-subtle)',
                           fontWeight: 600,
                         }}
                       >
@@ -427,13 +427,13 @@ export default function ClaimsCenterPage({
                         <span
                           className="badge"
                           style={{
-                            background: c.queue_position === 1 ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(100, 116, 139, 0.35)',
-                            color: '#FFFFFF',
+                            background: c.queue_position === 1 ? 'var(--accent-gold-bg)' : 'var(--bg-elevated)',
+                            color: c.queue_position === 1 ? 'var(--accent-gold)' : 'var(--text-main)',
                             fontSize: '0.72rem',
                             fontWeight: 700,
                             padding: '2px 8px',
-                            borderRadius: '9999px',
-                            border: c.queue_position === 1 ? '1px solid #FBBF24' : '1px solid rgba(148, 163, 184, 0.3)',
+                            borderRadius: 'var(--radius)',
+                            border: c.queue_position === 1 ? '1px solid var(--accent-gold)' : '1px solid var(--border-subtle)',
                           }}
                           title={c.queue_position === 1 ? 'Priority #1 in queue' : `Position #${c.queue_position} in verification queue`}
                         >
@@ -477,13 +477,13 @@ export default function ClaimsCenterPage({
                     style={{
                       margin: '16px 0',
                       padding: '16px',
-                      borderRadius: '10px',
-                      background: 'rgba(11, 15, 25, 0.85)',
-                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      borderRadius: 'var(--radius)',
+                      background: 'var(--bg-elevated)',
+                      border: '1px solid var(--border-subtle)',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                      <div style={{ color: '#38BDF8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <IconShield size={18} />
                         <strong style={{ fontSize: '0.92rem', letterSpacing: '0.02em' }}>
                           Double-Blind Verification Comparison
@@ -498,19 +498,19 @@ export default function ClaimsCenterPage({
                       {/* Side A: Report Secret Proof */}
                       <div
                         style={{
-                          background: 'rgba(0, 0, 0, 0.4)',
+                          background: 'var(--accent-lost-bg)',
                           padding: '12px 14px',
-                          borderRadius: '8px',
-                          border: '1px solid rgba(239, 68, 68, 0.35)',
+                          borderRadius: 'var(--radius)',
+                          border: '1px solid var(--accent-lost)',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                           <IconLock size={14} className="badge-danger" />
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-lost)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             {isLostItemMatch ? 'Owner Secret Proof (Lost Report)' : 'Report Secret Identifying Details'}
                           </span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                        <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
                           {c.report?.identifying_details || '(No secret identifying details entered on report)'}
                         </p>
                       </div>
@@ -518,19 +518,19 @@ export default function ClaimsCenterPage({
                       {/* Side B: Claimant / Finder Submitted Proof */}
                       <div
                         style={{
-                          background: 'rgba(0, 0, 0, 0.4)',
+                          background: 'var(--accent-found-bg)',
                           padding: '12px 14px',
-                          borderRadius: '8px',
-                          border: '1px solid rgba(16, 185, 129, 0.35)',
+                          borderRadius: 'var(--radius)',
+                          border: '1px solid var(--accent-found)',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                           <IconCheck size={14} className="badge-success" />
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#34D399', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-found)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             {isLostItemMatch ? 'Finder Blind Custody Proof' : 'Claimant Submitted Ownership Proof'}
                           </span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '0.86rem', color: '#F1F5F9', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                        <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
                           {c.verification_record?.proof_details || '(No proof details provided)'}
                         </p>
                       </div>
@@ -542,11 +542,11 @@ export default function ClaimsCenterPage({
 
                     {/* Rejection Note if Rejected */}
                     {c.status === 'rejected' && c.rejection_reason && (
-                      <div style={{ marginTop: '10px', padding: '10px 12px', background: 'rgba(239, 68, 68, 0.12)', borderRadius: '6px', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#F87171', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <div style={{ marginTop: '10px', padding: '10px 12px', background: 'var(--accent-lost-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--accent-lost)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-lost)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Recorded Rejection Reason:
                         </span>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: '#FCA5A5' }}>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.84rem', color: 'var(--accent-lost)' }}>
                           {c.rejection_reason}
                         </p>
                       </div>
@@ -559,23 +559,23 @@ export default function ClaimsCenterPage({
                   style={{
                     margin: '12px 0',
                     padding: '14px',
-                    borderRadius: '8px',
-                    background: 'rgba(59, 130, 246, 0.05)',
-                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    borderRadius: 'var(--radius)',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border-subtle)',
                   }}
                 >
-                  <div style={{ fontSize: '0.78rem', color: '#93C5FD', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 700, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Direct Party Contact & Campus Verification
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                     {/* Finder Card */}
-                    <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '10px 12px', borderRadius: '6px' }}>
-                      <span style={{ fontSize: '0.74rem', color: '#93C5FD', fontWeight: 700 }}>
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', padding: '10px 12px', borderRadius: 'var(--radius)' }}>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                         {isLostItemMatch ? 'Finder (Custody Reporter):' : 'Reporter / Founder:'}
                       </span>
                       <div style={{ marginTop: '4px' }}>
-                        <strong style={{ color: '#F1F5F9', fontSize: '0.9rem' }}>
+                        <strong style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
                           {c.finder?.full_name || 'Founder'}
                         </strong>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -583,7 +583,7 @@ export default function ClaimsCenterPage({
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--accent-found)', fontWeight: 600 }}>
                             {c.finder?.phone_number || 'No phone recorded'}
                           </span>
                           {c.finder?.phone_number && (
@@ -612,12 +612,12 @@ export default function ClaimsCenterPage({
                     </div>
 
                     {/* Owner / Claimant Card */}
-                    <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '10px 12px', borderRadius: '6px' }}>
-                      <span style={{ fontSize: '0.74rem', color: '#6EE7B7', fontWeight: 700 }}>
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', padding: '10px 12px', borderRadius: 'var(--radius)' }}>
+                      <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                         {isLostItemMatch ? 'True Owner (Lost Reporter):' : 'Claimant (Applicant):'}
                       </span>
                       <div style={{ marginTop: '4px' }}>
-                        <strong style={{ color: '#F1F5F9', fontSize: '0.9rem' }}>
+                        <strong style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}>
                           {(c.owner || c.claimant)?.full_name || 'Claimant'}
                         </strong>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -625,7 +625,7 @@ export default function ClaimsCenterPage({
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '0.8rem', color: '#6EE7B7', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--accent-found)', fontWeight: 600 }}>
                             {(c.owner || c.claimant)?.phone_number || 'No phone recorded'}
                           </span>
                           {(c.owner || c.claimant)?.phone_number && (
@@ -657,15 +657,15 @@ export default function ClaimsCenterPage({
 
                 {/* Handover Slip Summary when Approved */}
                 {c.status === 'approved' && (
-                  <div style={{ margin: '14px 0', padding: '14px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ margin: '14px 0', padding: '14px', background: 'var(--accent-found-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--accent-found)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
-                      <div style={{ color: '#6EE7B7', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ color: 'var(--accent-found)', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <IconCheck size={16} />
                         <span>Handover Approved & Ready for Mutual Receipt</span>
                       </div>
-                      <div style={{ fontSize: '0.82rem', color: '#CBD5E1', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                         {c.owner_confirmed_receipt ? (
-                          <strong style={{ color: '#6EE7B7' }}>Owner confirmed physical receipt! Final verification required.</strong>
+                          <strong style={{ color: 'var(--accent-found)' }}>Owner confirmed physical receipt! Final verification required.</strong>
                         ) : (
                           <span>Pending physical meetup and owner receipt confirmation.</span>
                         )}
@@ -717,7 +717,7 @@ export default function ClaimsCenterPage({
                   {/* Step 3: Request More Info */}
                   {(c.status === 'submitted' || c.status === 'under_review') && (
                     requestingInfoClaimId === c.id ? (
-                      <div style={{ width: '100%', marginTop: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '10px', borderRadius: '6px' }}>
+                      <div style={{ width: '100%', marginTop: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: 'var(--radius)' }}>
                         <input
                           type="text"
                           className="form-input"
@@ -762,7 +762,7 @@ export default function ClaimsCenterPage({
                   {/* Step 4: Reject Match or Ownership Claim (Mandatory Reason) */}
                   {c.status !== 'rejected' && c.status !== 'completed' && c.status !== 'handover_failed' && (
                     rejectingClaimId === c.id ? (
-                      <div style={{ width: '100%', marginTop: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '10px', borderRadius: '6px' }}>
+                      <div style={{ width: '100%', marginTop: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: 'var(--radius)' }}>
                         <input
                           type="text"
                           className="form-input"
@@ -807,7 +807,7 @@ export default function ClaimsCenterPage({
                   {/* Flag Mismatch on Approved Handover */}
                   {c.status === 'approved' && (
                     failingHandoverClaimId === c.id ? (
-                      <div style={{ width: '100%', marginTop: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '10px', borderRadius: '6px' }}>
+                      <div style={{ width: '100%', marginTop: '8px', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', padding: '10px', borderRadius: 'var(--radius)' }}>
                         <input
                           type="text"
                           className="form-input"

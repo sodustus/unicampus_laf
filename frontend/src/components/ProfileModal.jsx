@@ -209,22 +209,22 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
               <div
                 style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #3B82F6, #10B981)',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: 'var(--radius)',
+                  background: 'var(--text-main)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '1.8rem',
-                  color: '#fff',
-                  boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
+                  fontSize: '1.6rem',
+                  color: 'var(--bg-base)',
+                  fontWeight: 800,
                 }}
               >
                 {(profileData.full_name || profileData.email)[0].toUpperCase()}
               </div>
               <div>
-                <h4 style={{ margin: 0, fontSize: '1.25rem', color: '#F1F5F9' }}>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-main)' }}>
                   {profileData.full_name || 'Campus Student'}
                 </h4>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
@@ -268,18 +268,14 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
             {/* Handover Contact Box */}
             <div
               style={{
-                background: profileData.phone_number
-                  ? 'rgba(16, 185, 129, 0.1)'
-                  : 'rgba(51, 65, 85, 0.4)',
-                border: profileData.phone_number
-                  ? '1px solid rgba(16, 185, 129, 0.3)'
-                  : '1px solid rgba(100, 116, 139, 0.2)',
-                borderRadius: '10px',
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius)',
                 padding: '14px 18px',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#E2E8F0' }}>
+                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>
                   Handover Contact Phone
                 </span>
                 {profileData.phone_number ? (
@@ -295,7 +291,7 @@ export default function ProfileModal({ isOpen, onClose, targetUserId = null, isS
 
               {profileData.phone_number ? (
                 <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '1.15rem', fontWeight: 600, color: '#6EE7B7' }}>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--accent-found)' }}>
                     {profileData.phone_number}
                   </span>
                   <a

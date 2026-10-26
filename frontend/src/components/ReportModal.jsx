@@ -194,7 +194,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
             type="button"
             className={`tab-btn ${type === 'lost' ? 'active' : ''}`}
             onClick={() => setType('lost')}
-            style={type === 'lost' ? { background: 'rgba(239, 68, 68, 0.25)', color: '#FCA5A5' } : {}}
+            style={type === 'lost' ? { background: 'var(--accent-lost-bg)', color: 'var(--accent-lost)', borderColor: 'var(--accent-lost)' } : {}}
           >
             I Lost Something
           </button>
@@ -202,7 +202,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
             type="button"
             className={`tab-btn ${type === 'found' ? 'active' : ''}`}
             onClick={() => setType('found')}
-            style={type === 'found' ? { background: 'rgba(16, 185, 129, 0.25)', color: '#6EE7B7' } : {}}
+            style={type === 'found' ? { background: 'var(--accent-found-bg)', color: 'var(--accent-found)', borderColor: 'var(--accent-found)' } : {}}
           >
             I Found Something
           </button>
@@ -274,7 +274,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#FCD34D' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
                   Check Existing {type === 'found' ? 'Lost' : 'Found'} Items ({matchingCandidates.length} in this Category)
                 </span>
                 <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
@@ -291,10 +291,10 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                 style={{
                   maxHeight: '160px',
                   overflowY: 'auto',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: '6px',
+                  background: 'var(--bg-elevated)',
+                  borderRadius: 'var(--radius)',
                   padding: '8px 12px',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
                 }}
               >
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -303,7 +303,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                       key={cand.id}
                       style={{
                         padding: '8px 0',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderBottom: '1px solid var(--border-subtle)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -312,12 +312,12 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     >
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <strong style={{ color: '#F1F5F9', fontSize: '0.85rem' }}>{cand.title}</strong>
-                          <span style={{ fontSize: '0.75rem', color: '#93C5FD', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <strong style={{ color: 'var(--text-main)', fontSize: '0.85rem' }}>{cand.title}</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <IconMapPin size={12} /> {cand.location}
                           </span>
                         </div>
-                        <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {cand.description}
                         </p>
                       </div>
@@ -345,10 +345,10 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                   alignItems: 'center',
                   marginTop: '10px',
                   paddingTop: '8px',
-                  borderTop: '1px solid rgba(245, 158, 11, 0.2)',
+                  borderTop: '1px solid var(--border-subtle)',
                 }}
               >
-                <span style={{ fontSize: '0.8rem', color: matchConfirmed ? '#6EE7B7' : '#FCA5A5', fontWeight: 500 }}>
+                <span style={{ fontSize: '0.8rem', color: matchConfirmed ? 'var(--accent-found)' : 'var(--accent-lost)', fontWeight: 600 }}>
                   {matchConfirmed
                     ? 'Confirmed: None of these match my item'
                     : 'Please confirm that none of these match before posting'}
@@ -402,10 +402,10 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                 background: 'rgba(255, 255, 255, 0.03)',
                 padding: '14px',
                 borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--border-subtle)',
               }}
             >
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: '#E2E8F0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: 'var(--text-main)' }}>
                 Physical Possession & Handover Custody *
               </label>
               <p style={{ margin: '4px 0 10px 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -418,14 +418,15 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     alignItems: 'center',
                     gap: '10px',
                     padding: '10px 14px',
-                    borderRadius: '6px',
-                    background: possessionStatus === 'with_finder' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
-                    border: possessionStatus === 'with_finder' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: 'var(--radius)',
+                    background: possessionStatus === 'with_finder' ? 'var(--bg-elevated)' : 'var(--bg-card)',
+                    border: possessionStatus === 'with_finder' ? '2px solid var(--text-main)' : '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                     fontSize: '0.88rem',
                     fontWeight: 500,
                     width: '100%',
                     boxSizing: 'border-box',
+                    color: 'var(--text-main)',
                   }}
                 >
                   <input
@@ -444,14 +445,15 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                     alignItems: 'center',
                     gap: '10px',
                     padding: '10px 14px',
-                    borderRadius: '6px',
-                    background: possessionStatus === 'submitted_to_authority' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(255, 255, 255, 0.02)',
-                    border: possessionStatus === 'submitted_to_authority' ? '2px solid #38BDF8' : '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: 'var(--radius)',
+                    background: possessionStatus === 'submitted_to_authority' ? 'var(--bg-elevated)' : 'var(--bg-card)',
+                    border: possessionStatus === 'submitted_to_authority' ? '2px solid var(--text-main)' : '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                     fontSize: '0.88rem',
                     fontWeight: 500,
                     width: '100%',
                     boxSizing: 'border-box',
+                    color: 'var(--text-main)',
                   }}
                 >
                   <input
@@ -467,7 +469,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
 
               {possessionStatus === 'submitted_to_authority' && (
                 <div style={{ marginTop: '12px' }}>
-                  <label htmlFor="custody-location" style={{ fontSize: '0.85rem', color: '#CBD5E1' }}>
+                  <label htmlFor="custody-location" style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     Specific Office / Authority Location *
                   </label>
                   <input
@@ -482,7 +484,7 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
 
                   {/* Optional Custodian Phone Number */}
                   <div style={{ marginTop: '10px' }}>
-                    <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: '#CBD5E1' }}>
+                    <label style={{ fontWeight: 500, fontSize: '0.85rem', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
                       Custodian / Office Phone Number <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Optional, numbers only)</span>
                     </label>
                     <input
@@ -507,11 +509,11 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                         gap: '8px',
                         cursor: 'pointer',
                         fontSize: '0.78rem',
-                        color: '#CBD5E1',
-                        background: 'rgba(255, 255, 255, 0.02)',
+                        color: 'var(--text-muted)',
+                        background: 'var(--bg-elevated)',
                         padding: '5px 9px',
-                        borderRadius: '5px',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius)',
+                        border: '1px solid var(--border-subtle)',
                         lineHeight: 1.35,
                       }}
                     >
@@ -527,11 +529,11 @@ export default function ReportModal({ isOpen, onClose, onReportCreated, onInspec
                           margin: 0,
                           cursor: 'pointer',
                           flexShrink: 0,
-                          accentColor: '#38BDF8',
+                          accentColor: 'var(--text-main)',
                         }}
                       />
                       <span>
-                        <strong style={{ color: '#F1F5F9' }}>Allow owner phone contact:</strong> Permit the owner to call your registered phone if they have questions about where you deposited it.
+                        <strong style={{ color: 'var(--text-main)' }}>Allow owner phone contact:</strong> Permit the owner to call your registered phone if they have questions about where you deposited it.
                       </span>
                     </label>
                   </div>

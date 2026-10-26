@@ -10,8 +10,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Campus Lost & Found Management System API (Internal v8.1 / Demo v2.1)",
-    version="8.1.0",
+    description="Campus Lost & Found Management System API (Internal v9 / Public v3.0)",
+    version="9.0.0",
 )
 
 # CORS Middleware setup
