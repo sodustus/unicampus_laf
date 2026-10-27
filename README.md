@@ -12,6 +12,12 @@ A fullstack web application designed for university campuses to report lost belo
 
 1. [Overview](#overview)
 2. [Architecture & Tech Stack](#architecture--tech-stack)
+   - [Statement of the Problem](#statement-of-the-problem)
+   - [System Objectives](#system-objectives)
+   - [System User Roles](#system-user-roles)
+   - [Functional Requirements](#functional-requirements)
+   - [Non-Functional Requirements](#non-functional-requirements)
+   - [Technologies Used & Architectural Rationale](#technologies-used--architectural-rationale)
 3. [Prerequisites](#prerequisites)
 4. [System Flowchart](#system-flowchart)
 5. [Method 1: Run with Docker Compose (Recommended)](#method-1-run-with-docker-compose-recommended)
@@ -39,11 +45,121 @@ UniCampus Lost & Found provides a structured, role-based platform for campus com
 
 ## Architecture & Tech Stack
 
-* **Frontend**: React 19, Vite, Vanilla CSS with custom design system
-* **Backend**: Python 3.10+, FastAPI, SQLAlchemy 2.0 (Eager loading, ORM)
-* **Database**: PostgreSQL 16
-* **Authentication**: JWT Bearer tokens with Argon2/Bcrypt hashing and role-based access control (Student / Administrator)
-* **Testing**: Pytest, HTTPX TestClient
+### Statement of the Problem
+
+Higher education campuses host thousands of students, faculty, and visitors daily across lecture halls, libraries, laboratories, cafeterias, sports facilities, and dormitories. In this dynamic environment, personal belongings—ranging from laptops, mobile phones, and student ID cards to wallets, keys, and vital academic documents—are frequently misplaced. 
+
+Traditional university lost-and-found practices face critical operational and service challenges:
+
+* **Fragmented and Informal Reporting Channels**: Lost items are communicated through uncoordinated social media pages, instant messaging groups (Telegram, WhatsApp), or pinned to physical bulletin boards. Many lost items are never reported centrally, leading to poor recovery rates and administrative chaos.
+* **Vulnerability to Impersonation and False Claims**: Conventional notice boards publicly broadcast all details of recovered property (e.g., *"Found a black Dell laptop in Hall B"*). Dishonest individuals can easily impersonate the rightful owner without presenting verifiable evidence, resulting in campus theft and wrongful item release.
+* **Lack of Blind Verification Mechanisms**: Traditional setups have no mechanism to withhold identifying attributes (e.g., unique stickers, lockscreen wallpaper, serial numbers, engraved initials, or private bag contents) that only the genuine owner would know before releasing custody.
+* **Unregulated Handovers and Lack of Accountability**: Handover meetings are arranged informally with no digital record or identity verification. If an item is mismatched, damaged, or contested, neither the finder, the claimant, nor campus security has a reliable audit trail or resolution protocol.
+* **Limited Administrative Oversight and Auditing**: Campus administrators and security staff lack real-time visibility into active lost items, recovery velocity, dispute histories, or long-term resolution metrics required for campus safety compliance.
+
+---
+
+### System Objectives
+
+To overcome these challenges, UniCampus Lost & Found is built upon five foundational objectives:
+
+1. **Centralize Campus Lost & Found Operations**: Provide a unified, searchable, real-time repository for all lost and found property across campus faculties and facilities.
+2. **Prevent False Claims via Double-Blind Verification**: Keep identifying secrets hidden from the public and require claimants to submit independent proof details, reviewed and authorized by designated campus administrators.
+3. **Establish a Transparent FIFO Priority Queue**: Structure competing claims in an equitable First-In, First-Out queue with automated status locking to eliminate chaotic disputes.
+4. **Ensure Mutual Handover Accountability**: Implement a guided physical inspection protocol and digital dual-confirmation handshake with dispute handling and automatic listing reactivation on failed handovers.
+5. **Provide Comprehensive Governance and Audit Trails**: Equip campus security with real-time analytics, user access controls, and tamper-proof event logging.
+
+---
+
+### System User Roles
+
+| Role | Key Capabilities & Responsibilities |
+| :--- | :--- |
+| **Students & Staff (End-Users)** | • Submit detailed **Lost Reports** with locations, timestamps, categories, and descriptions.<br/>• Register **Found Items** with public descriptions and confidential **Secret Verification Details**.<br/>• Search and filter the live campus catalog by category, location, date, and status.<br/>• File ownership claims on found items by answering secret proof criteria.<br/>• Coordinate handover meetings, confirm safe returns, or flag item mismatches/disputes.<br/>• Monitor personal claims and report recovery statuses in their dashboard. |
+| **Campus Administrators & Security** | • Access the **Verification Console** to compare claimant proof against finder secrets side-by-side.<br/>• Approve verified claims or reject fraudulent/insufficient submissions with auditor notes.<br/>• Oversee the FIFO claim queue and mediate flagged handover disputes.<br/>• Moderate campus listings (edit, flag, reactivate, or close items).<br/>• Manage user accounts and assign role privileges.<br/>• Monitor campus resolution analytics, recovery rates, and category statistics.<br/>• Inspect immutable, chronological system audit trails for compliance. |
+
+---
+
+### Functional Requirements
+
+The system's core capabilities are divided into six operational modules:
+
+#### 1. User Authentication & Role-Based Access Control (RBAC)
+* Secure registration and authentication using institutional credentials.
+* Token-based authorization (JWT Bearer) enforcing strict permission boundaries between Students and Administrators.
+* Rapid multi-user role switcher for administrative demonstrations and workflow evaluation.
+
+#### 2. Lost & Found Incident Reporting & Catalog Management
+* Multi-attribute lost reporting: title, category, campus facility/room, date/time, description, and optional contact info.
+* Found item registration with mandatory **Secret Verification Details** (encrypted/stored separately and hidden from public endpoints).
+* Dynamic photo upload support and predefined campus location tags (Libraries, Cafeterias, Auditoriums, Dormitories, Laboratories).
+* Public catalog search and real-time filtering by listing type (`LOST` vs. `FOUND`), category, location, and date range.
+* Status tracking chips: `LOST`, `FOUND`, `CLAIMED`, `RESOLVED`, and `CANCELLED` (with mandatory cancellation reason).
+
+#### 3. Double-Blind Verification & Claim Queue
+* Ownership claim submission requiring claimants to articulate the item's private proof without seeing the finder's note.
+* First-In, First-Out (FIFO) queue management for multiple concurrent claims on high-value items.
+* Automatic listing state locking (`CLAIMED` / `PENDING_HANDOVER`) upon administrative approval to prevent duplicate handovers.
+
+#### 4. Administrative Moderation & Claim Adjudication
+* Dual-pane review console comparing the finder's confidential secret detail against the claimant's answer.
+* One-click claim approval or rejection with audit feedback recorded in the database.
+* Listing moderation tools to edit details, flag suspicious reports, or resolve disputes.
+
+#### 5. Mutual Handover & Safe Return Protocol
+* Standardized physical handover and inspection workflow for finder and claimant.
+* **Dual-Confirmation Handshake**: Both parties must independently confirm the item's safe return to close the report (`RESOLVED`).
+* **Failed Handover Flow**: If the physical inspection reveals a mismatch or dispute, the claim is flagged as `HANDOVER_FAILED`, and the listing is automatically reactivated (`ACTIVE`) for subsequent claimants in the queue.
+
+#### 6. Compliance Audit Trails & Resolution Analytics
+* Tamper-proof, immutable event logging capturing every state change, claim submission, approval, rejection, and handover confirmation.
+* Executive analytics dashboard featuring:
+  * Total items reported vs. recovered.
+  * System-wide recovery and resolution rate percentages.
+  * Average turnaround time from report to safe return.
+  * Category-wise incident distribution charts.
+
+---
+
+### Non-Functional Requirements
+
+* **Security & Data Privacy**: 
+  * Strict API-level boundary segregation ensuring confidential proof fields are never exposed in public listing payloads.
+  * Passwords hashed using industry-standard **Argon2** and salted **Bcrypt** schemes.
+  * Protected REST endpoints secured by signed JWT tokens with expiry validation.
+  * Parameterized SQL queries via SQLAlchemy ORM to prevent SQL injection vulnerabilities.
+* **Performance & Scalability**:
+  * Asynchronous non-blocking I/O with FastAPI, providing sub-millisecond route handling.
+  * B-tree indexed database queries on frequently filtered columns (`status`, `category_id`, `created_at`, `user_id`).
+  * Optimized single-page application (SPA) client bundle (< 200 KB gzip) with sub-second hot module replacement powered by Vite.
+* **Usability & Aesthetic Standards**:
+  * Modern Swiss Minimalist aesthetic with a clean monochromatic palette, distinct semantic state badges, and high-contrast typography.
+  * Responsive, mobile-first design ensuring seamless usability across smartphones, tablets, and desktop workstations.
+  * WCAG AA accessibility compliance with clear visual focus states and descriptive semantic markers.
+* **Data Integrity & Auditability**:
+  * ACID-compliant relational integrity managed by PostgreSQL 16 with foreign key constraints and cascade rules.
+  * Explicit SQLAlchemy 2.0 `selectinload` eager loading preventing N+1 query performance degradation.
+* **Maintainability & Testability**:
+  * Layered architecture strictly decoupling UI components, API routers, business logic, and database schemas.
+  * Complete automated test suite using Pytest and HTTPX TestClient covering all role permissions, lifecycle transitions, and anti-theft rules.
+
+---
+
+### Technologies Used & Architectural Rationale
+
+* **Frontend Layer**:
+  * **React 19 & Vite**: Chosen for efficient declarative UI rendering, modular component reusability, and rapid build tooling.
+  * **Vanilla CSS (Design Tokens)**: Clean, maintainable design system built with CSS custom properties—delivering bespoke typography, responsive layouts, and zero-runtime CSS overhead.
+  * **Lucide React Icons**: Consistent, high-clarity SVG iconography for intuitive navigation.
+* **Backend Layer**:
+  * **Python 3.10+ & FastAPI**: High-performance asynchronous web framework providing automatic OpenAPI (Swagger) documentation, dependency injection, and native type hinting.
+  * **Pydantic v2**: High-speed data parsing and validation ensuring all API inputs and outputs strictly adhere to defined schemas.
+  * **SQLAlchemy 2.0 ORM**: Modern, type-safe database toolkit facilitating clean object-relational mapping, relationship management, and transactional integrity.
+* **Database & Persistence**:
+  * **PostgreSQL 16**: Robust, enterprise-ready relational database offering reliable concurrency control, relational constraints, and scalable indexing.
+* **Authentication & Quality Assurance**:
+  * **PyJWT & Passlib**: Robust cryptographic credential verification and stateless session handling.
+  * **Pytest & HTTPX TestClient**: Comprehensive automated testing framework validating all business rules, edge cases, and role restrictions.
 
 ---
 
