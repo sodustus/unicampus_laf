@@ -13,16 +13,17 @@ A fullstack web application designed for university campuses to report lost belo
 1. [Overview](#overview)
 2. [Architecture & Tech Stack](#architecture--tech-stack)
 3. [Prerequisites](#prerequisites)
-4. [Method 1: Run with Docker Compose (Recommended)](#method-1-run-with-docker-compose-recommended)
-5. [Method 2: Run Locally (Without Docker)](#method-2-run-locally-without-docker)
+4. [System Flowchart](#system-flowchart)
+5. [Method 1: Run with Docker Compose (Recommended)](#method-1-run-with-docker-compose-recommended)
+6. [Method 2: Run Locally (Without Docker)](#method-2-run-locally-without-docker)
    - [Database Setup](#1-database-setup)
    - [Backend Setup](#2-backend-setup)
    - [Frontend Setup](#3-frontend-setup)
-6. [Method 3: Windows Quick Launcher](#method-3-windows-quick-launcher)
-7. [Default User Accounts & Credentials](#default-user-accounts--credentials)
-8. [Database Seeding & Reset Scripts](#database-seeding--reset-scripts)
-9. [Running Automated Tests](#running-automated-tests)
-10. [API Documentation](#api-documentation)
+7. [Method 3: Windows Quick Launcher](#method-3-windows-quick-launcher)
+8. [Default User Accounts & Credentials](#default-user-accounts--credentials)
+9. [Database Seeding & Reset Scripts](#database-seeding--reset-scripts)
+10. [Running Automated Tests](#running-automated-tests)
+11. [API Documentation](#api-documentation)
 
 ---
 
@@ -57,6 +58,76 @@ Before cloning, ensure you have the following installed depending on your setup 
   * Python 3.10 or higher
   * Node.js 18.x or higher (with npm)
   * PostgreSQL 14 or higher
+
+---
+
+## System Flowchart
+
+```mermaid
+flowchart LR
+    classDef startNode fill:#F1F5F9,stroke:#94A3B8,stroke-width:2px,color:#334155;
+    classDef decision fill:#FEF3C7,stroke:#F59E0B,stroke-width:2px,color:#92400E;
+    classDef lostFlow fill:#DBEAFE,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A;
+    classDef foundFlow fill:#DCFCE7,stroke:#22C55E,stroke-width:2px,color:#166534;
+    classDef claimFlow fill:#F3E8FF,stroke:#A855F7,stroke-width:2px,color:#6B21A8;
+    classDef rejectFlow fill:#FFE4E6,stroke:#F43F5E,stroke-width:2px,color:#9F1239;
+    classDef terminalNode fill:#1E293B,stroke:#0F172A,stroke-width:2px,color:#FFFFFF;
+
+    START(["Start"]):::startNode
+    D_EVENT{"What happened?"}:::decision
+
+    LOST_POST["User Posts<br/>Lost Report"]:::lostFlow
+    LOST_LIST["Listing appears<br/>as LOST"]:::lostFlow
+    D_NEXT{"What happens<br/>next?"}:::decision
+
+    OWNER_REC["Owner Marks<br/>as Recovered"]:::foundFlow
+    OWNER_DEL["Owner Deletes<br/>with Reason"]:::rejectFlow
+
+    FOUND_POST["User Posts<br/>Found Report"]:::foundFlow
+    FOUND_LIST["Listing appears<br/>as FOUND"]:::foundFlow
+
+    CLAIM_SUBMIT["Owner Submits Claim<br/>with Secret Proof"]:::claimFlow
+    D_ADMIN{"Admin Reviews<br/>Secret Proof"}:::decision
+    CLAIM_REJ["Claim Rejected"]:::rejectFlow
+    CLAIM_APP["Claim Approved"]:::foundFlow
+
+    MEETING["Physical Inspection<br/>& Handover Meeting"]:::foundFlow
+    CONFIRM["Both Confirm<br/>Safe Return"]:::foundFlow
+    HANDOVER_FAIL["Handover Failed<br/>(Mismatch Flagged)"]:::rejectFlow
+
+    END_CLOSED(["Item Recovered<br/>/ Closed"]):::terminalNode
+
+    START --> D_EVENT
+
+    D_EVENT -- "Lost an item" --> LOST_POST
+    LOST_POST --> LOST_LIST
+    LOST_LIST --> D_NEXT
+
+    D_EVENT -- "Found an item" --> FOUND_POST
+    FOUND_POST --> FOUND_LIST
+
+    D_NEXT -- "Owner finds it alone" --> OWNER_REC
+    D_NEXT -- "Owner cancels" --> OWNER_DEL
+    D_NEXT -- "Match Found" --> CLAIM_SUBMIT
+
+    OWNER_REC --> END_CLOSED
+    OWNER_DEL --> END_CLOSED
+
+    FOUND_LIST -- "Claim item" --> CLAIM_SUBMIT
+    CLAIM_SUBMIT --> D_ADMIN
+
+    D_ADMIN -- "Proof Fails" --> CLAIM_REJ
+    CLAIM_REJ -.-> FOUND_LIST
+
+    D_ADMIN -- "Proof Matches" --> CLAIM_APP
+    CLAIM_APP --> MEETING
+
+    MEETING -- "Item verified" --> CONFIRM
+    CONFIRM --> END_CLOSED
+
+    MEETING -- "Mismatch / Dispute" --> HANDOVER_FAIL
+    HANDOVER_FAIL -. "Listing reactivated<br/>for other claimants" .-> FOUND_LIST
+```
 
 ---
 
