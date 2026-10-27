@@ -3,7 +3,7 @@
 A fullstack web application designed for university campuses to report lost belongings, register found items, execute ownership verification workflows, and maintain transparent audit trails.
 
 **Developer**: Abdurezak Anwar  
-**Role**: Fullstack Developer  
+**Role**: Solo-Fullstack Developer  
 **INSA CTC ID**: CTC-2844-26  
 
 ---
