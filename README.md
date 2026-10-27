@@ -8,6 +8,11 @@ A fullstack web application designed for university campuses to report lost belo
 
 ---
 
+## Project Demo Video
+Watch the project demo here: [UniCampus Lost & Found Demo Video](https://drive.google.com/file/d/1JUy1xs4X7pcErB9NmmwA08fA8C2R_0l_/view?usp=sharing)
+
+---
+
 ## Table of Contents
 
 1. [Overview](#overview)
