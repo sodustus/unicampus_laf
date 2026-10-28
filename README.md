@@ -11,6 +11,16 @@ A fullstack web application designed for university campuses to report lost belo
 ## Project Demo Video
 Watch the project demo here: [UniCampus Lost & Found Demo Video](https://drive.google.com/file/d/1JUy1xs4X7pcErB9NmmwA08fA8C2R_0l_/view?usp=sharing)
 
+<p align="center">
+  <img src="demo_scs/hero.png" alt="Hero Screen" width="32%">
+  <img src="demo_scs/main.png" alt="Main Screen" width="32%">
+  <img src="demo_scs/admin.png" alt="Admin Screen" width="32%">
+</p>
+<p align="center">
+  <img src="demo_scs/lost.png" alt="Lost Item Screen" width="48%">
+  <img src="demo_scs/found.png" alt="Found Item Screen" width="48%">
+</p>
+
 ---
 
 ## Table of Contents
