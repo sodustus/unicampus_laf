@@ -106,7 +106,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
           <p className="guest-hero-subheading">Campus Lost & Found Management System</p>
 
           <p className="guest-hero-description">
-            A centralized verification and custody coordination network. Securely report lost belongings, list found items, track verified ownership claims, and coordinate safe handovers across campus.
+            Report lost belongings, register found items and track ownership claims through a transparent campus recovery process.
           </p>
 
           <div className="guest-feature-list">
@@ -116,7 +116,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
               </div>
               <div className="guest-feature-text">
                 <h4>Double-Blind Proof Verification</h4>
-                <p>Private distinguishing marks, stickers, and serial numbers are kept confidential to prevent fraudulent claims.</p>
+                <p>Ownership is checked using distinguishing details that aren't disclosed publicly, helping prevent fraudulent claims.</p>
               </div>
             </div>
 
@@ -126,7 +126,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
               </div>
               <div className="guest-feature-text">
                 <h4>First-Come, First-Served Queue</h4>
-                <p>Transparent queue positions with automatic multi-claim conflict suspension to ensure fair processing.</p>
+                <p>Transparent queue positions with conflicting claims handled through the review process by administrators.</p>
               </div>
             </div>
 
@@ -135,8 +135,8 @@ export default function GuestLandingPage({ onLoginSuccess }) {
                 <IconCheck size={16} />
               </div>
               <div className="guest-feature-text">
-                <h4>Verified Two-Step Physical Handover</h4>
-                <p>Owners must physically inspect and confirm item receipt before administrators finalize item recovery.</p>
+                <h4>Confirmed Physical Handover</h4>
+                <p>The claimant inspects and confirms receipt of the item before the recovery process is finalized.</p>
               </div>
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
                 <input
                   id="guest-email"
                   type="email"
-                  placeholder="e.g. abebebikila@campus.edu"
+                  placeholder="e.g. abc123@xyz.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -216,7 +216,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
 
                   <div className="form-group">
                     <label htmlFor="guest-phone">
-                      Phone Number <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>(Optional for Handover)</span>
+                      Phone Number <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>(optional, but required for item handovers)</span>
                     </label>
                     <input
                       id="guest-phone"
@@ -234,8 +234,8 @@ export default function GuestLandingPage({ onLoginSuccess }) {
                 {submitting
                   ? 'Processing...'
                   : isRegister
-                    ? 'Create Student Account'
-                    : 'Sign In to Campus Hub'}
+                    ? 'Create Account'
+                    : 'Sign In'}
               </button>
             </form>
           </div>
@@ -244,7 +244,7 @@ export default function GuestLandingPage({ onLoginSuccess }) {
 
       {/* Hero Page Footer */}
       <footer className="guest-hero-footer">
-        <p>v3.0 &bull; built by Abdurezak Anwar, 2026</p>
+        <p>v3 &bull; built by Abdurezak Anwar, 2026</p>
       </footer>
     </div>
   );
